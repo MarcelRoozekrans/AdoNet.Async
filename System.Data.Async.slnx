@@ -9,5 +9,6 @@
     <Project Path="tests/System.Data.Async.DataSet.Tests/System.Data.Async.DataSet.Tests.csproj" />
     <Project Path="tests/System.Data.Async.Adapters.Tests/System.Data.Async.Adapters.Tests.csproj" />
     <Project Path="tests/System.Data.Async.Validation.Tests/System.Data.Async.Validation.Tests.csproj" />
+    <Project Path="tests/System.Data.Async.Benchmarks/System.Data.Async.Benchmarks.csproj" />
   </Folder>
 </Solution>
