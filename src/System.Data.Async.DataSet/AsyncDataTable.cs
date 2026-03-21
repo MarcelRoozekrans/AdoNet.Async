@@ -83,6 +83,9 @@ public class AsyncDataTable : IDisposable
     // Async XML I/O
     public ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        // Note: DataTable.ReadXml does not support async I/O internally.
+        // This method provides API consistency but executes synchronously.
         using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
         _inner.ReadXml(reader);
         return default;
@@ -100,6 +103,9 @@ public class AsyncDataTable : IDisposable
 
     public ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        // Note: DataTable.ReadXmlSchema does not support async I/O internally.
+        // This method provides API consistency but executes synchronously.
         using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
         _inner.ReadXmlSchema(reader);
         return default;

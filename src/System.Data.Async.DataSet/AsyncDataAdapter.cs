@@ -17,9 +17,9 @@ public abstract class AsyncDataAdapter
     public abstract ValueTask<int> UpdateAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default);
 
 #pragma warning disable CA2012 // Sync-over-async bridge for backward compatibility
-    public int Fill(AsyncDataSet dataSet) => FillAsync(dataSet).AsTask().GetAwaiter().GetResult();
-    public int Fill(AsyncDataTable dataTable) => FillAsync(dataTable).AsTask().GetAwaiter().GetResult();
-    public int Update(AsyncDataSet dataSet) => UpdateAsync(dataSet).AsTask().GetAwaiter().GetResult();
-    public int Update(AsyncDataTable dataTable) => UpdateAsync(dataTable).AsTask().GetAwaiter().GetResult();
+    public int Fill(AsyncDataSet dataSet) => FillAsync(dataSet).GetAwaiter().GetResult();
+    public int Fill(AsyncDataTable dataTable) => FillAsync(dataTable).GetAwaiter().GetResult();
+    public int Update(AsyncDataSet dataSet) => UpdateAsync(dataSet).GetAwaiter().GetResult();
+    public int Update(AsyncDataTable dataTable) => UpdateAsync(dataTable).GetAwaiter().GetResult();
 #pragma warning restore CA2012
 }

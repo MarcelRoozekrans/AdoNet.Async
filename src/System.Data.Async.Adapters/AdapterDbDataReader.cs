@@ -72,4 +72,19 @@ public sealed class AdapterDbDataReader : AsyncDbDataReader
     public new bool Read() => _inner.Read();
     public new bool NextResult() => _inner.NextResult();
     public new void Close() => _inner.Close();
+
+    // Override to properly dispose the inner reader
+#pragma warning disable CA1816 // Hiding base Dispose to delegate to inner reader
+    public new async ValueTask DisposeAsync()
+    {
+        await _inner.DisposeAsync().ConfigureAwait(false);
+        GC.SuppressFinalize(this);
+    }
+
+    public new void Dispose()
+    {
+        _inner.Dispose();
+        GC.SuppressFinalize(this);
+    }
+#pragma warning restore CA1816
 }

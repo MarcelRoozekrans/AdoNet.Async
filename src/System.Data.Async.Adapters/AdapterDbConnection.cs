@@ -41,4 +41,19 @@ public sealed class AdapterDbConnection : AsyncDbConnection
     // Sync methods using native _inner (hide base class sync-over-async bridge)
     public new void Open() => _inner.Open();
     public new void Close() => _inner.Close();
+
+    // Override to properly dispose the inner connection
+#pragma warning disable CA1816 // Hiding base Dispose to delegate to inner connection
+    public new async ValueTask DisposeAsync()
+    {
+        await _inner.DisposeAsync().ConfigureAwait(false);
+        GC.SuppressFinalize(this);
+    }
+
+    public new void Dispose()
+    {
+        _inner.Dispose();
+        GC.SuppressFinalize(this);
+    }
+#pragma warning restore CA1816
 }
