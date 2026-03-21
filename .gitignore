@@ -27,3 +27,6 @@ x86/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 TestResult.xml
+
+## Benchmark artifacts
+BenchmarkDotNet.Artifacts/

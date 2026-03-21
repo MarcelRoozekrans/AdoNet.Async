@@ -170,4 +170,159 @@ public class ReaderParityTests
         asyncHasRows.Should().Be(rawHasRows);
         asyncRecordsAffected.Should().Be(rawRecordsAffected);
     }
+
+    [Fact]
+    public async Task NextResult_For_MultiResultSet()
+    {
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT Id, Name FROM Users ORDER BY Id LIMIT 2; SELECT Id, UserId FROM Orders ORDER BY Id LIMIT 2";
+        using var rawReader = rawCmd.ExecuteReader();
+
+        var rawFirstSet = new List<(long Id, string Name)>();
+        while (rawReader.Read())
+        {
+            rawFirstSet.Add((rawReader.GetInt64(0), rawReader.GetString(1)));
+        }
+
+        var rawHasSecond = rawReader.NextResult();
+        var rawSecondSet = new List<(long Id, long UserId)>();
+        while (rawReader.Read())
+        {
+            rawSecondSet.Add((rawReader.GetInt64(0), rawReader.GetInt64(1)));
+        }
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT Id, Name FROM Users ORDER BY Id LIMIT 2; SELECT Id, UserId FROM Orders ORDER BY Id LIMIT 2";
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync();
+
+        var asyncFirstSet = new List<(long Id, string Name)>();
+        while (await asyncReader.ReadAsync())
+        {
+            asyncFirstSet.Add((asyncReader.GetInt64(0), asyncReader.GetString(1)));
+        }
+
+        var asyncHasSecond = await asyncReader.NextResultAsync();
+        var asyncSecondSet = new List<(long Id, long UserId)>();
+        while (await asyncReader.ReadAsync())
+        {
+            asyncSecondSet.Add((asyncReader.GetInt64(0), asyncReader.GetInt64(1)));
+        }
+
+        asyncHasSecond.Should().Be(rawHasSecond);
+        asyncFirstSet.Should().BeEquivalentTo(rawFirstSet, opts => opts.WithStrictOrdering());
+        asyncSecondSet.Should().BeEquivalentTo(rawSecondSet, opts => opts.WithStrictOrdering());
+    }
+
+    [Fact]
+    public async Task GetFieldValueAsync_Matches_Sync_GetFieldValue()
+    {
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT Id, Name FROM Users WHERE Id = 1";
+        using var rawReader = rawCmd.ExecuteReader();
+        rawReader.Read();
+        var rawId = rawReader.GetInt64(0);
+        var rawName = rawReader.GetString(1);
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT Id, Name FROM Users WHERE Id = 1";
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync();
+        await asyncReader.ReadAsync();
+        var asyncId = await asyncReader.GetFieldValueAsync<long>(0);
+        var asyncName = await asyncReader.GetFieldValueAsync<string>(1);
+
+        asyncId.Should().Be(rawId);
+        asyncName.Should().Be(rawName);
+    }
+
+    [Fact]
+    public async Task Close_And_IsClosed_Behave_Same()
+    {
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT Id FROM Users LIMIT 1";
+        using var rawReader = rawCmd.ExecuteReader();
+        var rawIsClosedBefore = rawReader.IsClosed;
+        rawReader.Close();
+        var rawIsClosedAfter = rawReader.IsClosed;
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT Id FROM Users LIMIT 1";
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync();
+        var asyncIsClosedBefore = asyncReader.IsClosed;
+        await asyncReader.CloseAsync();
+        var asyncIsClosedAfter = asyncReader.IsClosed;
+
+        asyncIsClosedBefore.Should().Be(rawIsClosedBefore);
+        rawIsClosedBefore.Should().BeFalse();
+        asyncIsClosedAfter.Should().Be(rawIsClosedAfter);
+        rawIsClosedAfter.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Various_Field_Type_Accessors_Match()
+    {
+        using var setup = _fixture.Provider.CreateRawConnection();
+        setup.Open();
+        using var setupCmd = setup.CreateCommand();
+        setupCmd.CommandText = """
+            CREATE TABLE IF NOT EXISTS TypeTest (IntVal INTEGER, RealVal REAL, TextVal TEXT);
+            INSERT OR IGNORE INTO TypeTest VALUES (42, 3.14, 'hello');
+            """;
+        setupCmd.ExecuteNonQuery();
+
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT IntVal, RealVal, TextVal FROM TypeTest LIMIT 1";
+        using var rawReader = rawCmd.ExecuteReader();
+        rawReader.Read();
+        var rawInt = rawReader.GetInt64(0);
+        var rawDouble = rawReader.GetDouble(1);
+        var rawString = rawReader.GetString(2);
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT IntVal, RealVal, TextVal FROM TypeTest LIMIT 1";
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync();
+        await asyncReader.ReadAsync();
+        var asyncInt = asyncReader.GetInt64(0);
+        var asyncDouble = asyncReader.GetDouble(1);
+        var asyncString = asyncReader.GetString(2);
+
+        asyncInt.Should().Be(rawInt);
+        asyncDouble.Should().Be(rawDouble);
+        asyncString.Should().Be(rawString);
+    }
+
+    [Fact]
+    public async Task Depth_Property_Matches()
+    {
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT Id FROM Users LIMIT 1";
+        using var rawReader = rawCmd.ExecuteReader();
+        var rawDepth = rawReader.Depth;
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT Id FROM Users LIMIT 1";
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync();
+        var asyncDepth = asyncReader.Depth;
+
+        asyncDepth.Should().Be(rawDepth);
+    }
 }

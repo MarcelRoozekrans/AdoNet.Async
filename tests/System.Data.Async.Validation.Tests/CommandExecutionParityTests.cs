@@ -136,4 +136,92 @@ public class CommandExecutionParityTests
 
         asyncNames.Should().BeEquivalentTo(rawNames, opts => opts.WithStrictOrdering());
     }
+
+    [Fact]
+    public async Task PrepareAsync_Does_Not_Throw()
+    {
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT Name FROM Users WHERE Age > @age";
+        var rp = rawCmd.CreateParameter();
+        rp.ParameterName = "@age";
+        rp.Value = 25;
+        rawCmd.Parameters.Add(rp);
+
+        var preparingRaw = () => rawCmd.Prepare();
+        preparingRaw.Should().NotThrow();
+
+        var rawNames = new List<string>();
+        using var rawReader = rawCmd.ExecuteReader();
+        while (rawReader.Read()) rawNames.Add(rawReader.GetString(0));
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT Name FROM Users WHERE Age > @age";
+        var ap = asyncCmd.CreateParameter();
+        ap.ParameterName = "@age";
+        ap.Value = 25;
+        asyncCmd.Parameters.Add(ap);
+
+        var preparingAsync = async () => await asyncCmd.PrepareAsync();
+        await preparingAsync.Should().NotThrowAsync();
+
+        var asyncNames = new List<string>();
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync();
+        while (await asyncReader.ReadAsync()) asyncNames.Add(asyncReader.GetString(0));
+
+        asyncNames.Should().BeEquivalentTo(rawNames, opts => opts.WithStrictOrdering());
+    }
+
+    [Fact]
+    public async Task ExecuteReader_With_CommandBehavior_SchemaOnly()
+    {
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT Id, Name, Email FROM Users";
+        using var rawReader = rawCmd.ExecuteReader(CommandBehavior.SchemaOnly);
+        var rawHasRows = rawReader.Read();
+        var rawFieldCount = rawReader.FieldCount;
+        var rawColumns = new List<string>();
+        for (var i = 0; i < rawFieldCount; i++) rawColumns.Add(rawReader.GetName(i));
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT Id, Name, Email FROM Users";
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync(CommandBehavior.SchemaOnly);
+        var asyncHasRows = await asyncReader.ReadAsync();
+        var asyncFieldCount = asyncReader.FieldCount;
+        var asyncColumns = new List<string>();
+        for (var i = 0; i < asyncFieldCount; i++) asyncColumns.Add(asyncReader.GetName(i));
+
+        asyncHasRows.Should().Be(rawHasRows, "async SchemaOnly should match raw SchemaOnly read behavior");
+        asyncFieldCount.Should().Be(rawFieldCount);
+        asyncColumns.Should().BeEquivalentTo(rawColumns, opts => opts.WithStrictOrdering());
+    }
+
+    [Fact]
+    public async Task ExecuteReader_With_CommandBehavior_SingleRow()
+    {
+        using var raw = _fixture.Provider.CreateRawConnection();
+        raw.Open();
+        using var rawCmd = raw.CreateCommand();
+        rawCmd.CommandText = "SELECT Id, Name FROM Users ORDER BY Id";
+        using var rawReader = rawCmd.ExecuteReader(CommandBehavior.SingleRow);
+        var rawRowCount = 0;
+        while (rawReader.Read()) rawRowCount++;
+
+        await using var async_ = _fixture.Provider.CreateAsyncConnection();
+        await async_.OpenAsync();
+        var asyncCmd = async_.CreateCommand();
+        asyncCmd.CommandText = "SELECT Id, Name FROM Users ORDER BY Id";
+        await using var asyncReader = await asyncCmd.ExecuteReaderAsync(CommandBehavior.SingleRow);
+        var asyncRowCount = 0;
+        while (await asyncReader.ReadAsync()) asyncRowCount++;
+
+        asyncRowCount.Should().Be(rawRowCount, "async SingleRow should return the same number of rows as raw SingleRow");
+    }
 }
