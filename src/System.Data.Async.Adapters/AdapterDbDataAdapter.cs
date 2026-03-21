@@ -90,10 +90,66 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
         }
     }
 
-    // UpdateAsync - stub for now, will be fully implemented in Task 25
-    public override ValueTask<int> UpdateAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default)
-        => throw new NotSupportedException("UpdateAsync will be implemented in Task 25.");
+    public override async ValueTask<int> UpdateAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default)
+    {
+        return await UpdateRowsAsync(dataTable.Rows, dataTable.Columns, cancellationToken).ConfigureAwait(false);
+    }
 
-    public override ValueTask<int> UpdateAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default)
-        => throw new NotSupportedException("UpdateAsync will be implemented in Task 25.");
+    public override async ValueTask<int> UpdateAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default)
+    {
+        int totalAffected = 0;
+        foreach (DataTable table in dataSet.Tables)
+        {
+            totalAffected += await UpdateRowsAsync(table.Rows, table.Columns, cancellationToken).ConfigureAwait(false);
+        }
+
+        return totalAffected;
+    }
+
+    private async ValueTask<int> UpdateRowsAsync(DataRowCollection rows, DataColumnCollection columns, CancellationToken cancellationToken)
+    {
+        int affectedRows = 0;
+
+        // Snapshot the rows to avoid collection-modified-during-enumeration when AcceptChanges removes deleted rows
+        var rowList = new DataRow[rows.Count];
+        rows.CopyTo(rowList, 0);
+
+        foreach (DataRow row in rowList)
+        {
+            IAsyncDbCommand? command = row.RowState switch
+            {
+                DataRowState.Added => InsertCommand,
+                DataRowState.Modified => UpdateCommand,
+                DataRowState.Deleted => DeleteCommand,
+                _ => null
+            };
+
+            if (command == null)
+            {
+                continue;
+            }
+
+            // Set parameter values from row
+            foreach (IDbDataParameter param in command.Parameters)
+            {
+                if (string.IsNullOrEmpty(param.SourceColumn) || !columns.Contains(param.SourceColumn))
+                {
+                    continue;
+                }
+
+                param.Value = row.RowState == DataRowState.Deleted
+                    ? row[param.SourceColumn, DataRowVersion.Original]
+                    : row[param.SourceColumn, DataRowVersion.Current];
+            }
+
+            affectedRows += await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+
+            if (AcceptChangesDuringUpdate)
+            {
+                row.AcceptChanges();
+            }
+        }
+
+        return affectedRows;
+    }
 }
