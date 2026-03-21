@@ -14,5 +14,6 @@
     <PackageReference Include="NSubstitute" Version="5.*" />
     <PackageReference Include="FluentAssertions" Version="8.*" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
   </ItemGroup>
 </Project>
