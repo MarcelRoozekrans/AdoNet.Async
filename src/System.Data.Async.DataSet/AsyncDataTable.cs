@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Runtime.Serialization;
+using System.Xml;
 
 namespace System.Data.Async.DataSet;
 
@@ -78,6 +79,41 @@ public class AsyncDataTable : IDisposable
     public void WriteXml(Stream stream) => _inner.WriteXml(stream);
     public void WriteXml(Stream stream, XmlWriteMode mode) => _inner.WriteXml(stream, mode);
     public void WriteXmlSchema(Stream stream) => _inner.WriteXmlSchema(stream);
+
+    // Async XML I/O
+    public ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
+        _inner.ReadXml(reader);
+        return default;
+    }
+
+    public async ValueTask WriteXmlAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
+        await using (writer.ConfigureAwait(false))
+        {
+            _inner.WriteXml(writer);
+            await writer.FlushAsync().ConfigureAwait(false);
+        }
+    }
+
+    public ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
+        _inner.ReadXmlSchema(reader);
+        return default;
+    }
+
+    public async ValueTask WriteXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
+        await using (writer.ConfigureAwait(false))
+        {
+            _inner.WriteXmlSchema(writer);
+            await writer.FlushAsync().ConfigureAwait(false);
+        }
+    }
 
     // Async loading from IAsyncDataReader
     public async ValueTask<int> LoadAsync(IAsyncDataReader reader, CancellationToken cancellationToken = default)

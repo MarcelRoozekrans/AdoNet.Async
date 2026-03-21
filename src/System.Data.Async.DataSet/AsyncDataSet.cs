@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Xml;
 
 namespace System.Data.Async.DataSet;
 
@@ -51,6 +52,41 @@ public class AsyncDataSet : IDisposable
     public void Reset() => _inner.Reset();
     public void BeginInit() => _inner.BeginInit();
     public void EndInit() => _inner.EndInit();
+
+    // Async XML I/O
+    public ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
+        _inner.ReadXml(reader);
+        return default;
+    }
+
+    public async ValueTask WriteXmlAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
+        await using (writer.ConfigureAwait(false))
+        {
+            _inner.WriteXml(writer);
+            await writer.FlushAsync().ConfigureAwait(false);
+        }
+    }
+
+    public ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
+        _inner.ReadXmlSchema(reader);
+        return default;
+    }
+
+    public async ValueTask WriteXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
+        await using (writer.ConfigureAwait(false))
+        {
+            _inner.WriteXmlSchema(writer);
+            await writer.FlushAsync().ConfigureAwait(false);
+        }
+    }
 
     // Sync I/O
 #pragma warning disable CA5366 // Delegating to inner DataSet; callers control the stream
