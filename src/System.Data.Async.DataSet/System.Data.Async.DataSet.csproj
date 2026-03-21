@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>System.Data.Async.DataSet</RootNamespace>
+    <PackageId>System.Data.Async.DataSet</PackageId>
+    <Description>Async DataSet and DataTable with full Json.Net.DataSetConverters JSON compatibility.</Description>
+    <PackageTags>data;async;dataset;datatable;json</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\System.Data.Async\System.Data.Async.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
+  </ItemGroup>
+</Project>

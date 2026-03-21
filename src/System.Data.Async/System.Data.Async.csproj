@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>System.Data.Async</RootNamespace>
+    <PackageId>System.Data.Async</PackageId>
+    <Description>Async-first interfaces and base classes for System.Data. Drop-in replacement with modern async support.</Description>
+    <PackageTags>data;async;ado.net;database</PackageTags>
+  </PropertyGroup>
+</Project>
