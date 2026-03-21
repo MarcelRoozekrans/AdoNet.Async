@@ -241,7 +241,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
             writer.WriteValue(col.ColumnName);
 
             writer.WritePropertyName("DataType");
-            writer.WriteValue(col.DataType.FullName);
+            writer.WriteValue(col.DataType.AssemblyQualifiedName);
 
             writer.WritePropertyName("DateTimeMode");
             writer.WriteValue((int)col.DateTimeMode);
