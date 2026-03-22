@@ -1,3 +1,5 @@
+#pragma warning disable CA2012 // Use ValueTasks correctly -- guarded sync-to-async bridge
+
 namespace System.Data.Async.DataSet;
 
 public abstract class AsyncDataAdapter
@@ -16,10 +18,18 @@ public abstract class AsyncDataAdapter
     public abstract ValueTask<int> UpdateAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default);
     public abstract ValueTask<int> UpdateAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default);
 
-#pragma warning disable CA2012 // Sync-over-async bridge for backward compatibility
-    public int Fill(AsyncDataSet dataSet) => FillAsync(dataSet).GetAwaiter().GetResult();
-    public int Fill(AsyncDataTable dataTable) => FillAsync(dataTable).GetAwaiter().GetResult();
-    public int Update(AsyncDataSet dataSet) => UpdateAsync(dataSet).GetAwaiter().GetResult();
-    public int Update(AsyncDataTable dataTable) => UpdateAsync(dataTable).GetAwaiter().GetResult();
-#pragma warning restore CA2012
+    // Sync -> async bridge (throws on WASM)
+    public int Fill(AsyncDataSet dataSet) { ThrowIfBrowser(nameof(FillAsync)); return FillAsync(dataSet).GetAwaiter().GetResult(); }
+    public int Fill(AsyncDataTable dataTable) { ThrowIfBrowser(nameof(FillAsync)); return FillAsync(dataTable).GetAwaiter().GetResult(); }
+    public int Update(AsyncDataSet dataSet) { ThrowIfBrowser(nameof(UpdateAsync)); return UpdateAsync(dataSet).GetAwaiter().GetResult(); }
+    public int Update(AsyncDataTable dataTable) { ThrowIfBrowser(nameof(UpdateAsync)); return UpdateAsync(dataTable).GetAwaiter().GetResult(); }
+
+    private static void ThrowIfBrowser(string asyncMethodName)
+    {
+        if (OperatingSystem.IsBrowser())
+        {
+            throw new PlatformNotSupportedException(
+                $"Synchronous operations are not supported on this platform. Use {asyncMethodName}() instead.");
+        }
+    }
 }

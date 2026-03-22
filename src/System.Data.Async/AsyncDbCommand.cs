@@ -1,4 +1,4 @@
-#pragma warning disable CA2012 // Use ValueTasks correctly -- sync-to-async bridge by design
+#pragma warning disable CA2012 // Use ValueTasks correctly -- guarded sync-to-async bridge
 
 namespace System.Data.Async;
 
@@ -19,12 +19,12 @@ public abstract class AsyncDbCommand : IAsyncDbCommand
     protected abstract ValueTask<object?> ExecuteScalarCoreAsync(CancellationToken cancellationToken);
     protected abstract ValueTask PrepareCoreAsync(CancellationToken cancellationToken);
 
-    // Sync -> async bridge
-    public IAsyncDataReader ExecuteReader() => ExecuteDbReaderAsync(CommandBehavior.Default, CancellationToken.None).GetAwaiter().GetResult();
-    public IAsyncDataReader ExecuteReader(CommandBehavior behavior) => ExecuteDbReaderAsync(behavior, CancellationToken.None).GetAwaiter().GetResult();
-    public int ExecuteNonQuery() => ExecuteNonQueryCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
-    public object? ExecuteScalar() => ExecuteScalarCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
-    public void Prepare() => PrepareCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
+    // Sync -> async bridge (throws on WASM)
+    public IAsyncDataReader ExecuteReader() { SyncBridge.ThrowIfBrowser(nameof(ExecuteReaderAsync)); return ExecuteDbReaderAsync(CommandBehavior.Default, CancellationToken.None).GetAwaiter().GetResult(); }
+    public IAsyncDataReader ExecuteReader(CommandBehavior behavior) { SyncBridge.ThrowIfBrowser(nameof(ExecuteReaderAsync)); return ExecuteDbReaderAsync(behavior, CancellationToken.None).GetAwaiter().GetResult(); }
+    public int ExecuteNonQuery() { SyncBridge.ThrowIfBrowser(nameof(ExecuteNonQueryAsync)); return ExecuteNonQueryCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    public object? ExecuteScalar() { SyncBridge.ThrowIfBrowser(nameof(ExecuteScalarAsync)); return ExecuteScalarCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    public void Prepare() { SyncBridge.ThrowIfBrowser(nameof(PrepareAsync)); PrepareCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
 
     // Async delegates to core
     public ValueTask<IAsyncDataReader> ExecuteReaderAsync(CancellationToken cancellationToken = default)

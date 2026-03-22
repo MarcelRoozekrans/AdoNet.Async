@@ -1,4 +1,4 @@
-#pragma warning disable CA2012 // Use ValueTasks correctly -- sync-to-async bridge by design
+#pragma warning disable CA2012 // Use ValueTasks correctly -- guarded sync-to-async bridge
 
 namespace System.Data.Async;
 
@@ -15,13 +15,13 @@ public abstract class AsyncDbConnection : IAsyncDbConnection
     protected abstract ValueTask ChangeDatabaseCoreAsync(string databaseName, CancellationToken cancellationToken);
     protected abstract IAsyncDbCommand CreateDbCommand();
 
-    // Sync -> async bridge
-    public IAsyncDbTransaction BeginTransaction() => BeginDbTransactionAsync(IsolationLevel.Unspecified, CancellationToken.None).GetAwaiter().GetResult();
-    public IAsyncDbTransaction BeginTransaction(IsolationLevel il) => BeginDbTransactionAsync(il, CancellationToken.None).GetAwaiter().GetResult();
-    public void ChangeDatabase(string databaseName) => ChangeDatabaseCoreAsync(databaseName, CancellationToken.None).GetAwaiter().GetResult();
+    // Sync -> async bridge (throws on WASM)
+    public IAsyncDbTransaction BeginTransaction() { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(IsolationLevel.Unspecified, CancellationToken.None).GetAwaiter().GetResult(); }
+    public IAsyncDbTransaction BeginTransaction(IsolationLevel il) { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(il, CancellationToken.None).GetAwaiter().GetResult(); }
+    public void ChangeDatabase(string databaseName) { SyncBridge.ThrowIfBrowser(nameof(ChangeDatabaseAsync)); ChangeDatabaseCoreAsync(databaseName, CancellationToken.None).GetAwaiter().GetResult(); }
     public IAsyncDbCommand CreateCommand() => CreateDbCommand();
-    public void Open() => OpenCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
-    public void Close() => CloseCoreAsync().GetAwaiter().GetResult();
+    public void Open() { SyncBridge.ThrowIfBrowser(nameof(OpenAsync)); OpenCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    public void Close() { SyncBridge.ThrowIfBrowser(nameof(CloseAsync)); CloseCoreAsync().GetAwaiter().GetResult(); }
 
     // Async delegates to core
     public ValueTask<IAsyncDbTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
