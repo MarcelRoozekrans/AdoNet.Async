@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>System.Data.Async</RootNamespace>
-    <PackageId>System.Data.Async</PackageId>
-    <Description>Async-first interfaces and base classes for System.Data. Drop-in replacement with modern async support.</Description>
-    <PackageTags>data;async;ado.net;database</PackageTags>
+    <PackageId>AdoNet.Async</PackageId>
+    <Title>AdoNet.Async</Title>
+    <Description>Async-first interfaces and base classes for ADO.NET (System.Data). Drop-in replacement with modern async/await, IAsyncEnumerable, and ValueTask support.</Description>
+    <PackageTags>system.data.async;async;ado.net;database;valuetask;iasyncenumerable;dbconnection;dbcommand;datareader</PackageTags>
   </PropertyGroup>
 </Project>

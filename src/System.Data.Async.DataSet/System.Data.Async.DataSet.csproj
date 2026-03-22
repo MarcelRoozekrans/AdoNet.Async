@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>System.Data.Async.DataSet</RootNamespace>
-    <PackageId>System.Data.Async.DataSet</PackageId>
-    <Description>Async DataSet and DataTable with full Json.Net.DataSetConverters JSON compatibility.</Description>
-    <PackageTags>data;async;dataset;datatable;json</PackageTags>
+    <PackageId>AdoNet.Async.DataSet</PackageId>
+    <Title>AdoNet.Async.DataSet</Title>
+    <Description>Async DataSet and DataTable for ADO.NET (System.Data). Includes AsyncDataTable, AsyncDataSet, AsyncDataAdapter, and Newtonsoft.Json converters.</Description>
+    <PackageTags>system.data.async;async;ado.net;dataset;datatable;json;dataadapter;valuetask</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

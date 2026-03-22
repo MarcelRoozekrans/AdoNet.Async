@@ -1,22 +1,22 @@
-# System.Data.Async
+# AdoNet.Async
 
 Async-first interfaces and base classes for ADO.NET. A drop-in replacement that brings modern `async/await`, `IAsyncEnumerable`, and `ValueTask` support to `System.Data`.
 
-[![NuGet](https://img.shields.io/nuget/v/System.Data.Async.svg)](https://www.nuget.org/packages/System.Data.Async)
-[![NuGet](https://img.shields.io/nuget/v/System.Data.Async.DataSet.svg)](https://www.nuget.org/packages/System.Data.Async.DataSet)
-[![NuGet](https://img.shields.io/nuget/v/System.Data.Async.Adapters.svg)](https://www.nuget.org/packages/System.Data.Async.Adapters)
+[![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.svg)](https://www.nuget.org/packages/AdoNet.Async)
+[![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.DataSet.svg)](https://www.nuget.org/packages/AdoNet.Async.DataSet)
+[![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Adapters.svg)](https://www.nuget.org/packages/AdoNet.Async.Adapters)
 
 ## Installation
 
 ```bash
 # Core interfaces and abstract base classes (zero dependencies)
-dotnet add package System.Data.Async
+dotnet add package AdoNet.Async
 
 # Async DataTable, DataSet, DataAdapter + JSON converters
-dotnet add package System.Data.Async.DataSet
+dotnet add package AdoNet.Async.DataSet
 
 # Adapter wrappers for existing ADO.NET providers + DI extensions
-dotnet add package System.Data.Async.Adapters
+dotnet add package AdoNet.Async.Adapters
 ```
 
 ## Quick Start
@@ -117,9 +117,9 @@ public class MyRepository(IAsyncDbProviderFactory factory)
 
 | Package | Description | Dependencies |
 |---------|-------------|-------------|
-| **System.Data.Async** | Core async interfaces (`IAsyncDbConnection`, `IAsyncDbCommand`, `IAsyncDataReader`, etc.) and abstract base classes | None |
-| **System.Data.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, `AsyncDataAdapter` + Newtonsoft.Json converters | Newtonsoft.Json |
-| **System.Data.Async.Adapters** | Adapter wrappers (`AdapterDbConnection`, etc.), `.AsAsync()` extension, DI registration | Microsoft.Extensions.DependencyInjection.Abstractions |
+| **AdoNet.Async** | Core async interfaces (`IAsyncDbConnection`, `IAsyncDbCommand`, `IAsyncDataReader`, etc.) and abstract base classes | None |
+| **AdoNet.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, `AsyncDataAdapter` + Newtonsoft.Json converters | Newtonsoft.Json |
+| **AdoNet.Async.Adapters** | Adapter wrappers (`AdapterDbConnection`, etc.), `.AsAsync()` extension, DI registration | Microsoft.Extensions.DependencyInjection.Abstractions |
 
 ## Validation & Benchmarks
 

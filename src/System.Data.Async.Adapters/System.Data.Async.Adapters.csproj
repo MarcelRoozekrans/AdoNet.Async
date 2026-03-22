@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>System.Data.Async.Adapters</RootNamespace>
-    <PackageId>System.Data.Async.Adapters</PackageId>
-    <Description>Adapters wrapping existing ADO.NET providers (DbConnection, DbCommand, DbDataReader) into System.Data.Async interfaces.</Description>
-    <PackageTags>data;async;adapter;ado.net</PackageTags>
+    <PackageId>AdoNet.Async.Adapters</PackageId>
+    <Title>AdoNet.Async.Adapters</Title>
+    <Description>Adapters wrapping existing ADO.NET providers (DbConnection, DbCommand, DbDataReader) into async interfaces. Includes .AsAsync() extension and DI support.</Description>
+    <PackageTags>system.data.async;async;ado.net;adapter;dbconnection;dbcommand;dependency-injection;valuetask</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
