@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.1...v0.1.2) (2026-03-22)
+
+
+### Features
+
+* add logo and wire into NuGet packages ([acaf3a3](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/acaf3a39cf1b996d97c29fb79a585b32aceef17a))
+
 ## [0.1.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.0...v0.1.1) (2026-03-22)
 
 
