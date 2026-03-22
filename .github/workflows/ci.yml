@@ -2,52 +2,50 @@ name: CI
 
 on:
   push:
-    branches: [main, 'release-please--**']
+    branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
-  lint-commits:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Lint commit messages
-        uses: wagoid/commitlint-github-action@v6
-        with:
-          configFile: .commitlintrc.yml
-
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "10.0.x"
+          dotnet-version: net10.0
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Run GitVersion
+        id: gitversion
+        run: |
+          VERSION=$(dotnet gitversion /showvariable SemVer)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Package version: $VERSION"
 
       - name: Restore
-        run: dotnet restore System.Data.Async.slnx
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build System.Data.Async.slnx --configuration Release --no-restore
+        run: dotnet build --no-restore -c Release -p:Version=${{ steps.gitversion.outputs.version }}
 
       - name: Test
-        run: dotnet test System.Data.Async.slnx --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test --no-build -c Release --verbosity normal
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-results
-          path: "**/*.trx"
+      - name: Pack
+        run: |
+          dotnet pack src/System.Data.Async/System.Data.Async.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.Adapters/System.Data.Async.Adapters.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.DataSet/System.Data.Async.DataSet.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+
+      - name: Push to NuGet (pre-release)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
