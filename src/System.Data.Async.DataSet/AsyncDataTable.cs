@@ -11,9 +11,9 @@ public class AsyncDataTable : IDisposable
     public AsyncDataTable() => _inner = new DataTable();
     public AsyncDataTable(string tableName) => _inner = new DataTable(tableName);
     public AsyncDataTable(string tableName, string tableNamespace) => _inner = new DataTable(tableName, tableNamespace);
-    internal AsyncDataTable(DataTable inner) => _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+    public AsyncDataTable(DataTable inner) => _inner = inner ?? throw new ArgumentNullException(nameof(inner));
 
-    internal DataTable InnerDataTable => _inner;
+    public DataTable InnerDataTable => _inner;
 
     // Properties - all delegate to _inner
     public string TableName { get => _inner.TableName; set => _inner.TableName = value; }
