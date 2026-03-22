@@ -1,0 +1,39 @@
+# Changelog
+
+## [0.1.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.0...v0.1.1) (2026-03-22)
+
+
+### Features
+
+* add abstract base classes (AsyncDbDataReader, AsyncDbTransaction, AsyncDbCommand, AsyncDbConnection) ([0813dd7](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/0813dd7f427e546a36de55c9c8e4ed5cbd0febe1))
+* add adapter package (AdapterDbConnection, AdapterDbCommand, AdapterDbDataReader, AdapterDbTransaction, extensions) ([57ad1be](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/57ad1bed323b79bf769c9f8a3f7e2ddd13dc450b))
+* add async XML I/O methods to AsyncDataTable and AsyncDataSet ([dfc2693](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/dfc2693fc6a99697d0829f6f6c3f5595d8324728))
+* add AsyncDataTable, AsyncDataSet, AsyncDataAdapter with FillAsync ([df4bda6](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/df4bda65c91d054754c17043f7d6b111bfcd84d9))
+* add benchmark project with 5 benchmark classes and custom parity exporter ([9140717](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/91407174366ffc5d4ea7d9c83c5750f012106753))
+* add BenchmarkDotNet project scaffold with shared benchmark infrastructure ([f2255f4](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/f2255f49d756d665187b92f0e21869a55c0f4c38))
+* add core async interfaces (IAsyncDataReader, IAsyncDbTransaction, IAsyncDbCommand, IAsyncDbConnection, IAsyncDbProviderFactory) ([e61ad94](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/e61ad94d60675ea9165bc88023aee3a14232ba28))
+* add cross-compatibility tests with Json.Net.DataSetConverters ([91900f6](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/91900f6d7e2ed5f355107be3e6b1ed3e3900e040))
+* add end-to-end integration tests ([736fad4](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/736fad4c7c2f2ed1eb4621a12791b56ceb7312a9))
+* add JSON converters compatible with Json.Net.DataSetConverters format ([8718adb](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/8718adb0b16545848f6e7a821b35ad07a156c812))
+* add Validation.Tests project with SQLite test infrastructure ([d2c08cd](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/d2c08cdb749dcc6e1816949a0439b80311ad395d))
+* implement UpdateAsync in AdapterDbDataAdapter ([017c476](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/017c47656a0937590439659a22b563da430d700a))
+* rename NuGet packages to AdoNet.Async (namespace unchanged) ([18a8668](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/18a866842854a8e1764464936d9e9830d61307e2))
+* scaffold solution with three packages and test projects ([20a216a](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/20a216a459119ab6efba9c59ccc0781718d55748))
+
+
+### Bug Fixes
+
+* proper inner disposal in adapters, honest async XML docs, sync bridge consistency ([a59e3b8](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/a59e3b85369495dbc0f9eb51b296ffb546cad735))
+* resolve all analyzer warnings from new analyzers, rerun benchmarks ([a5ff0cc](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/a5ff0ccaaaaaaf2b4fc0d12387b4cb23f2c304f8))
+
+
+### Documentation
+
+* add benchmark results to README, expand validation coverage to 40 tests ([db7cb7e](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/db7cb7efa90ff82e62954cd7547b5d5a61eed998))
+* add README with installation and usage examples ([7493cbf](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/7493cbf52814e430d2be3a5b080dc3e06365dac6))
+
+
+### Tests
+
+* add Connection, Command, Reader, and Transaction parity tests ([df53634](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/df5363424c112c71a16aee32e6d37571930e5543))
+* add DataAdapter, Serialization, Event, and EdgeCase parity tests ([e0bef87](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/e0bef87baae5496e188bcdfc5d250b297ca91b04))
