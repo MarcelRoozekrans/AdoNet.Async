@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.3...v0.1.4) (2026-03-22)
+
+
+### Bug Fixes
+
+* correct dotnet-version format (10.0.x not net10.0) ([f0cf3d2](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/f0cf3d20cc223a4cc54e68d2e97369e5d97318ad))
+
 ## [0.1.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.2...v0.1.3) (2026-03-22)
 
 
