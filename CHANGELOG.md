@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.2...v0.1.3) (2026-03-22)
+
+
+### Features
+
+* make AsyncDataTable and AsyncDataSet wrapping constructors and Inner properties public ([2485260](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/24852602530d57ab0e834c92964d3042dcfaf5b9))
+
 ## [0.1.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.1...v0.1.2) (2026-03-22)
 
 
