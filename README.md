@@ -1,6 +1,10 @@
-# AdoNet.Async
+<p align="center">
+  <img src="assets/logo.svg" alt="AdoNet.Async" width="128" />
+</p>
 
-Async-first interfaces and base classes for ADO.NET. A drop-in replacement that brings modern `async/await`, `IAsyncEnumerable`, and `ValueTask` support to `System.Data`.
+<h1 align="center">AdoNet.Async</h1>
+
+<p align="center">Async-first interfaces and base classes for ADO.NET. A drop-in replacement that brings modern <code>async/await</code>, <code>IAsyncEnumerable</code>, and <code>ValueTask</code> support to <code>System.Data</code>.</p>
 
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.svg)](https://www.nuget.org/packages/AdoNet.Async)
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.DataSet.svg)](https://www.nuget.org/packages/AdoNet.Async.DataSet)
