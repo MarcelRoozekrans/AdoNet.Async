@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Running;
 
 namespace System.Data.Async.Benchmarks.Infrastructure;
 
@@ -16,26 +17,28 @@ public sealed class AsyncParityExporter : IExporter
         logger.WriteLine("| Operation | Raw Mean (ns) | Async Mean (ns) | Delta % | Raw Alloc (B) | Async Alloc (B) | Alloc Delta (B) | Status |");
         logger.WriteLine("|-----------|---------------|-----------------|---------|---------------|-----------------|-----------------|--------|");
 
-        var groups = summary.BenchmarksCases
-            .GroupBy(b =>
-            {
-                var name = b.Descriptor.WorkloadMethod.Name;
-                if (name.StartsWith("Raw_", StringComparison.Ordinal))
-                    return name["Raw_".Length..];
-                if (name.StartsWith("Async_", StringComparison.Ordinal))
-                    return name["Async_".Length..];
-                return name;
-            }, StringComparer.Ordinal)
-            .Where(g => g.Count() >= 2)
-            .OrderBy(g => g.Key, StringComparer.Ordinal);
+        // Pre-build lookup dictionaries to avoid LINQ inside loops
+        var rawCases = new Dictionary<string, BenchmarkCase>(StringComparer.Ordinal);
+        var asyncCases = new Dictionary<string, BenchmarkCase>(StringComparer.Ordinal);
 
-        foreach (var group in groups)
+        foreach (var benchmarkCase in summary.BenchmarksCases)
         {
-            var rawCase = group.FirstOrDefault(b => b.Descriptor.WorkloadMethod.Name.StartsWith("Raw_", StringComparison.Ordinal));
-            var asyncCase = group.FirstOrDefault(b => b.Descriptor.WorkloadMethod.Name.StartsWith("Async_", StringComparison.Ordinal));
+            var name = benchmarkCase.Descriptor.WorkloadMethod.Name;
+            if (name.StartsWith("Raw_", StringComparison.Ordinal))
+            {
+                rawCases[name["Raw_".Length..]] = benchmarkCase;
+            }
+            else if (name.StartsWith("Async_", StringComparison.Ordinal))
+            {
+                asyncCases[name["Async_".Length..]] = benchmarkCase;
+            }
+        }
 
-            if (rawCase is null || asyncCase is null) continue;
+        foreach (var kvp in rawCases)
+        {
+            if (!asyncCases.TryGetValue(kvp.Key, out var asyncCase)) continue;
 
+            var rawCase = kvp.Value;
             var rawReport = summary[rawCase];
             var asyncReport = summary[asyncCase];
 
@@ -54,7 +57,7 @@ public sealed class AsyncParityExporter : IExporter
             var paramSuffix = rawCase.HasParameters ? $" ({rawCase.Parameters.DisplayInfo})" : "";
 
             logger.WriteLine(
-                $"| {group.Key}{paramSuffix} | {rawMean:N0} | {asyncMean:N0} | {deltaPct:+0.0;-0.0}% | {rawAlloc} | {asyncAlloc} | {allocDelta:+0;-0} | {status} |");
+                $"| {kvp.Key}{paramSuffix} | {rawMean:N0} | {asyncMean:N0} | {deltaPct:+0.0;-0.0}% | {rawAlloc} | {asyncAlloc} | {allocDelta:+0;-0} | {status} |");
         }
 
         logger.WriteLine();

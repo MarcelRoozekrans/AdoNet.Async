@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Data.Async.DataSet;
 using System.Globalization;
+using System.Runtime.InteropServices;
 
 using Newtonsoft.Json;
 
@@ -443,7 +444,11 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
                 reader.Read(); // Move to next property or EndObject
             }
 
-            var dataCols = columns.Select(c => table.Columns[c]!).ToArray();
+            var dataCols = new DataColumn[columns.Length];
+            for (int i = 0; i < columns.Length; i++)
+            {
+                dataCols[i] = table.Columns[columns[i]]!;
+            }
             var uc = new UniqueConstraint(constraintName, dataCols, isPrimaryKey);
 
             if (extendedProperties is not null)
@@ -646,7 +651,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
         finally
         {
             // Restore read-only state
-            foreach (var col in readOnlyColumns)
+            foreach (ref var col in CollectionsMarshal.AsSpan(readOnlyColumns))
             {
                 col.ReadOnly = true;
             }

@@ -30,3 +30,6 @@ TestResult.xml
 
 ## Benchmark artifacts
 BenchmarkDotNet.Artifacts/
+
+## Claude Code
+.claude/

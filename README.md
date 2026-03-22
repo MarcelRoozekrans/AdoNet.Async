@@ -143,45 +143,45 @@ Measured on Intel Core i9-12900HK, .NET 10.0.4, BenchmarkDotNet v0.15.8 (ShortRu
 
 | Method                      | Mean      | Ratio | Allocated | Alloc Ratio |
 |---------------------------- |----------:|------:|----------:|------------:|
-| Raw_ExecuteScalar           |  3.787 us |  1.00 |     720 B |        1.00 |
-| Async_ExecuteScalar         |  7.741 us |  2.09 |     912 B |        1.27 |
-| Raw_ExecuteNonQuery         |  4.914 us |  1.00 |     480 B |        1.00 |
-| Async_ExecuteNonQuery       | 10.851 us |  2.92 |     528 B |        0.73 |
-| Raw_ExecuteReader_Iterate   | 17.302 us |  1.00 |     704 B |        1.00 |
-| Async_ExecuteReader_Iterate | 28.616 us |  7.71 |     992 B |        1.38 |
+| Raw_ExecuteScalar           |  6.581 us |  1.00 |     720 B |        1.00 |
+| Async_ExecuteScalar         | 12.069 us |  1.83 |     912 B |        1.27 |
+| Raw_ExecuteNonQuery         |  9.355 us |  1.42 |     480 B |        0.67 |
+| Async_ExecuteNonQuery       | 16.063 us |  2.44 |     528 B |        0.73 |
+| Raw_ExecuteReader_Iterate   | 10.087 us |  1.53 |     704 B |        0.98 |
+| Async_ExecuteReader_Iterate | 16.023 us |  2.44 |     992 B |        1.38 |
 
 #### Connection Open/Close
 
 | Method          | Mean     | Ratio | Allocated | Alloc Ratio |
 |---------------- |---------:|------:|----------:|------------:|
-| Raw_OpenClose   | 22.31 us |  1.00 |     384 B |        1.00 |
-| Async_OpenClose | 28.81 us |  1.30 |     408 B |        1.06 |
+| Raw_OpenClose   | 15.54 us |  1.00 |     384 B |        1.00 |
+| Async_OpenClose | 14.35 us |  0.92 |     408 B |        1.06 |
 
 #### Data Reader Iteration (50 rows)
 
 | Method                     | Mean     | Ratio | Allocated | Alloc Ratio |
 |--------------------------- |---------:|------:|----------:|------------:|
-| Raw_ReadAll_Fields         | 22.28 us |  1.00 |    3.7 KB |        1.00 |
-| Async_ReadAll_ManualLoop   | 39.40 us |  1.77 |   3.98 KB |        1.08 |
-| Async_ReadAll_AwaitForeach | 37.93 us |  1.70 |   4.09 KB |        1.11 |
+| Raw_ReadAll_Fields         | 20.99 us |  1.00 |    3.7 KB |        1.00 |
+| Async_ReadAll_ManualLoop   | 33.13 us |  1.58 |   3.98 KB |        1.08 |
+| Async_ReadAll_AwaitForeach | 30.74 us |  1.46 |   4.09 KB |        1.11 |
 
 #### DataAdapter Fill
 
 | Method     | RowLimit | Mean       | Ratio | Allocated  | Alloc Ratio |
 |----------- |--------- |-----------:|------:|-----------:|------------:|
-| Raw_Fill   | 10       |   792.6 us |  1.00 |  94.42 KB  |        1.00 |
-| Async_Fill | 10       | 1,623.4 us |  2.05 |  78.88 KB  |        0.84 |
-| Raw_Fill   | 100      | 1,763.1 us |  1.00 | 160.19 KB  |        1.00 |
-| Async_Fill | 100      | 1,193.4 us |  0.68 | 117.40 KB  |        0.73 |
+| Raw_Fill   | 10       |   595.5 us |  1.00 |  94.42 KB  |        1.00 |
+| Async_Fill | 10       |   872.3 us |  1.46 |  78.88 KB  |        0.84 |
+| Raw_Fill   | 100      | 1,293.8 us |  1.00 | 160.21 KB  |        1.00 |
+| Async_Fill | 100      | 1,173.8 us |  0.92 | 117.40 KB  |        0.73 |
 
 #### Transactions
 
 | Method              | Mean       | Ratio | Allocated | Alloc Ratio |
 |-------------------- |-----------:|------:|----------:|------------:|
-| Raw_BeginCommit     |   8.755 us |  1.00 |   1.64 KB |        1.00 |
-| Async_BeginCommit   | 296.736 us | 34.69 |   1.79 KB |        1.09 |
-| Raw_BeginRollback   |   9.498 us |  1.00 |   1.65 KB |        1.00 |
-| Async_BeginRollback | 337.461 us | 39.45 |   1.73 KB |        1.06 |
+| Raw_BeginCommit     |   5.948 us |  1.00 |   1.64 KB |        1.00 |
+| Async_BeginCommit   | 240.697 us | 40.47 |   1.79 KB |        1.09 |
+| Raw_BeginRollback   |   6.040 us |  1.00 |   1.65 KB |        1.00 |
+| Async_BeginRollback | 233.939 us | 39.33 |   1.73 KB |        1.06 |
 
 > **Note:** Transaction overhead is high in this microbenchmark because SQLite serializes write transactions. In real-world usage with network-bound databases (SQL Server, PostgreSQL), the async overhead is negligible compared to I/O latency. Memory allocation overhead is consistently minimal (< 200 bytes per operation).
 

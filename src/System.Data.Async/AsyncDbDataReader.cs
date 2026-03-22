@@ -1,4 +1,5 @@
 #pragma warning disable CA2012 // Use ValueTasks correctly -- sync-to-async bridge by design
+#pragma warning disable HLQ006 // GetAsyncEnumerator returns reference type -- async iterators require compiler-generated state machines
 
 namespace System.Data.Async;
 
