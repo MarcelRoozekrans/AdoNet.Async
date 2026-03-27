@@ -116,6 +116,7 @@ public class NewtonsoftJsonCrossCompatibilityTests
         var result = JsonConvert.DeserializeObject<AsyncDataTable>(json, AsyncSettings())!;
 
         result.Rows[0]["Name"].Should().Be("Proposed");
+        result.Rows[0].RowState.Should().Be(DataRowState.Unchanged);
     }
 
     [Fact]
@@ -216,7 +217,7 @@ public class NewtonsoftJsonCrossCompatibilityTests
                 break;
             }
         }
-        hasUqCode.Should().BeTrue();
+        hasUqCode.Should().BeTrue(because: "a UniqueConstraint named 'UQ_Code' should have been deserialized");
     }
 
     [Fact]
