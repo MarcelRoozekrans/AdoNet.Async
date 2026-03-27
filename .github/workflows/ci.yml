@@ -45,6 +45,8 @@ jobs:
           dotnet pack src/System.Data.Async/System.Data.Async.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
           dotnet pack src/System.Data.Async.Adapters/System.Data.Async.Adapters.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
           dotnet pack src/System.Data.Async.DataSet/System.Data.Async.DataSet.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.Serialization.NewtonsoftJson/System.Data.Async.Serialization.NewtonsoftJson.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.Serialization.SystemTextJson/System.Data.Async.Serialization.SystemTextJson.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
 
       - name: Push to NuGet (pre-release)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
