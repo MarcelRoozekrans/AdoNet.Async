@@ -16,8 +16,14 @@
 # Core interfaces and abstract base classes (zero dependencies)
 dotnet add package AdoNet.Async
 
-# Async DataTable, DataSet, DataAdapter + JSON converters
+# Async DataTable, DataSet, DataAdapter
 dotnet add package AdoNet.Async.DataSet
+
+# Newtonsoft.Json converters (Json.Net.DataSetConverters wire format)
+dotnet add package AdoNet.Async.Serialization.NewtonsoftJson
+
+# System.Text.Json converters (same wire format)
+dotnet add package AdoNet.Async.Serialization.SystemTextJson
 
 # Adapter wrappers for existing ADO.NET providers + DI extensions
 dotnet add package AdoNet.Async.Adapters
@@ -95,6 +101,27 @@ string json = JsonConvert.SerializeObject(table, settings);
 var restored = JsonConvert.DeserializeObject<AsyncDataTable>(json, settings);
 ```
 
+### JSON serialization with System.Text.Json
+
+`AsyncDataTable` and `AsyncDataSet` also work with `System.Text.Json`, producing the same wire format:
+
+```csharp
+using System.Data.Async.Converters.SystemTextJson;
+using System.Text.Json;
+
+var options = new JsonSerializerOptions();
+options.Converters.Add(new AsyncDataTableJsonConverter());
+options.Converters.Add(new AsyncDataSetJsonConverter());
+
+// Serialize
+string json = JsonSerializer.Serialize(table, options);
+
+// Deserialize
+var restored = JsonSerializer.Deserialize<AsyncDataTable>(json, options);
+```
+
+Both serializers produce identical JSON — you can serialize with one and deserialize with the other.
+
 ### Dependency Injection
 
 Register an async provider factory from any existing `DbProviderFactory`:
@@ -122,7 +149,9 @@ public class MyRepository(IAsyncDbProviderFactory factory)
 | Package | Description | Dependencies |
 |---------|-------------|-------------|
 | **AdoNet.Async** | Core async interfaces (`IAsyncDbConnection`, `IAsyncDbCommand`, `IAsyncDataReader`, etc.) and abstract base classes | None |
-| **AdoNet.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, `AsyncDataAdapter` + Newtonsoft.Json converters | Newtonsoft.Json |
+| **AdoNet.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, and `AsyncDataAdapter` | None |
+| **AdoNet.Async.Serialization.NewtonsoftJson** | `AsyncDataTableConverter`, `AsyncDataSetConverter` for Newtonsoft.Json. Wire-compatible with `Json.Net.DataSetConverters`. | AdoNet.Async.DataSet, Newtonsoft.Json |
+| **AdoNet.Async.Serialization.SystemTextJson** | `AsyncDataTableJsonConverter`, `AsyncDataSetJsonConverter` for System.Text.Json. Same wire format. | AdoNet.Async.DataSet |
 | **AdoNet.Async.Adapters** | Adapter wrappers (`AdapterDbConnection`, etc.), `.AsAsync()` extension, DI registration | Microsoft.Extensions.DependencyInjection.Abstractions |
 
 ## Validation & Benchmarks
