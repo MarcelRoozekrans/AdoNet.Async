@@ -8,6 +8,8 @@
 
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.svg)](https://www.nuget.org/packages/AdoNet.Async)
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.DataSet.svg)](https://www.nuget.org/packages/AdoNet.Async.DataSet)
+[![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Serialization.NewtonsoftJson.svg)](https://www.nuget.org/packages/AdoNet.Async.Serialization.NewtonsoftJson)
+[![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Serialization.SystemTextJson.svg)](https://www.nuget.org/packages/AdoNet.Async.Serialization.SystemTextJson)
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Adapters.svg)](https://www.nuget.org/packages/AdoNet.Async.Adapters)
 
 ## Installation
@@ -156,7 +158,7 @@ public class MyRepository(IAsyncDbProviderFactory factory)
 
 ## Validation & Benchmarks
 
-The library includes a comprehensive validation test suite (40 tests) that proves behavioral parity with raw ADO.NET, and a benchmark suite measuring async wrapper overhead.
+The library includes a comprehensive validation test suite (40 tests) that proves behavioral parity with raw ADO.NET, an integration test suite (35 tests) covering interop and cross-serialization compatibility, and a benchmark suite measuring async wrapper and serialization overhead.
 
 ### Running
 
@@ -207,6 +209,21 @@ Measured on Intel Core i9-12900HK, .NET 10.0.4, BenchmarkDotNet v0.15.8 (ShortRu
 | Raw_Fill   | 100      | 1,293.8 us |  1.00 | 160.21 KB  |        1.00 |
 | Async_Fill | 100      | 1,173.8 us |  0.92 | 117.40 KB  |        0.73 |
 
+#### Serialization (AsyncDataTable, 10 / 100 rows)
+
+| Method | RowCount | Mean | Ratio | Allocated | Alloc Ratio |
+|---|---|---|---|---|---|
+| Newtonsoft_Serialize | 10 | — | 1.00 | — | 1.00 |
+| STJ_Serialize | 10 | — | — | — | — |
+| Newtonsoft_Deserialize | 10 | — | — | — | — |
+| STJ_Deserialize | 10 | — | — | — | — |
+| Newtonsoft_Serialize | 100 | — | 1.00 | — | 1.00 |
+| STJ_Serialize | 100 | — | — | — | — |
+| Newtonsoft_Deserialize | 100 | — | — | — | — |
+| STJ_Deserialize | 100 | — | — | — | — |
+
+> Run `dotnet run --project tests/System.Data.Async.Benchmarks -c Release -- --filter *Serialization*` to populate this table.
+
 #### Transactions
 
 | Method              | Mean       | Ratio | Allocated | Alloc Ratio |
@@ -228,6 +245,10 @@ Measured on Intel Core i9-12900HK, .NET 10.0.4, BenchmarkDotNet v0.15.8 (ShortRu
 | TransactionParityTests | 3 | Commit, Rollback, IsolationLevel |
 | DataAdapterParityTests | 3 | Fill DataTable/DataSet, Update roundtrip |
 | SerializationParityTests | 4 | XML data/schema roundtrip, JSON roundtrip |
+| DataTableInteropTests | 7 | `DataTable` ↔ `AsyncDataTable` wrapping is lossless (all row states, constraints, extended properties) |
+| DataSetInteropTests | 6 | `DataSet` ↔ `AsyncDataSet` wrapping is lossless (relations, constraints, row states across tables) |
+| NewtonsoftJsonCrossCompatibilityTests | 12 | Wire-compatibility with `Json.Net.DataSetConverters` in both directions; all row states, types, AutoIncrement |
+| SystemTextJsonCrossCompatibilityTests | 10 | STJ produces identical JSON as Newtonsoft; cross-deserializer round-trips; `AsyncDataSet` round-trip |
 | EventParityTests | 5 | Row/Column/Table events fire in same order |
 | EdgeCaseParityTests | 4 | Empty/large results, cancellation, empty fill |
 
