@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.4...v0.2.0) (2026-03-27)
+
+
+### Features
+
+* add AdoNet.Async.Serialization.NewtonsoftJson project with moved converters ([dab0663](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/dab066388135e51a8a58fdc43af6106070b6b361))
+* add AdoNet.Async.Serialization.SystemTextJson with AsyncDataTableJsonConverter and AsyncDataSetJsonConverter ([d2d644c](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/d2d644c4e7000b41a0db8ad5050559375dc99f61))
+
+
+### Bug Fixes
+
+* add missing numeric types to STJ WriteColumnValue; pass options through ReadTables; deduplicate WriteExtendedProperties ([e63e0c3](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/e63e0c3a4609b8be7ddac1e88ffe60f9c18bee1e))
+* deserialize Detached RowState as Added; add Proposed and Detached tests ([6cb3d24](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/6cb3d2435d528108f3213dfa699d08dd650b1d18))
+* handle DataRowVersion.Proposed and Detached rows in Newtonsoft converter ([9781b65](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/9781b653342a97b2ccdb76a6c85f522046c81f25))
+
 ## [0.1.4](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.3...v0.1.4) (2026-03-22)
 
 
