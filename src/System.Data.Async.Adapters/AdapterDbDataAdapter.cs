@@ -28,7 +28,7 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
                 var count = await dataTable.LoadAsync(reader, AcceptChangesDuringFill ? LoadOption.OverwriteChanges : LoadOption.Upsert, cancellationToken).ConfigureAwait(false);
                 if (AcceptChangesDuringFill)
                 {
-                    dataTable.AcceptChanges();
+                    await dataTable.AcceptChangesAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return count;
@@ -70,7 +70,7 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
                     var count = await table.LoadAsync(reader, AcceptChangesDuringFill ? LoadOption.OverwriteChanges : LoadOption.Upsert, cancellationToken).ConfigureAwait(false);
                     if (AcceptChangesDuringFill)
                     {
-                        table.AcceptChanges();
+                        await table.AcceptChangesAsync(cancellationToken).ConfigureAwait(false);
                     }
 
                     dataSet.Tables.Add(table);

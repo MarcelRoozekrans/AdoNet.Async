@@ -42,7 +42,7 @@ public sealed class SerializationBenchmarks : IDisposable
         {
             await _table.Rows.AddAsync(new object?[] { i, $"Product{i}", i % 10 + 1, (decimal)(i * 9.99), baseDate.AddDays(-i), i % 3 != 0 });
         }
-        _table.AcceptChanges();
+        await _table.AcceptChangesAsync();
 
         _newtonsoftJson = JsonConvert.SerializeObject(_table, _newtonsoftSettings);
         _stjJson = STJ.JsonSerializer.Serialize(_table, _stjOptions);

@@ -17,6 +17,7 @@ public sealed class AsyncDataRow
     public DataRowState RowState => _inner.RowState;
     public bool HasErrors => _inner.HasErrors;
     public string RowError => _inner.RowError;
+    public DataTable Table => _inner.Table;
     public bool HasVersion(DataRowVersion version) => _inner.HasVersion(version);
 
     // Getter-only indexers
@@ -45,15 +46,12 @@ public sealed class AsyncDataRow
 
     private async ValueTask SetValueCoreAsync(DataColumn column, object? value, CancellationToken cancellationToken)
     {
-        var rowArgs = new DataRowChangeEventArgs(_inner, DataRowAction.Change);
         var colArgs = new DataColumnChangeEventArgs(_inner, column, value);
 
-        await _table._rowChanging.InvokeAsync(rowArgs, cancellationToken).ConfigureAwait(false);
         await _table._columnChanging.InvokeAsync(colArgs, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         _inner[column] = value ?? DBNull.Value;
         await _table._columnChanged.InvokeAsync(colArgs, cancellationToken).ConfigureAwait(false);
-        await _table._rowChanged.InvokeAsync(rowArgs, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask DeleteAsync(CancellationToken cancellationToken = default)

@@ -26,7 +26,7 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Name", typeof(string));
         table.InnerDataTable.Rows.Add(1, "Alice");
         table.InnerDataTable.Rows.Add(2, "Bob");
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -47,7 +47,7 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         table.InnerDataTable.Rows.Add(1, "Alice");
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
         table.InnerDataTable.Rows[0]["Name"] = "Alicia";
 
         var settings = CreateSettings();
@@ -82,7 +82,7 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         table.InnerDataTable.Rows.Add(1, "Alice");
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
         table.InnerDataTable.Rows[0].Delete();
 
         var settings = CreateSettings();
@@ -99,7 +99,7 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         table.InnerDataTable.Rows.Add(1, DBNull.Value);
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -114,7 +114,7 @@ public class AsyncDataTableConverterTests
         var table = new AsyncDataTable("Test");
         table.Columns.Add("Amount", typeof(decimal));
         table.InnerDataTable.Rows.Add(123.456789012345678901234567890m);
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -131,7 +131,7 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Name", typeof(string));
         table.PrimaryKey = [idCol];
         table.InnerDataTable.Rows.Add(1, "Alice");
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -169,7 +169,7 @@ public class AsyncDataTableConverterTests
 
         var dt = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
         table.InnerDataTable.Rows.Add(42, "hello", true, 3.14, dt, 9876543210L);
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -228,7 +228,7 @@ public class AsyncDataTableConverterTests
         table.InnerDataTable.Rows.Add(1, "Unchanged");
         table.InnerDataTable.Rows.Add(2, "ToModify");
         table.InnerDataTable.Rows.Add(3, "ToDelete");
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
 
         table.InnerDataTable.Rows[1]["Name"] = "Modified";
         table.InnerDataTable.Rows[2].Delete();
@@ -252,7 +252,7 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         table.InnerDataTable.Rows.Add(1, "Original");
-        table.AcceptChanges();
+        table.InnerDataTable.AcceptChanges();
         table.InnerDataTable.Rows[0].BeginEdit();
         table.InnerDataTable.Rows[0]["Name"] = "Proposed";
         // EndEdit NOT called — row has DataRowVersion.Proposed

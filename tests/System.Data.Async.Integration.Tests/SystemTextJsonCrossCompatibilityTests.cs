@@ -28,7 +28,7 @@ public class SystemTextJsonCrossCompatibilityTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         await table.Rows.AddAsync([1, "Alice"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         var newtonsoftJson = NJsonConvert.SerializeObject(table, NewtonsoftAsyncSettings());
         var stjJson = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
@@ -45,7 +45,7 @@ public class SystemTextJsonCrossCompatibilityTests
         await table.Rows.AddAsync([1, "Unchanged"]);
         await table.Rows.AddAsync([2, "WillModify"]);
         await table.Rows.AddAsync([3, "WillDelete"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
         await table.Rows.AddAsync([4, "Added"]);
         await table.Rows[1].SetValueAsync("Val", "Modified");
         await table.Rows[2].DeleteAsync();
@@ -63,7 +63,7 @@ public class SystemTextJsonCrossCompatibilityTests
         table.Columns.Add("Amount", typeof(decimal));
         table.Columns.Add("Data", typeof(byte[]));
         await table.Rows.AddAsync([12345.6789012345678901234567m, new byte[] { 10, 20, 30 }]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         var newtonsoftJson = NJsonConvert.SerializeObject(table, NewtonsoftAsyncSettings());
         var stjJson = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
@@ -79,7 +79,7 @@ public class SystemTextJsonCrossCompatibilityTests
         table.Columns.Add("Price", typeof(decimal));
         await table.Rows.AddAsync([1, 49.99m]);
         await table.Rows.AddAsync([2, 99.99m]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
         await table.Rows[1].SetValueAsync("Price", 89.99m);
 
         var json = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
@@ -102,7 +102,7 @@ public class SystemTextJsonCrossCompatibilityTests
         await table.Rows.AddAsync([1, "Unchanged"]);
         await table.Rows.AddAsync([2, "WillModify"]);
         await table.Rows.AddAsync([3, "WillDelete"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
         await table.Rows.AddAsync([4, "Added"]);
         await table.Rows[1].SetValueAsync("Val", "Modified");
         await table.Rows[2].DeleteAsync();
@@ -147,7 +147,7 @@ public class SystemTextJsonCrossCompatibilityTests
         var guid = Guid.NewGuid();
         var bytes = new byte[] { 1, 2, 3 };
         await dt.Rows.AddAsync([true, 42, 9999999999L, 2.718, 12345.6789m, "hello", guid, bytes]);
-        dt.AcceptChanges();
+        await dt.AcceptChangesAsync();
 
         var json = System.Text.Json.JsonSerializer.Serialize(dt, StjOptions());
         var result = System.Text.Json.JsonSerializer.Deserialize<AsyncDataTable>(json, StjOptions())!;
@@ -170,7 +170,7 @@ public class SystemTextJsonCrossCompatibilityTests
         var nameCol = table.Columns.Add("Name", typeof(string));
         nameCol.AllowDBNull = true;
         await table.Rows.AddAsync([1, DBNull.Value]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         var json = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
         var result = System.Text.Json.JsonSerializer.Deserialize<AsyncDataTable>(json, StjOptions())!;
@@ -185,7 +185,7 @@ public class SystemTextJsonCrossCompatibilityTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Value", typeof(string));
         await table.Rows.AddAsync([1, "Test"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         // Serialize with STJ, deserialize with Newtonsoft
         var stjJson = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());

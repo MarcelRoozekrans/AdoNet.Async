@@ -50,7 +50,7 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void AcceptChanges_Clears_Row_States()
+    public async Task AcceptChanges_Clears_Row_States()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
@@ -60,20 +60,20 @@ public class AsyncDataTableTests
 
         row.RowState.Should().Be(DataRowState.Added);
 
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         row.RowState.Should().Be(DataRowState.Unchanged);
     }
 
     [Fact]
-    public void RejectChanges_Reverts_Changes()
+    public async Task RejectChanges_Reverts_Changes()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
         row.InnerDataRow["Id"] = 1;
         table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         row.InnerDataRow["Id"] = 99;
         row.RowState.Should().Be(DataRowState.Modified);
@@ -102,14 +102,14 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void Copy_Copies_Schema_And_Data()
+    public async Task Copy_Copies_Schema_And_Data()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
         row.InnerDataRow["Id"] = 42;
         table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         var copy = table.Copy();
 
@@ -135,12 +135,12 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void GetChanges_Returns_Changed_Rows()
+    public async Task GetChanges_Returns_Changed_Rows()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         table.InnerDataTable.Rows.Add(1);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         table.InnerDataTable.Rows.Add(2);
 
@@ -152,14 +152,14 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void Clear_Removes_All_Rows()
+    public async Task Clear_Removes_All_Rows()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         table.InnerDataTable.Rows.Add(1);
         table.InnerDataTable.Rows.Add(2);
 
-        table.Clear();
+        await table.ClearAsync();
 
         table.Rows.Count.Should().Be(0);
     }

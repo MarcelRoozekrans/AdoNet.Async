@@ -73,11 +73,13 @@ public class AsyncDataTable : IDisposable
     // Methods
     public AsyncDataRow NewRow() => new(_inner.NewRow(), this);
     public void ImportRow(DataRow row) => _inner.ImportRow(row);
-    public void AcceptChanges() => _inner.AcceptChanges();
+    [Obsolete("Use AcceptChangesAsync(). Calling AcceptChanges() bypasses async events.", error: true)]
+    public void AcceptChanges() => throw new NotSupportedException("Use AcceptChangesAsync().");
     public void RejectChanges() => _inner.RejectChanges();
     public DataTable? GetChanges() => _inner.GetChanges();
     public DataTable? GetChanges(DataRowState rowStates) => _inner.GetChanges(rowStates);
-    public void Clear() => _inner.Clear();
+    [Obsolete("Use ClearAsync(). Calling Clear() bypasses async events.", error: true)]
+    public void Clear() => throw new NotSupportedException("Use ClearAsync().");
     public DataTable Clone() => _inner.Clone();
     public DataTable Copy() => _inner.Copy();
     public void Merge(DataTable table) => _inner.Merge(table);
@@ -111,11 +113,19 @@ public class AsyncDataTable : IDisposable
         await _tableCleared.InvokeAsync(new DataTableClearEventArgs(_inner), cancellationToken).ConfigureAwait(false);
     }
 
-    public ValueTask AcceptChangesAsync(CancellationToken cancellationToken = default)
+    public async ValueTask AcceptChangesAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var changedRows = _inner.GetChanges(DataRowState.Modified | DataRowState.Added);
         _inner.AcceptChanges();
-        return ValueTask.CompletedTask;
+        if (changedRows is not null)
+        {
+            foreach (DataRow row in changedRows.Rows)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await _rowChanged.InvokeAsync(new DataRowChangeEventArgs(row, DataRowAction.Commit), cancellationToken).ConfigureAwait(false);
+            }
+        }
     }
 
     // Sync I/O

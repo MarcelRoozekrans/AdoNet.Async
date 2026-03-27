@@ -58,7 +58,7 @@ public class AsyncDataRowCollectionTests
     {
         var table = BuildTable();
         await table.Rows.AddAsync([1, "A"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
         await table.Rows[0].DeleteAsync();
         table.Rows.Count.Should().Be(1);
     }
@@ -68,7 +68,7 @@ public class AsyncDataRowCollectionTests
     {
         var table = BuildTable();
         await table.Rows.AddAsync([1, "Alice"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
         var row = table.Rows[0];
 
         await table.Rows.RemoveAsync(row);
@@ -82,7 +82,7 @@ public class AsyncDataRowCollectionTests
         var table = BuildTable();
         await table.Rows.AddAsync([1, "Alice"]);
         await table.Rows.AddAsync([2, "Bob"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         await table.Rows.RemoveAtAsync(0);
 
@@ -110,7 +110,7 @@ public class AsyncDataRowCollectionTests
     {
         var table = BuildTable();
         await table.Rows.AddAsync([1, "Alice"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
         var row = table.Rows[0];
 
         var deletingFired = false;

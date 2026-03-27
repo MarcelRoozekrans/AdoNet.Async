@@ -49,7 +49,7 @@ public class NewtonsoftJsonCrossCompatibilityTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Price", typeof(decimal));
         await table.Rows.AddAsync([1, 29.99m]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         var json = JsonConvert.SerializeObject(table, AsyncSettings());
         var result = JsonConvert.DeserializeObject<DataTable>(json, ReferenceSettings())!;
@@ -248,7 +248,7 @@ public class NewtonsoftJsonCrossCompatibilityTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         await table.Rows.AddAsync([1, "Alice"]);
-        table.AcceptChanges();
+        await table.AcceptChangesAsync();
 
         var asyncDs = new AsyncDataSet("MyDS");
         asyncDs.Tables.Add(table.InnerDataTable);

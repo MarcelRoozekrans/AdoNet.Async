@@ -68,7 +68,7 @@ public class EventParityTests
         var asyncRow = asyncTable.NewRow();
         await asyncRow.SetValueAsync("Id", 1);
         await asyncTable.Rows.AddAsync(asyncRow);
-        asyncTable.AcceptChanges();
+        await asyncTable.AcceptChangesAsync();
         await asyncRow.DeleteAsync();
 
         asyncEvents.Should().BeEquivalentTo(rawEvents, opts => opts.WithStrictOrdering());
