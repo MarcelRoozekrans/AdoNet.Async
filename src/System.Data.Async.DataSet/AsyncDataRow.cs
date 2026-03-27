@@ -17,8 +17,8 @@ public sealed class AsyncDataRow
     public DataRowState RowState => _inner.RowState;
     public bool HasErrors => _inner.HasErrors;
     public string RowError => _inner.RowError;
-    public DataTable Table => _inner.Table;
-    public AsyncDataTable AsyncTable => _table;
+    internal DataTable InnerTable => _inner.Table;
+    public AsyncDataTable Table => _table;
     public bool HasVersion(DataRowVersion version) => _inner.HasVersion(version);
 
     // Getter-only indexers
