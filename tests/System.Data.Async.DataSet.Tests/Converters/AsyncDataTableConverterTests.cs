@@ -259,29 +259,61 @@ public class AsyncDataTableConverterTests
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
-
-        // The JSON should contain "Proposed", not "Original"
         json.Should().Contain("Proposed");
         json.Should().NotContain("\"Original\"");
+
+        // Deserialize and verify the proposed value is preserved
+        var result = JsonConvert.DeserializeObject<AsyncDataTable>(json, settings)!;
+        result.Rows[0]["Name"].Should().Be("Proposed");
     }
 
     [Fact]
     public void Should_Deserialize_Detached_RowState_As_Added()
     {
-        // Build a table and serialize it to get the correct schema JSON,
-        // then manually patch the RowState to 64 (Detached) and deserialize
-        var table = new AsyncDataTable("T");
-        table.Columns.Add("Id", typeof(int));
-        table.Rows.Add(1);
-        table.AcceptChanges(); // Row is now Unchanged
+        // Build the JSON dynamically to avoid fragile string-replace and hardcoded type names
+        var intTypeName = typeof(int).AssemblyQualifiedName!;
+        var json = $$"""
+            {
+              "CaseSensitive": false,
+              "DisplayExpression": "",
+              "Locale": "",
+              "MinimumCapacity": 50,
+              "Namespace": "",
+              "Prefix": "",
+              "RemotingFormat": 0,
+              "TableName": "T",
+              "Columns": [
+                {
+                  "AllowDBNull": true,
+                  "AutoIncrement": false,
+                  "AutoIncrementSeed": 0,
+                  "AutoIncrementStep": 1,
+                  "Caption": "Id",
+                  "ColumnMapping": 1,
+                  "ColumnName": "Id",
+                  "DataType": "{{intTypeName}}",
+                  "DefaultValue": null,
+                  "Expression": "",
+                  "ExtendedProperties": [],
+                  "MaxLength": -1,
+                  "Namespace": "",
+                  "Prefix": "",
+                  "ReadOnly": false
+                }
+              ],
+              "Constraints": [],
+              "Rows": [
+                {
+                  "OriginalRow": null,
+                  "Id": 1,
+                  "RowState": 64
+                }
+              ]
+            }
+            """;
 
         var settings = CreateSettings();
-        var json = JsonConvert.SerializeObject(table, settings);
-
-        // Replace RowState 2 (Unchanged) with 64 (Detached) in the JSON
-        var patchedJson = json.Replace("\"RowState\":2", "\"RowState\":64");
-
-        var result = JsonConvert.DeserializeObject<AsyncDataTable>(patchedJson, settings)!;
+        var result = JsonConvert.DeserializeObject<AsyncDataTable>(json, settings)!;
 
         result.Rows[0]["Id"].Should().Be(1);
         result.Rows[0].RowState.Should().Be(DataRowState.Added);
