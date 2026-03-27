@@ -639,6 +639,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
                         currentRow.AcceptChanges();
                         break;
                     case DataRowState.Added:
+                    case DataRowState.Detached:
                         currentRow.AcceptChanges();
                         currentRow.SetAdded();
                         break;

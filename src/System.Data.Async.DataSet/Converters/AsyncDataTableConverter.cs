@@ -474,13 +474,18 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
         {
             writer.WriteStartObject();
 
+            var currentVersion = row.HasVersion(DataRowVersion.Proposed)
+                ? DataRowVersion.Proposed
+                : DataRowVersion.Current;
+
             switch (row.RowState)
             {
                 case DataRowState.Unchanged:
                 case DataRowState.Added:
+                case DataRowState.Detached:
                     writer.WritePropertyName("OriginalRow");
                     writer.WriteNull();
-                    WriteRowValues(writer, row, DataRowVersion.Current);
+                    WriteRowValues(writer, row, currentVersion);
                     writer.WritePropertyName("RowState");
                     writer.WriteValue((int)row.RowState);
                     break;
@@ -492,7 +497,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
                     writer.WritePropertyName("RowState");
                     writer.WriteValue((int)DataRowState.Modified);
                     writer.WriteEndObject();
-                    WriteRowValues(writer, row, DataRowVersion.Current);
+                    WriteRowValues(writer, row, currentVersion);
                     writer.WritePropertyName("RowState");
                     writer.WriteValue((int)DataRowState.Modified);
                     break;
@@ -634,6 +639,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
                         currentRow.AcceptChanges();
                         break;
                     case DataRowState.Added:
+                    case DataRowState.Detached:
                         currentRow.AcceptChanges();
                         currentRow.SetAdded();
                         break;

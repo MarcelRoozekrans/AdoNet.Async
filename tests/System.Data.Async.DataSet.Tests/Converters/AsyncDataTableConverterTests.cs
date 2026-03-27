@@ -246,6 +246,48 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
+    public void Should_Serialize_Proposed_Version_When_Row_In_BeginEdit()
+    {
+        var table = new AsyncDataTable("T");
+        table.Columns.Add("Id", typeof(int));
+        table.Columns.Add("Name", typeof(string));
+        table.Rows.Add(1, "Original");
+        table.AcceptChanges();
+        table.Rows[0].BeginEdit();
+        table.Rows[0]["Name"] = "Proposed";
+        // EndEdit NOT called — row has DataRowVersion.Proposed
+
+        var settings = CreateSettings();
+        var json = JsonConvert.SerializeObject(table, settings);
+
+        // The JSON should contain "Proposed", not "Original"
+        json.Should().Contain("Proposed");
+        json.Should().NotContain("\"Original\"");
+    }
+
+    [Fact]
+    public void Should_Deserialize_Detached_RowState_As_Added()
+    {
+        // Build a table and serialize it to get the correct schema JSON,
+        // then manually patch the RowState to 64 (Detached) and deserialize
+        var table = new AsyncDataTable("T");
+        table.Columns.Add("Id", typeof(int));
+        table.Rows.Add(1);
+        table.AcceptChanges(); // Row is now Unchanged
+
+        var settings = CreateSettings();
+        var json = JsonConvert.SerializeObject(table, settings);
+
+        // Replace RowState 2 (Unchanged) with 64 (Detached) in the JSON
+        var patchedJson = json.Replace("\"RowState\":2", "\"RowState\":64");
+
+        var result = JsonConvert.DeserializeObject<AsyncDataTable>(patchedJson, settings)!;
+
+        result.Rows[0]["Id"].Should().Be(1);
+        result.Rows[0].RowState.Should().Be(DataRowState.Added);
+    }
+
+    [Fact]
     public void Should_Handle_Column_Properties()
     {
         var table = new AsyncDataTable("Test");
