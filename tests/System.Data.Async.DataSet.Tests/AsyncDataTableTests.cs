@@ -165,6 +165,88 @@ public class AsyncDataTableTests
     }
 
     [Fact]
+    public async Task ClearAsync_Fires_TableClearingAsync_Before_And_TableClearedAsync_After()
+    {
+        using var table = new AsyncDataTable("Items");
+        table.Columns.Add("Id", typeof(int));
+        table.InnerDataTable.Rows.Add(1);
+
+        var clearingFired = false;
+        var clearedFired = false;
+        var clearingOrder = 0;
+        var clearedOrder = 0;
+        var callCounter = 0;
+        var rowCountAtClearing = -1;
+
+        table.TableClearingAsync += (_, _) =>
+        {
+            clearingOrder = ++callCounter;
+            clearingFired = true;
+            rowCountAtClearing = table.Rows.Count; // still 1 at this point
+            return ValueTask.CompletedTask;
+        };
+        table.TableClearedAsync += (_, _) =>
+        {
+            clearedOrder = ++callCounter;
+            clearedFired = true;
+            return ValueTask.CompletedTask;
+        };
+
+        await table.ClearAsync();
+
+        clearingFired.Should().BeTrue();
+        clearedFired.Should().BeTrue();
+        clearingOrder.Should().BeLessThan(clearedOrder);
+        rowCountAtClearing.Should().Be(1); // rows still present when Clearing fired
+        table.Rows.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ClearAsync_Respects_CancellationToken()
+    {
+        using var table = new AsyncDataTable("Items");
+        table.Columns.Add("Id", typeof(int));
+        table.InnerDataTable.Rows.Add(1);
+
+        using var cts = new CancellationTokenSource();
+        table.TableClearingAsync += (_, _) => { cts.Cancel(); return ValueTask.CompletedTask; };
+
+        Func<Task> act = async () => await table.ClearAsync(cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        table.Rows.Count.Should().Be(1); // rows not cleared
+    }
+
+    [Fact]
+    public async Task AcceptChangesAsync_Fires_RowChangedAsync_Commit_Per_Changed_Row()
+    {
+        using var table = new AsyncDataTable("Items");
+        table.Columns.Add("Id", typeof(int));
+        table.Columns.Add("Name", typeof(string));
+        table.InnerDataTable.Rows.Add(1, "Alice");
+        table.InnerDataTable.Rows.Add(2, "Bob");
+        await table.AcceptChangesAsync();
+
+        table.InnerDataTable.Rows.Add(3, "Added");
+        table.InnerDataTable.Rows[0]["Name"] = "Modified";
+
+        var commitArgs = new List<DataRowChangeEventArgs>();
+        table.RowChangedAsync += (args, _) =>
+        {
+            commitArgs.Add(args);
+            return ValueTask.CompletedTask;
+        };
+
+        await table.AcceptChangesAsync();
+
+        commitArgs.Should().HaveCount(2);
+        commitArgs.Should().AllSatisfy(a => a.Action.Should().Be(DataRowAction.Commit));
+        table.Rows[0].RowState.Should().Be(DataRowState.Unchanged);
+        table.Rows[1].RowState.Should().Be(DataRowState.Unchanged);
+        table.Rows[2].RowState.Should().Be(DataRowState.Unchanged);
+    }
+
+    [Fact]
     public void Implicit_Conversion_To_DataTable_Works()
     {
         using var asyncTable = new AsyncDataTable("Test");

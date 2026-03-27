@@ -109,6 +109,7 @@ public class AsyncDataTable : IDisposable
     public async ValueTask ClearAsync(CancellationToken cancellationToken = default)
     {
         await _tableClearing.InvokeAsync(new DataTableClearEventArgs(_inner), cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         _inner.Clear();
         await _tableCleared.InvokeAsync(new DataTableClearEventArgs(_inner), cancellationToken).ConfigureAwait(false);
     }

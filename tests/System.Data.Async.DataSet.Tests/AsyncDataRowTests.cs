@@ -198,4 +198,49 @@ public class AsyncDataRowTests
 
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
+
+    [Fact]
+    public async Task DeleteAsync_Respects_CancellationToken()
+    {
+        var (table, row) = BuildRow();
+        row.InnerDataRow["Id"] = 1;
+        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        table.InnerDataTable.AcceptChanges();
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        Func<Task> act = async () => await row.DeleteAsync(cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        row.RowState.Should().Be(DataRowState.Unchanged); // row not deleted
+    }
+
+    [Fact]
+    public async Task EndEditAsync_Fires_RowChangingAsync_Before_And_RowChangedAsync_After()
+    {
+        var (table, row) = BuildRow();
+        row.InnerDataRow["Id"] = 1;
+        row.InnerDataRow["Name"] = "Before";
+        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        table.InnerDataTable.AcceptChanges();
+
+        var changingFired = false;
+        var changedFired = false;
+        var changingOrder = 0;
+        var changedOrder = 0;
+        var callCounter = 0;
+
+        table.RowChangingAsync += (_, _) => { changingOrder = ++callCounter; changingFired = true; return ValueTask.CompletedTask; };
+        table.RowChangedAsync += (_, _) => { changedOrder = ++callCounter; changedFired = true; return ValueTask.CompletedTask; };
+
+        await row.BeginEditAsync();
+        row.InnerDataRow["Name"] = "After";
+        await row.EndEditAsync();
+
+        changingFired.Should().BeTrue();
+        changedFired.Should().BeTrue();
+        changingOrder.Should().BeLessThan(changedOrder);
+        row["Name"].Should().Be("After");
+    }
 }
