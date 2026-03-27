@@ -106,7 +106,7 @@ public class DataAdapterParityTests
         await adapter.FillAsync(table);
 
         // Modify
-        table.Rows[0]["Val"] = "modified";
+        await table.Rows[0].SetValueAsync("Val", "modified");
 
         // Update
         var affected = await adapter.UpdateAsync(table);

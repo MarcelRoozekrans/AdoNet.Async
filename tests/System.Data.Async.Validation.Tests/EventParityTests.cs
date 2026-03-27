@@ -13,7 +13,7 @@ public class EventParityTests
     public EventParityTests(ValidationFixture fixture) => _fixture = fixture;
 
     [Fact]
-    public void RowChanged_And_RowChanging_Fire_In_Same_Order()
+    public async Task RowChanged_And_RowChanging_Fire_In_Same_Order()
     {
         var rawEvents = new List<string>();
         var asyncEvents = new List<string>();
@@ -37,16 +37,16 @@ public class EventParityTests
         asyncTable.RowChanged += (_, e) => asyncEvents.Add($"Changed:{e.Action}");
 
         var asyncRow = asyncTable.NewRow();
-        asyncRow["Id"] = 1;
-        asyncRow["Name"] = "Alice";
-        asyncTable.Rows.Add(asyncRow);
-        asyncRow["Name"] = "Updated";
+        await asyncRow.SetValueAsync("Id", 1);
+        await asyncRow.SetValueAsync("Name", "Alice");
+        await asyncTable.Rows.AddAsync(asyncRow);
+        await asyncRow.SetValueAsync("Name", "Updated");
 
         asyncEvents.Should().BeEquivalentTo(rawEvents, opts => opts.WithStrictOrdering());
     }
 
     [Fact]
-    public void RowDeleted_And_RowDeleting_Fire_In_Same_Order()
+    public async Task RowDeleted_And_RowDeleting_Fire_In_Same_Order()
     {
         var rawEvents = new List<string>();
         var asyncEvents = new List<string>();
@@ -66,16 +66,16 @@ public class EventParityTests
         asyncTable.RowDeleting += (_, e) => asyncEvents.Add($"Deleting:{e.Action}");
         asyncTable.RowDeleted += (_, e) => asyncEvents.Add($"Deleted:{e.Action}");
         var asyncRow = asyncTable.NewRow();
-        asyncRow["Id"] = 1;
-        asyncTable.Rows.Add(asyncRow);
+        await asyncRow.SetValueAsync("Id", 1);
+        await asyncTable.Rows.AddAsync(asyncRow);
         asyncTable.AcceptChanges();
-        asyncRow.Delete();
+        await asyncRow.DeleteAsync();
 
         asyncEvents.Should().BeEquivalentTo(rawEvents, opts => opts.WithStrictOrdering());
     }
 
     [Fact]
-    public void ColumnChanged_And_ColumnChanging_Fire_In_Same_Order()
+    public async Task ColumnChanged_And_ColumnChanging_Fire_In_Same_Order()
     {
         var rawEvents = new List<string>();
         var asyncEvents = new List<string>();
@@ -94,15 +94,15 @@ public class EventParityTests
         asyncTable.ColumnChanging += (_, e) => asyncEvents.Add($"Changing:{e.Column!.ColumnName}");
         asyncTable.ColumnChanged += (_, e) => asyncEvents.Add($"Changed:{e.Column!.ColumnName}");
         var asyncRow = asyncTable.NewRow();
-        asyncRow["Val"] = "original";
-        asyncTable.Rows.Add(asyncRow);
-        asyncRow["Val"] = "updated";
+        await asyncRow.SetValueAsync("Val", "original");
+        await asyncTable.Rows.AddAsync(asyncRow);
+        await asyncRow.SetValueAsync("Val", "updated");
 
         asyncEvents.Should().BeEquivalentTo(rawEvents, opts => opts.WithStrictOrdering());
     }
 
     [Fact]
-    public void TableCleared_And_TableClearing_Fire_In_Same_Order()
+    public async Task TableCleared_And_TableClearing_Fire_In_Same_Order()
     {
         var rawEvents = new List<string>();
         var asyncEvents = new List<string>();
@@ -116,16 +116,16 @@ public class EventParityTests
 
         var asyncTable = new AsyncDataTable("Test");
         asyncTable.Columns.Add("Id", typeof(int));
-        asyncTable.Rows.Add(asyncTable.NewRow());
+        await asyncTable.Rows.AddAsync(asyncTable.NewRow());
         asyncTable.TableClearing += (_, _) => asyncEvents.Add("Clearing");
         asyncTable.TableCleared += (_, _) => asyncEvents.Add("Cleared");
-        asyncTable.Clear();
+        await asyncTable.ClearAsync();
 
         asyncEvents.Should().BeEquivalentTo(rawEvents, opts => opts.WithStrictOrdering());
     }
 
     [Fact]
-    public void TableNewRow_Fires_Same_As_Raw()
+    public async Task TableNewRow_Fires_Same_As_Raw()
     {
         var rawFired = false;
         var asyncFired = false;
@@ -138,7 +138,7 @@ public class EventParityTests
         var asyncTable = new AsyncDataTable("Test");
         asyncTable.Columns.Add("Id", typeof(int));
         asyncTable.TableNewRow += (_, _) => asyncFired = true;
-        asyncTable.Rows.Add(asyncTable.NewRow());
+        await asyncTable.Rows.AddAsync(asyncTable.NewRow());
 
         asyncFired.Should().Be(rawFired);
     }

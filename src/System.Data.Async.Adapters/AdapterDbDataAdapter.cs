@@ -92,7 +92,7 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
 
     public override async ValueTask<int> UpdateAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default)
     {
-        return await UpdateRowsAsync(dataTable.Rows, dataTable.Columns, cancellationToken).ConfigureAwait(false);
+        return await UpdateRowsAsync(dataTable.InnerDataTable.Rows, dataTable.Columns, cancellationToken).ConfigureAwait(false);
     }
 
     public override async ValueTask<int> UpdateAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default)

@@ -99,8 +99,8 @@ public class AdapterDbDataAdapterUpdateTests : IAsyncLifetime
         table.Columns.Add("Name", typeof(string));
         table.Columns.Add("Price", typeof(double));
 
-        table.Rows.Add(1L, "Widget", 9.99);
-        table.Rows.Add(2L, "Gadget", 19.99);
+        await table.Rows.AddAsync([1L, "Widget", 9.99]);
+        await table.Rows.AddAsync([2L, "Gadget", 19.99]);
 
         var affected = await adapter.UpdateAsync(table);
 
@@ -123,8 +123,8 @@ public class AdapterDbDataAdapterUpdateTests : IAsyncLifetime
         await adapter.FillAsync(table);
         table.Rows.Count.Should().Be(1);
 
-        table.Rows[0]["Name"] = "SuperWidget";
-        table.Rows[0]["Price"] = 14.99;
+        await table.Rows[0].SetValueAsync("Name", "SuperWidget");
+        await table.Rows[0].SetValueAsync("Price", 14.99);
 
         var affected = await adapter.UpdateAsync(table);
 
@@ -152,7 +152,7 @@ public class AdapterDbDataAdapterUpdateTests : IAsyncLifetime
         await adapter.FillAsync(table);
         table.Rows.Count.Should().Be(2);
 
-        table.Rows[0].Delete();
+        await table.Rows[0].DeleteAsync();
 
         var affected = await adapter.UpdateAsync(table);
 
@@ -173,14 +173,14 @@ public class AdapterDbDataAdapterUpdateTests : IAsyncLifetime
         await adapter.FillAsync(table);
 
         // Modify row 2
-        table.Rows[1]["Name"] = "Modified";
-        table.Rows[1]["Price"] = 12.00;
+        await table.Rows[1].SetValueAsync("Name", "Modified");
+        await table.Rows[1].SetValueAsync("Price", 12.00);
 
         // Delete row 3
-        table.Rows[2].Delete();
+        await table.Rows[2].DeleteAsync();
 
         // Add row 4
-        table.Rows.Add(4L, "Added", 20.00);
+        await table.Rows.AddAsync([4L, "Added", 20.00]);
 
         var affected = await adapter.UpdateAsync(table);
 
@@ -212,7 +212,7 @@ public class AdapterDbDataAdapterUpdateTests : IAsyncLifetime
         table.Columns.Add("Id", typeof(long));
         table.Columns.Add("Name", typeof(string));
         table.Columns.Add("Price", typeof(double));
-        table.Rows.Add(1L, "Widget", 9.99);
+        await table.Rows.AddAsync([1L, "Widget", 9.99]);
 
         await adapter.UpdateAsync(table);
 

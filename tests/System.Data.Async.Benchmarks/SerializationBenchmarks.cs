@@ -21,7 +21,7 @@ public sealed class SerializationBenchmarks : IDisposable
     public int RowCount { get; set; }
 
     [GlobalSetup]
-    public void GlobalSetup()
+    public async Task GlobalSetup()
     {
         _newtonsoftSettings = new JsonSerializerSettings();
         _newtonsoftSettings.Converters.Add(new AsyncDataTableConverter());
@@ -40,14 +40,7 @@ public sealed class SerializationBenchmarks : IDisposable
         var baseDate = DateTime.UtcNow;
         for (int i = 1; i <= RowCount; i++)
         {
-            var row = _table.NewRow();
-            row["Id"] = i;
-            row["Product"] = $"Product{i}";
-            row["Quantity"] = i % 10 + 1;
-            row["Price"] = (decimal)(i * 9.99);
-            row["OrderDate"] = baseDate.AddDays(-i);
-            row["IsActive"] = i % 3 != 0;
-            _table.Rows.Add(row);
+            await _table.Rows.AddAsync(new object?[] { i, $"Product{i}", i % 10 + 1, (decimal)(i * 9.99), baseDate.AddDays(-i), i % 3 != 0 });
         }
         _table.AcceptChanges();
 
