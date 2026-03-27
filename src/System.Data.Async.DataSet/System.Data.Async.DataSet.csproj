@@ -11,4 +11,8 @@
     <ProjectReference Include="..\System.Data.Async\System.Data.Async.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ZeroAlloc.AsyncEvents" Version="1.*" />
+  </ItemGroup>
+
 </Project>
