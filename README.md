@@ -273,16 +273,16 @@ Measured on Intel Core i9-12900HK, .NET 10.0.4, BenchmarkDotNet v0.15.8 (ShortRu
 
 | Method | RowCount | Mean | Ratio | Allocated | Alloc Ratio |
 |---|---|---|---|---|---|
-| Newtonsoft_Serialize | 10 | — | 1.00 | — | 1.00 |
-| STJ_Serialize | 10 | — | — | — | — |
-| Newtonsoft_Deserialize | 10 | — | — | — | — |
-| STJ_Deserialize | 10 | — | — | — | — |
-| Newtonsoft_Serialize | 100 | — | 1.00 | — | 1.00 |
-| STJ_Serialize | 100 | — | — | — | — |
-| Newtonsoft_Deserialize | 100 | — | — | — | — |
-| STJ_Deserialize | 100 | — | — | — | — |
+| Newtonsoft_Serialize | 10 | 12.30 µs | 1.00 | 29.36 KB | 1.00 |
+| STJ_Serialize | 10 | 10.05 µs | 0.84 | 11.74 KB | 0.40 |
+| Newtonsoft_Deserialize | 10 | 60.52 µs | 5.04 | 34.38 KB | 1.17 |
+| STJ_Deserialize | 10 | 54.70 µs | 4.55 | 32.73 KB | 1.12 |
+| Newtonsoft_Serialize | 100 | 70.08 µs | 1.00 | 114.63 KB | 1.00 |
+| STJ_Serialize | 100 | 39.28 µs | 0.57 | 65.62 KB | 0.57 |
+| Newtonsoft_Deserialize | 100 | 165.16 µs | 2.41 | 101.45 KB | 0.88 |
+| STJ_Deserialize | 100 | 143.26 µs | 2.09 | 98.68 KB | 0.86 |
 
-> Run `dotnet run --project tests/System.Data.Async.Benchmarks -c Release -- --filter *Serialization*` to populate this table.
+> Measured on .NET 10, Release mode, Windows 11. Ratio is relative to `Newtonsoft_Serialize` per row count.
 
 #### Transactions
 

@@ -9,7 +9,7 @@ namespace System.Data.Async.Benchmarks;
 
 [MemoryDiagnoser]
 [RankColumn]
-public sealed class SerializationBenchmarks : IDisposable
+public class SerializationBenchmarks : IDisposable
 {
     private AsyncDataTable _table = null!;
     private string _newtonsoftJson = null!;
@@ -51,7 +51,11 @@ public sealed class SerializationBenchmarks : IDisposable
     [GlobalCleanup]
     public void GlobalCleanup() => Dispose();
 
-    public void Dispose() => _table?.Dispose();
+    public void Dispose()
+    {
+        _table?.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     [Benchmark(Baseline = true)]
     public string Newtonsoft_Serialize() =>

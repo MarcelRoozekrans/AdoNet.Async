@@ -82,7 +82,7 @@ public class NewtonsoftJsonCrossCompatibilityTests
         result.Select("Id = 2")[0]["Val"].Should().Be("Modified");
         result.Select("Id = 2")[0]["Val", DataRowVersion.Original].Should().Be("WillModify");
         result.Select("Id = 4")[0].RowState.Should().Be(DataRowState.Added);
-        var deletedRows = result.InnerDataTable.Select("Id = 3", null, DataViewRowState.Deleted);
+        var deletedRows = ((DataTable)result).Select("Id = 3", null, DataViewRowState.Deleted);
         deletedRows.Should().HaveCount(1);
         deletedRows[0].RowState.Should().Be(DataRowState.Deleted);
     }
@@ -251,7 +251,7 @@ public class NewtonsoftJsonCrossCompatibilityTests
         await table.AcceptChangesAsync();
 
         var asyncDs = new AsyncDataSet("MyDS");
-        asyncDs.Tables.Add(table.InnerDataTable);
+        asyncDs.Tables.Add((DataTable)table);
 
         var json = JsonConvert.SerializeObject(asyncDs, AsyncSettings());
         var result = JsonConvert.DeserializeObject<System.Data.DataSet>(json, ReferenceSettings())!;

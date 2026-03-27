@@ -29,8 +29,8 @@ public class AsyncDataRowCollectionTests
     {
         var table = BuildTable();
         var row = table.NewRow();
-        row.InnerDataRow["Id"] = 2;
-        row.InnerDataRow["Name"] = "Bob";
+        await row.SetValueAsync("Id", 2);
+        await row.SetValueAsync("Name", "Bob");
         await table.Rows.AddAsync(row);
         table.Rows.Count.Should().Be(1);
         table.Rows[0]["Name"].Should().Be("Bob");

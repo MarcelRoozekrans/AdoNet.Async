@@ -82,7 +82,7 @@ public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
             return;
         }
 
-        var dataSet = value.InnerDataSet;
+        var dataSet = (System.Data.DataSet)value;
 
         writer.WriteStartObject();
 

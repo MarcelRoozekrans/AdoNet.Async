@@ -48,7 +48,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
     {
         if (value is null) { writer.WriteNullValue(); return; }
 
-        var ds = value.InnerDataSet;
+        var ds = (System.Data.DataSet)value;
         writer.WriteStartObject();
         writer.WriteBoolean("CaseSensitive", ds.CaseSensitive);
         writer.WriteString("DataSetName", ds.DataSetName);
@@ -89,7 +89,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
             var tableConverter = new AsyncDataTableJsonConverter();
             var asyncTable = tableConverter.Read(ref reader, typeof(AsyncDataTable), options);
             if (asyncTable is not null)
-                ds.Tables.Add(asyncTable.InnerDataTable);
+                ds.Tables.Add((DataTable)asyncTable);
             reader.Read(); // next PropertyName or EndObject
         }
     }

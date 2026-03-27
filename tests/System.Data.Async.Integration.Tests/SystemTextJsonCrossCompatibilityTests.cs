@@ -113,7 +113,7 @@ public class SystemTextJsonCrossCompatibilityTests
         result.Select("Id = 1")[0].RowState.Should().Be(DataRowState.Unchanged);
         result.Select("Id = 2")[0].RowState.Should().Be(DataRowState.Modified);
         result.Select("Id = 4")[0].RowState.Should().Be(DataRowState.Added);
-        var deleted = result.InnerDataTable.Select("Id = 3", null, DataViewRowState.Deleted);
+        var deleted = ((DataTable)result).Select("Id = 3", null, DataViewRowState.Deleted);
         deleted.Should().HaveCount(1);
         deleted[0].RowState.Should().Be(DataRowState.Deleted);
     }
