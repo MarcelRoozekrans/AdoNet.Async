@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.3.0...v0.3.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* add bounds check to SetValueAsync(int columnIndex) on AsyncDataRow ([1a7ae58](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/1a7ae5897d1e87cb7adb9b6ece2381000e7085a9))
+
 ## [0.3.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.2.0...v0.3.0) (2026-03-27)
 
 
