@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.3.1...v0.3.2) (2026-03-27)
+
+
+### Bug Fixes
+
+* publish serialization packages to NuGet ([7d42906](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/7d429066b0f54de172bc0ffbcadba73b700d90b3))
+
 ## [0.3.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.3.0...v0.3.1) (2026-03-27)
 
 
