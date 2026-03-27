@@ -78,11 +78,71 @@ var table = new AsyncDataTable("Users");
 var adapter = new AdapterDbDataAdapter(cmd);
 int rowCount = await adapter.FillAsync(table);
 
-foreach (DataRow row in table.Rows)
+foreach (AsyncDataRow row in table.Rows)
 {
     Console.WriteLine(row["Name"]);
 }
 ```
+
+### Mutate rows asynchronously
+
+Row mutations go through async methods on `AsyncDataRow`. Indexers are read-only; all writes use `SetValueAsync`:
+
+```csharp
+// Add a row
+var row = table.NewRow();
+await row.SetValueAsync("Name", "Alice");
+await row.SetValueAsync("Age", 30);
+await table.Rows.AddAsync(row);
+
+// Or pass values as an array
+await table.Rows.AddAsync(["Alice", 30]);
+
+// Modify an existing row
+await table.Rows[0].SetValueAsync("Name", "Bob");
+
+// Delete a row
+await table.Rows[0].DeleteAsync();
+
+// Accept / reject changes
+await table.AcceptChangesAsync();
+await table.ClearAsync();
+```
+
+### Async events on AsyncDataTable
+
+`AsyncDataTable` exposes 9 async events backed by `ZeroAlloc.AsyncEvents` (zero-alloc, sequential dispatch):
+
+```csharp
+var table = new AsyncDataTable("Orders");
+table.Columns.Add("Id", typeof(int));
+table.Columns.Add("Total", typeof(decimal));
+
+// Subscribe to async events
+table.RowChangingAsync += async (args, ct) =>
+{
+    await ValidateAsync(args.Row, ct);
+};
+
+table.ColumnChangedAsync += async (args, ct) =>
+{
+    await AuditAsync(args.Column!.ColumnName, args.ProposedValue, ct);
+};
+
+table.RowDeletedAsync += async (args, ct) =>
+{
+    await LogDeletionAsync(args.Row, ct);
+};
+
+// Mutations fire async events automatically
+var row = table.NewRow();
+await table.Rows.AddAsync(row);                       // fires TableNewRowAsync + RowChangedAsync
+await row.SetValueAsync("Total", 99.99m);             // fires RowChangingAsync + ColumnChangingAsync + ColumnChangedAsync + RowChangedAsync
+await row.DeleteAsync();                               // fires RowDeletingAsync + RowDeletedAsync
+await table.ClearAsync();                             // fires TableClearingAsync + TableClearedAsync
+```
+
+Sync event subscribers (e.g. `table.RowChanged += ...`) continue to work unchanged via the inner `DataTable`.
 
 ### JSON serialization with Newtonsoft.Json
 
@@ -151,7 +211,7 @@ public class MyRepository(IAsyncDbProviderFactory factory)
 | Package | Description | Dependencies |
 |---------|-------------|-------------|
 | **AdoNet.Async** | Core async interfaces (`IAsyncDbConnection`, `IAsyncDbCommand`, `IAsyncDataReader`, etc.) and abstract base classes | None |
-| **AdoNet.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, and `AsyncDataAdapter` | None |
+| **AdoNet.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, `AsyncDataRow`, `AsyncDataRowCollection`, `AsyncDataAdapter`, and 9 async events | ZeroAlloc.AsyncEvents |
 | **AdoNet.Async.Serialization.NewtonsoftJson** | `AsyncDataTableConverter`, `AsyncDataSetConverter` for Newtonsoft.Json. Wire-compatible with `Json.Net.DataSetConverters`. | AdoNet.Async.DataSet, Newtonsoft.Json |
 | **AdoNet.Async.Serialization.SystemTextJson** | `AsyncDataTableJsonConverter`, `AsyncDataSetJsonConverter` for System.Text.Json. Same wire format. | AdoNet.Async.DataSet |
 | **AdoNet.Async.Adapters** | Adapter wrappers (`AdapterDbConnection`, etc.), `.AsAsync()` extension, DI registration | Microsoft.Extensions.DependencyInjection.Abstractions |
@@ -259,6 +319,7 @@ Measured on Intel Core i9-12900HK, .NET 10.0.4, BenchmarkDotNet v0.15.8 (ShortRu
 - **`IAsyncEnumerable<IAsyncDataRecord>`** -- `IAsyncDataReader` implements `IAsyncEnumerable`, enabling `await foreach` iteration over result sets.
 - **Adapter pattern** -- Existing `DbConnection`/`DbCommand`/`DbDataReader` instances are wrapped, not replaced. No provider-specific code needed.
 - **Zero core dependencies** -- The `System.Data.Async` package has no external dependencies; adapters and DataSet packages only reference what they need.
+- **Async events via `AsyncDataRow`** -- Row mutations on `AsyncDataTable` go through `AsyncDataRow`, whose indexers are read-only. All writes use `SetValueAsync`/`DeleteAsync`/etc., which fire async events before and after each mutation. This makes async event subscribers a compile-time guarantee rather than an opt-in. Sync events on the inner `DataTable` continue to fire for backward-compatible sync consumers. Async events use `ZeroAlloc.AsyncEvents` in `Sequential` mode (zero-alloc, faster than a sync multicast delegate with no subscribers).
 
 ## License
 
