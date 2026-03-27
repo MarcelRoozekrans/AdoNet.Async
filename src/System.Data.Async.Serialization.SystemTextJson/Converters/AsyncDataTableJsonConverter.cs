@@ -437,6 +437,12 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
         if (value is long l) { writer.WriteNumberValue(l); return; }
         if (value is double d) { writer.WriteNumberValue(d); return; }
         if (value is float f) { writer.WriteNumberValue(f); return; }
+        if (value is short sh) { writer.WriteNumberValue(sh); return; }
+        if (value is byte by) { writer.WriteNumberValue(by); return; }
+        if (value is uint ui) { writer.WriteNumberValue(ui); return; }
+        if (value is ulong ul) { writer.WriteNumberValue(ul); return; }
+        if (value is sbyte sb) { writer.WriteNumberValue(sb); return; }
+        if (value is ushort us) { writer.WriteNumberValue(us); return; }
         if (value is DateTime dt) { writer.WriteStringValue(dt); return; }
         if (value is DateTimeOffset dto) { writer.WriteStringValue(dto); return; }
         if (value is Guid g) { writer.WriteStringValue(g); return; }
@@ -476,7 +482,7 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
             targetType, CultureInfo.InvariantCulture);
     }
 
-    private static void WriteExtendedProperties(Utf8JsonWriter writer, PropertyCollection properties)
+    internal static void WriteExtendedProperties(Utf8JsonWriter writer, PropertyCollection properties)
     {
         writer.WriteStartArray("ExtendedProperties");
         foreach (DictionaryEntry entry in properties)

@@ -34,7 +34,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
                 case "Prefix": ds.Prefix = reader.GetString() ?? string.Empty; break;
                 case "RemotingFormat": ds.RemotingFormat = (SerializationFormat)reader.GetInt32(); break;
                 case "SchemaSerializationMode": ds.SchemaSerializationMode = (SchemaSerializationMode)reader.GetInt32(); break;
-                case "Tables": ReadTables(ref reader, ds); break;
+                case "Tables": ReadTables(ref reader, ds, options); break;
                 case "Relations": ReadRelations(ref reader, ds); break;
                 default: reader.Skip(); break;
             }
@@ -53,7 +53,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
         writer.WriteBoolean("CaseSensitive", ds.CaseSensitive);
         writer.WriteString("DataSetName", ds.DataSetName);
         writer.WriteBoolean("EnforceConstraints", ds.EnforceConstraints);
-        WriteExtendedProperties(writer, ds.ExtendedProperties);
+        AsyncDataTableJsonConverter.WriteExtendedProperties(writer, ds.ExtendedProperties);
         writer.WriteString("Locale", ds.Locale == CultureInfo.InvariantCulture ? string.Empty : ds.Locale.Name);
         writer.WriteString("Namespace", ds.Namespace);
         writer.WriteString("Prefix", ds.Prefix);
@@ -79,7 +79,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
         writer.WriteEndObject();
     }
 
-    private static void ReadTables(ref Utf8JsonReader reader, System.Data.DataSet ds)
+    private static void ReadTables(ref Utf8JsonReader reader, System.Data.DataSet ds, JsonSerializerOptions options)
     {
         // reader is at StartObject (tables keyed by name)
         reader.Read(); // first PropertyName or EndObject
@@ -87,7 +87,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
         {
             reader.Read(); // to table StartObject
             var tableConverter = new AsyncDataTableJsonConverter();
-            var asyncTable = tableConverter.Read(ref reader, typeof(AsyncDataTable), new JsonSerializerOptions());
+            var asyncTable = tableConverter.Read(ref reader, typeof(AsyncDataTable), options);
             if (asyncTable is not null)
                 ds.Tables.Add(asyncTable.InnerDataTable);
             reader.Read(); // next PropertyName or EndObject
@@ -132,7 +132,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
             writer.WriteString("ConstraintName", fk.ConstraintName);
             writer.WriteNumber("DeleteRule", (int)fk.DeleteRule);
             writer.WriteNumber("UpdateRule", (int)fk.UpdateRule);
-            WriteExtendedProperties(writer, fk.ExtendedProperties);
+            AsyncDataTableJsonConverter.WriteExtendedProperties(writer, fk.ExtendedProperties);
             writer.WriteEndObject();
         }
         else
@@ -140,7 +140,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
             writer.WriteNull("ChildKeyConstraint");
         }
 
-        WriteExtendedProperties(writer, relation.ExtendedProperties);
+        AsyncDataTableJsonConverter.WriteExtendedProperties(writer, relation.ExtendedProperties);
         writer.WriteEndObject();
     }
 
@@ -192,18 +192,4 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
         return [.. list];
     }
 
-    private static void WriteExtendedProperties(Utf8JsonWriter writer, PropertyCollection properties)
-    {
-        writer.WriteStartArray("ExtendedProperties");
-        foreach (DictionaryEntry entry in properties)
-        {
-            writer.WriteStartObject();
-            writer.WriteString("KeyType", entry.Key.GetType().FullName);
-            writer.WriteString("Key", entry.Key.ToString());
-            writer.WriteString("ValueType", entry.Value?.GetType().FullName ?? "System.String");
-            writer.WriteString("Value", entry.Value?.ToString());
-            writer.WriteEndObject();
-        }
-        writer.WriteEndArray();
-    }
 }
