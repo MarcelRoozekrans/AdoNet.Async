@@ -37,6 +37,8 @@ public sealed class AsyncDataRow
 
     public ValueTask SetValueAsync(int columnIndex, object? value, CancellationToken cancellationToken = default)
     {
+        if ((uint)columnIndex >= (uint)_inner.Table.Columns.Count)
+            throw new ArgumentOutOfRangeException(nameof(columnIndex), columnIndex, "Column index is out of range.");
         var column = _inner.Table.Columns[columnIndex];
         return SetValueCoreAsync(column, value, cancellationToken);
     }
