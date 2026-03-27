@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\System.Data.Async.Adapters\System.Data.Async.Adapters.csproj" />
     <ProjectReference Include="..\..\src\System.Data.Async.DataSet\System.Data.Async.DataSet.csproj" />
+    <ProjectReference Include="..\..\src\System.Data.Async.Serialization.NewtonsoftJson\System.Data.Async.Serialization.NewtonsoftJson.csproj" />
   </ItemGroup>
 
   <ItemGroup>

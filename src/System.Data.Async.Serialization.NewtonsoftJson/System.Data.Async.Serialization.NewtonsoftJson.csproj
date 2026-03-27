@@ -5,8 +5,6 @@
     <Title>AdoNet.Async.Serialization.NewtonsoftJson</Title>
     <Description>Newtonsoft.Json converters for AsyncDataTable and AsyncDataSet, wire-compatible with Json.Net.DataSetConverters.</Description>
     <PackageTags>system.data.async;async;ado.net;dataset;datatable;json;newtonsoft</PackageTags>
-    <!-- Suppress duplicate-type conflict while the originals still exist in DataSet (removed in Task 3) -->
-    <NoWarn>$(NoWarn);CS0436</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

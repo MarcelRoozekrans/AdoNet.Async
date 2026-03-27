@@ -3,15 +3,12 @@
     <RootNamespace>System.Data.Async.DataSet</RootNamespace>
     <PackageId>AdoNet.Async.DataSet</PackageId>
     <Title>AdoNet.Async.DataSet</Title>
-    <Description>Async DataSet and DataTable for ADO.NET (System.Data). Includes AsyncDataTable, AsyncDataSet, AsyncDataAdapter, and Newtonsoft.Json converters.</Description>
-    <PackageTags>system.data.async;async;ado.net;dataset;datatable;json;dataadapter;valuetask</PackageTags>
+    <Description>Async DataSet and DataTable for ADO.NET (System.Data). Includes AsyncDataTable, AsyncDataSet, and AsyncDataAdapter.</Description>
+    <PackageTags>system.data.async;async;ado.net;dataset;datatable;dataadapter;valuetask</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\System.Data.Async\System.Data.Async.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
-  </ItemGroup>
 </Project>
