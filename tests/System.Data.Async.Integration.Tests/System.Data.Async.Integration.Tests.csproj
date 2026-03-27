@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\System.Data.Async.DataSet\System.Data.Async.DataSet.csproj" />
+    <ProjectReference Include="..\..\src\System.Data.Async.Serialization.NewtonsoftJson\System.Data.Async.Serialization.NewtonsoftJson.csproj" />
+    <ProjectReference Include="..\..\src\System.Data.Async.Serialization.SystemTextJson\System.Data.Async.Serialization.SystemTextJson.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Json.Net.DataSetConverters" Version="1.2.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="xunit" Version="2.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.*" />
+    <PackageReference Include="FluentAssertions" Version="8.*" />
+  </ItemGroup>
+</Project>
