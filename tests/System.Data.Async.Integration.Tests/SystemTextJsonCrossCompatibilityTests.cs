@@ -22,12 +22,12 @@ public class SystemTextJsonCrossCompatibilityTests
     };
 
     [Fact]
-    public void STJ_And_Newtonsoft_Produce_Identical_Json_For_Simple_Table()
+    public async Task STJ_And_Newtonsoft_Produce_Identical_Json_For_Simple_Table()
     {
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, "Alice");
+        await table.Rows.AddAsync([1, "Alice"]);
         table.AcceptChanges();
 
         var newtonsoftJson = NJsonConvert.SerializeObject(table, NewtonsoftAsyncSettings());
@@ -37,18 +37,18 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void STJ_And_Newtonsoft_Produce_Identical_Json_For_All_Row_States()
+    public async Task STJ_And_Newtonsoft_Produce_Identical_Json_For_All_Row_States()
     {
         var table = new AsyncDataTable("States");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Val", typeof(string));
-        table.Rows.Add(1, "Unchanged");
-        table.Rows.Add(2, "WillModify");
-        table.Rows.Add(3, "WillDelete");
+        await table.Rows.AddAsync([1, "Unchanged"]);
+        await table.Rows.AddAsync([2, "WillModify"]);
+        await table.Rows.AddAsync([3, "WillDelete"]);
         table.AcceptChanges();
-        table.Rows.Add(4, "Added");
-        table.Rows[1]["Val"] = "Modified";
-        table.Rows[2].Delete();
+        await table.Rows.AddAsync([4, "Added"]);
+        await table.Rows[1].SetValueAsync("Val", "Modified");
+        await table.Rows[2].DeleteAsync();
 
         var newtonsoftJson = NJsonConvert.SerializeObject(table, NewtonsoftAsyncSettings());
         var stjJson = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
@@ -57,12 +57,12 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void STJ_And_Newtonsoft_Produce_Identical_Json_For_Decimal_And_Bytes()
+    public async Task STJ_And_Newtonsoft_Produce_Identical_Json_For_Decimal_And_Bytes()
     {
         var table = new AsyncDataTable("T");
         table.Columns.Add("Amount", typeof(decimal));
         table.Columns.Add("Data", typeof(byte[]));
-        table.Rows.Add(12345.6789012345678901234567m, new byte[] { 10, 20, 30 });
+        await table.Rows.AddAsync([12345.6789012345678901234567m, new byte[] { 10, 20, 30 }]);
         table.AcceptChanges();
 
         var newtonsoftJson = NJsonConvert.SerializeObject(table, NewtonsoftAsyncSettings());
@@ -72,15 +72,15 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void AsyncDataTable_Round_Trips_Via_STJ()
+    public async Task AsyncDataTable_Round_Trips_Via_STJ()
     {
         var table = new AsyncDataTable("Products");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Price", typeof(decimal));
-        table.Rows.Add(1, 49.99m);
-        table.Rows.Add(2, 99.99m);
+        await table.Rows.AddAsync([1, 49.99m]);
+        await table.Rows.AddAsync([2, 99.99m]);
         table.AcceptChanges();
-        table.Rows[1]["Price"] = 89.99m;
+        await table.Rows[1].SetValueAsync("Price", 89.99m);
 
         var json = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
         var result = System.Text.Json.JsonSerializer.Deserialize<AsyncDataTable>(json, StjOptions())!;
@@ -94,18 +94,18 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void All_Row_States_Round_Trip_Via_STJ()
+    public async Task All_Row_States_Round_Trip_Via_STJ()
     {
         var table = new AsyncDataTable("States");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Val", typeof(string));
-        table.Rows.Add(1, "Unchanged");
-        table.Rows.Add(2, "WillModify");
-        table.Rows.Add(3, "WillDelete");
+        await table.Rows.AddAsync([1, "Unchanged"]);
+        await table.Rows.AddAsync([2, "WillModify"]);
+        await table.Rows.AddAsync([3, "WillDelete"]);
         table.AcceptChanges();
-        table.Rows.Add(4, "Added");
-        table.Rows[1]["Val"] = "Modified";
-        table.Rows[2].Delete();
+        await table.Rows.AddAsync([4, "Added"]);
+        await table.Rows[1].SetValueAsync("Val", "Modified");
+        await table.Rows[2].DeleteAsync();
 
         var json = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
         var result = System.Text.Json.JsonSerializer.Deserialize<AsyncDataTable>(json, StjOptions())!;
@@ -119,11 +119,11 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void Added_Row_Preserves_State_Via_STJ()
+    public async Task Added_Row_Preserves_State_Via_STJ()
     {
         var table = new AsyncDataTable("T");
         table.Columns.Add("Id", typeof(int));
-        table.Rows.Add(1);
+        await table.Rows.AddAsync([1]);
 
         var json = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
         var result = System.Text.Json.JsonSerializer.Deserialize<AsyncDataTable>(json, StjOptions())!;
@@ -132,7 +132,7 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void All_Primitive_Types_Round_Trip_Via_STJ()
+    public async Task All_Primitive_Types_Round_Trip_Via_STJ()
     {
         var dt = new AsyncDataTable("Types");
         dt.Columns.Add("Bool", typeof(bool));
@@ -146,7 +146,7 @@ public class SystemTextJsonCrossCompatibilityTests
 
         var guid = Guid.NewGuid();
         var bytes = new byte[] { 1, 2, 3 };
-        dt.Rows.Add(true, 42, 9999999999L, 2.718, 12345.6789m, "hello", guid, bytes);
+        await dt.Rows.AddAsync([true, 42, 9999999999L, 2.718, 12345.6789m, "hello", guid, bytes]);
         dt.AcceptChanges();
 
         var json = System.Text.Json.JsonSerializer.Serialize(dt, StjOptions());
@@ -163,13 +163,13 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void Null_Values_Round_Trip_Via_STJ()
+    public async Task Null_Values_Round_Trip_Via_STJ()
     {
         var table = new AsyncDataTable("Nulls");
         table.Columns.Add("Id", typeof(int));
         var nameCol = table.Columns.Add("Name", typeof(string));
         nameCol.AllowDBNull = true;
-        table.Rows.Add(1, DBNull.Value);
+        await table.Rows.AddAsync([1, DBNull.Value]);
         table.AcceptChanges();
 
         var json = System.Text.Json.JsonSerializer.Serialize(table, StjOptions());
@@ -179,12 +179,12 @@ public class SystemTextJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void STJ_Json_Deserializes_With_Newtonsoft_And_Vice_Versa()
+    public async Task STJ_Json_Deserializes_With_Newtonsoft_And_Vice_Versa()
     {
         var table = new AsyncDataTable("CrossTest");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Value", typeof(string));
-        table.Rows.Add(1, "Test");
+        await table.Rows.AddAsync([1, "Test"]);
         table.AcceptChanges();
 
         // Serialize with STJ, deserialize with Newtonsoft

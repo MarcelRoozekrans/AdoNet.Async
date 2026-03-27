@@ -43,12 +43,12 @@ public class NewtonsoftJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void AsyncDataTable_To_Reference_DataTable()
+    public async Task AsyncDataTable_To_Reference_DataTable()
     {
         var table = new AsyncDataTable("Products");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Price", typeof(decimal));
-        table.Rows.Add(1, 29.99m);
+        await table.Rows.AddAsync([1, 29.99m]);
         table.AcceptChanges();
 
         var json = JsonConvert.SerializeObject(table, AsyncSettings());
@@ -242,12 +242,12 @@ public class NewtonsoftJsonCrossCompatibilityTests
     }
 
     [Fact]
-    public void AsyncDataSet_To_Reference_DataSet()
+    public async Task AsyncDataSet_To_Reference_DataSet()
     {
         var table = new AsyncDataTable("Customers");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, "Alice");
+        await table.Rows.AddAsync([1, "Alice"]);
         table.AcceptChanges();
 
         var asyncDs = new AsyncDataSet("MyDS");
