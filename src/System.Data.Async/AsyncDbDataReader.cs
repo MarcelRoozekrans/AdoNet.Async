@@ -1,4 +1,4 @@
-#pragma warning disable CA2012 // Use ValueTasks correctly -- sync-to-async bridge by design
+#pragma warning disable CA2012 // Use ValueTasks correctly -- guarded sync-to-async bridge
 #pragma warning disable HLQ006 // GetAsyncEnumerator returns reference type -- async iterators require compiler-generated state machines
 
 namespace System.Data.Async;
@@ -56,10 +56,10 @@ public abstract class AsyncDbDataReader : IAsyncDataReader
     public virtual ValueTask<DataTable> GetSchemaTableAsync(CancellationToken cancellationToken = default)
         => new(GetSchemaTable());
 
-    // Template methods -- sync delegates to async
-    public bool Read() => ReadCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
-    public bool NextResult() => NextResultCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
-    public void Close() => CloseCoreAsync().GetAwaiter().GetResult();
+    // Sync -> async bridge (throws on WASM)
+    public bool Read() { SyncBridge.ThrowIfBrowser(nameof(ReadAsync)); return ReadCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    public bool NextResult() { SyncBridge.ThrowIfBrowser(nameof(NextResultAsync)); return NextResultCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    public void Close() { SyncBridge.ThrowIfBrowser(nameof(CloseAsync)); CloseCoreAsync().GetAwaiter().GetResult(); }
 
     // Template methods -- async delegates to core
     public ValueTask<bool> ReadAsync(CancellationToken cancellationToken = default) => ReadCoreAsync(cancellationToken);

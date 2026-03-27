@@ -1,4 +1,4 @@
-#pragma warning disable CA2012 // Use ValueTasks correctly -- sync-to-async bridge by design
+#pragma warning disable CA2012 // Use ValueTasks correctly -- guarded sync-to-async bridge
 
 namespace System.Data.Async;
 
@@ -10,8 +10,11 @@ public abstract class AsyncDbTransaction : IAsyncDbTransaction
     protected abstract ValueTask CommitCoreAsync(CancellationToken cancellationToken);
     protected abstract ValueTask RollbackCoreAsync(CancellationToken cancellationToken);
 
-    public void Commit() => CommitCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
-    public void Rollback() => RollbackCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
+    // Sync -> async bridge (throws on WASM)
+    public void Commit() { SyncBridge.ThrowIfBrowser(nameof(CommitAsync)); CommitCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    public void Rollback() { SyncBridge.ThrowIfBrowser(nameof(RollbackAsync)); RollbackCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+
+    // Async delegates to core
     public ValueTask CommitAsync(CancellationToken cancellationToken = default) => CommitCoreAsync(cancellationToken);
     public ValueTask RollbackAsync(CancellationToken cancellationToken = default) => RollbackCoreAsync(cancellationToken);
 
@@ -35,6 +38,7 @@ public abstract class AsyncDbTransaction : IAsyncDbTransaction
         if (!_disposed)
         {
             _disposed = true;
+            SyncBridge.ThrowIfBrowser(nameof(DisposeAsync));
             DisposeAsyncCore().GetAwaiter().GetResult();
         }
 
