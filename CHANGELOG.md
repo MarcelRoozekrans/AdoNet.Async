@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.2.0...v0.3.0) (2026-03-27)
+
+
+### Features
+
+* add AsyncDataRow, AsyncDataRowCollection and async events to AsyncDataTable ([1c00a30](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/1c00a303793c7541a0e1f540e654aa9f290b2238))
+* add ZeroAlloc.AsyncEvents dependency to DataSet package ([851c072](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/851c07289324ff0a07ffb17f7237eec302ed7425))
+* guard sync-over-async bridge for WASM compatibility ([773dc24](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/773dc246294e780ef984045163055ae0969473ff))
+
+
+### Bug Fixes
+
+* migrate remaining sync row mutations to async API ([0cb17d9](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/0cb17d9bda9f347c10f4675d7fad0704c0539ad5))
+* resolve code review issues in async events implementation ([216ffe8](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/216ffe86aa46c7d904581c52cffac39971afbffd))
+
 ## [0.2.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.1.4...v0.2.0) (2026-03-27)
 
 
