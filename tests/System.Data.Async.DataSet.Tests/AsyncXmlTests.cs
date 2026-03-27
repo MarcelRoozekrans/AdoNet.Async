@@ -13,8 +13,8 @@ public class AsyncXmlTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         table.Columns.Add("Price", typeof(double));
-        table.InnerDataTable.Rows.Add(1, "Widget", 9.99);
-        table.InnerDataTable.Rows.Add(2, "Gadget", 19.99);
+        await table.Rows.AddAsync(new object?[] { 1, "Widget", 9.99 });
+        await table.Rows.AddAsync(new object?[] { 2, "Gadget", 19.99 });
 
         // Write XML with schema
         using var schemaStream = new MemoryStream();
@@ -77,7 +77,7 @@ public class AsyncXmlTests
         var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Value", typeof(string));
-        table.InnerDataTable.Rows.Add(1, "Test");
+        await table.Rows.AddAsync(new object?[] { 1, "Test" });
 
         using var stream = new MemoryStream();
         await table.WriteXmlAsync(stream);

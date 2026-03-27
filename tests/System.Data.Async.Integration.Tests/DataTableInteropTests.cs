@@ -31,7 +31,7 @@ public class DataTableInteropTests
         var dt = BuildRichTable();
         var wrapped = new AsyncDataTable(dt);
 
-        wrapped.InnerDataTable.Should().BeSameAs(dt);
+        ((DataTable)wrapped).Should().BeSameAs(dt);
         wrapped.TableName.Should().Be("Orders");
         wrapped.Rows.Count.Should().Be(4); // Deleted rows still counted
     }

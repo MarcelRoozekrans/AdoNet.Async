@@ -20,22 +20,22 @@ public class AsyncDataRowTests
     {
         var (table, row) = BuildRow();
         row.Should().BeOfType<AsyncDataRow>();
-        row.InnerDataRow.Should().NotBeNull();
+        row.Should().NotBeNull();
     }
 
     [Fact]
-    public void Indexer_Returns_Value_By_ColumnName()
+    public async Task Indexer_Returns_Value_By_ColumnName()
     {
         var (_, row) = BuildRow();
-        row.InnerDataRow["Id"] = 42;
+        await row.SetValueAsync("Id", 42);
         row["Id"].Should().Be(42);
     }
 
     [Fact]
-    public void Indexer_Returns_Value_By_ColumnIndex()
+    public async Task Indexer_Returns_Value_By_ColumnIndex()
     {
         var (_, row) = BuildRow();
-        row.InnerDataRow["Id"] = 7;
+        await row.SetValueAsync("Id", 7);
         row[0].Should().Be(7);
     }
 
@@ -43,9 +43,9 @@ public class AsyncDataRowTests
     public async Task SetValueAsync_By_ColumnName_Mutates_Row()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         await row.SetValueAsync("Name", "Alice");
 
@@ -57,9 +57,9 @@ public class AsyncDataRowTests
     public async Task SetValueAsync_By_ColumnIndex_Mutates_Row()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         await row.SetValueAsync(1, "Bob");
 
@@ -70,9 +70,9 @@ public class AsyncDataRowTests
     public async Task SetValueAsync_By_DataColumn_Mutates_Row()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         var col = table.Columns["Name"]!;
         await row.SetValueAsync(col, "Carol");
@@ -84,10 +84,10 @@ public class AsyncDataRowTests
     public async Task SetValueAsync_Fires_ColumnChangingAsync_Before_Mutation()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        row.InnerDataRow["Name"] = "Before";
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await row.SetValueAsync("Name", "Before");
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         string? capturedName = null;
         table.ColumnChangingAsync += (args, ct) =>
@@ -106,9 +106,9 @@ public class AsyncDataRowTests
     public async Task SetValueAsync_Fires_ColumnChangedAsync_After_Mutation()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         string? capturedName = null;
         table.ColumnChangedAsync += (args, ct) =>
@@ -126,9 +126,9 @@ public class AsyncDataRowTests
     public async Task DeleteAsync_Sets_RowState_To_Deleted()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         await row.DeleteAsync();
 
@@ -139,9 +139,9 @@ public class AsyncDataRowTests
     public async Task DeleteAsync_Fires_RowDeletingAsync_And_RowDeletedAsync()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         var deletingFired = false;
         var deletedFired = false;
@@ -158,9 +158,9 @@ public class AsyncDataRowTests
     public async Task AcceptChangesAsync_Accepts_Pending_Changes()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        row.InnerDataRow["Name"] = "Alice";
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        await row.SetValueAsync("Id", 1);
+        await row.SetValueAsync("Name", "Alice");
+        await table.Rows.AddAsync(row);
 
         await row.AcceptChangesAsync();
 
@@ -171,10 +171,10 @@ public class AsyncDataRowTests
     public async Task RejectChangesAsync_Reverts_Pending_Changes()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        row.InnerDataRow["Name"] = "Alice";
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await row.SetValueAsync("Name", "Alice");
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         await row.SetValueAsync("Name", "Rejected");
         await row.RejectChangesAsync();
@@ -187,9 +187,9 @@ public class AsyncDataRowTests
     public async Task SetValueAsync_Respects_CancellationToken()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         using var cts = new CancellationTokenSource();
         table.ColumnChangingAsync += (_, ct) => { cts.Cancel(); return ValueTask.CompletedTask; };
@@ -203,9 +203,9 @@ public class AsyncDataRowTests
     public async Task DeleteAsync_Respects_CancellationToken()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -220,10 +220,10 @@ public class AsyncDataRowTests
     public async Task EndEditAsync_Fires_RowChangingAsync_Before_And_RowChangedAsync_After()
     {
         var (table, row) = BuildRow();
-        row.InnerDataRow["Id"] = 1;
-        row.InnerDataRow["Name"] = "Before";
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
-        table.InnerDataTable.AcceptChanges();
+        await row.SetValueAsync("Id", 1);
+        await row.SetValueAsync("Name", "Before");
+        await table.Rows.AddAsync(row);
+        await table.AcceptChangesAsync();
 
         var changingFired = false;
         var changedFired = false;
@@ -235,7 +235,7 @@ public class AsyncDataRowTests
         table.RowChangedAsync += (_, _) => { changedOrder = ++callCounter; changedFired = true; return ValueTask.CompletedTask; };
 
         await row.BeginEditAsync();
-        row.InnerDataRow["Name"] = "After";
+        await row.SetValueAsync("Name", "After");
         await row.EndEditAsync();
 
         changingFired.Should().BeTrue();

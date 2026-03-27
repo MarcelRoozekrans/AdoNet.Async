@@ -83,7 +83,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
             return;
         }
 
-        var table = value.InnerDataTable;
+        var table = (DataTable)value;
 
         writer.WriteStartObject();
 

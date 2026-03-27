@@ -11,7 +11,7 @@ public class AsyncDataSet : IDisposable
     public AsyncDataSet(string dataSetName) => _inner = new System.Data.DataSet(dataSetName);
     public AsyncDataSet(System.Data.DataSet inner) => _inner = inner ?? throw new ArgumentNullException(nameof(inner));
 
-    public System.Data.DataSet InnerDataSet => _inner;
+    internal System.Data.DataSet InnerDataSet => _inner;
 
     // Properties
     public string DataSetName { get => _inner.DataSetName; set => _inner.DataSetName = value; }

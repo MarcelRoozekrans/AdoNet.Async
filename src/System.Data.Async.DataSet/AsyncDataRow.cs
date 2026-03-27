@@ -13,7 +13,7 @@ public sealed class AsyncDataRow
         _table = table;
     }
 
-    public DataRow InnerDataRow => _inner;
+    internal DataRow InnerDataRow => _inner;
     public DataRowState RowState => _inner.RowState;
     public bool HasErrors => _inner.HasErrors;
     public string RowError => _inner.RowError;

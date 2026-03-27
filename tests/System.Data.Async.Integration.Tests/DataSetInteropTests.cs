@@ -42,7 +42,7 @@ public class DataSetInteropTests
     {
         var ds = BuildRichDataSet();
         var wrapped = new AsyncDataSet(ds);
-        wrapped.InnerDataSet.Should().BeSameAs(ds);
+        ((System.Data.DataSet)wrapped).Should().BeSameAs(ds);
         wrapped.DataSetName.Should().Be("Shop");
     }
 

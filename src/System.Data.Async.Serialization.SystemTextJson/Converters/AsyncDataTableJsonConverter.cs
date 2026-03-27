@@ -80,7 +80,7 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
     public override void Write(Utf8JsonWriter writer, AsyncDataTable? value, JsonSerializerOptions options)
     {
         if (value is null) { writer.WriteNullValue(); return; }
-        WriteDataTable(writer, value.InnerDataTable);
+        WriteDataTable(writer, (DataTable)value);
     }
 
     internal static void WriteDataTable(Utf8JsonWriter writer, DataTable table)

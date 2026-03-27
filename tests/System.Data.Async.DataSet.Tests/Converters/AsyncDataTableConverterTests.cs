@@ -19,14 +19,14 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Roundtrip_Simple_Table()
+    public async Task Should_Roundtrip_Simple_Table()
     {
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.InnerDataTable.Rows.Add(1, "Alice");
-        table.InnerDataTable.Rows.Add(2, "Bob");
-        table.InnerDataTable.AcceptChanges();
+        await table.Rows.AddAsync([1, "Alice"]);
+        await table.Rows.AddAsync([2, "Bob"]);
+        await table.AcceptChangesAsync();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -41,14 +41,14 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_Modified_Rows()
+    public async Task Should_Handle_Modified_Rows()
     {
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.InnerDataTable.Rows.Add(1, "Alice");
-        table.InnerDataTable.AcceptChanges();
-        table.InnerDataTable.Rows[0]["Name"] = "Alicia";
+        await table.Rows.AddAsync([1, "Alice"]);
+        await table.AcceptChangesAsync();
+        await table.Rows[0].SetValueAsync("Name", "Alicia");
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -60,12 +60,12 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_Added_Rows()
+    public async Task Should_Handle_Added_Rows()
     {
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.InnerDataTable.Rows.Add(1, "Alice");
+        await table.Rows.AddAsync([1, "Alice"]);
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -76,14 +76,14 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_Deleted_Rows()
+    public async Task Should_Handle_Deleted_Rows()
     {
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.InnerDataTable.Rows.Add(1, "Alice");
-        table.InnerDataTable.AcceptChanges();
-        table.InnerDataTable.Rows[0].Delete();
+        await table.Rows.AddAsync([1, "Alice"]);
+        await table.AcceptChangesAsync();
+        await table.Rows[0].DeleteAsync();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -93,13 +93,13 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_DBNull()
+    public async Task Should_Handle_DBNull()
     {
         var table = new AsyncDataTable("Test");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.InnerDataTable.Rows.Add(1, DBNull.Value);
-        table.InnerDataTable.AcceptChanges();
+        await table.Rows.AddAsync([1, DBNull.Value]);
+        await table.AcceptChangesAsync();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -109,12 +109,12 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_Decimal_Precision()
+    public async Task Should_Handle_Decimal_Precision()
     {
         var table = new AsyncDataTable("Test");
         table.Columns.Add("Amount", typeof(decimal));
-        table.InnerDataTable.Rows.Add(123.456789012345678901234567890m);
-        table.InnerDataTable.AcceptChanges();
+        await table.Rows.AddAsync([123.456789012345678901234567890m]);
+        await table.AcceptChangesAsync();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -124,14 +124,14 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_Constraints()
+    public async Task Should_Handle_Constraints()
     {
         var table = new AsyncDataTable("Users");
         var idCol = table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         table.PrimaryKey = [idCol];
-        table.InnerDataTable.Rows.Add(1, "Alice");
-        table.InnerDataTable.AcceptChanges();
+        await table.Rows.AddAsync([1, "Alice"]);
+        await table.AcceptChangesAsync();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -157,7 +157,7 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_Multiple_DataTypes()
+    public async Task Should_Handle_Multiple_DataTypes()
     {
         var table = new AsyncDataTable("Types");
         table.Columns.Add("Int", typeof(int));
@@ -168,8 +168,8 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Long", typeof(long));
 
         var dt = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
-        table.InnerDataTable.Rows.Add(42, "hello", true, 3.14, dt, 9876543210L);
-        table.InnerDataTable.AcceptChanges();
+        await table.Rows.AddAsync([42, "hello", true, 3.14, dt, 9876543210L]);
+        await table.AcceptChangesAsync();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -219,20 +219,20 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Handle_Mixed_Row_States()
+    public async Task Should_Handle_Mixed_Row_States()
     {
         var table = new AsyncDataTable("Mixed");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
 
-        table.InnerDataTable.Rows.Add(1, "Unchanged");
-        table.InnerDataTable.Rows.Add(2, "ToModify");
-        table.InnerDataTable.Rows.Add(3, "ToDelete");
-        table.InnerDataTable.AcceptChanges();
+        await table.Rows.AddAsync([1, "Unchanged"]);
+        await table.Rows.AddAsync([2, "ToModify"]);
+        await table.Rows.AddAsync([3, "ToDelete"]);
+        await table.AcceptChangesAsync();
 
-        table.InnerDataTable.Rows[1]["Name"] = "Modified";
-        table.InnerDataTable.Rows[2].Delete();
-        table.InnerDataTable.Rows.Add(4, "Added");
+        await table.Rows[1].SetValueAsync("Name", "Modified");
+        await table.Rows[2].DeleteAsync();
+        await table.Rows.AddAsync([4, "Added"]);
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -246,15 +246,15 @@ public class AsyncDataTableConverterTests
     }
 
     [Fact]
-    public void Should_Serialize_Proposed_Version_When_Row_In_BeginEdit()
+    public async Task Should_Serialize_Proposed_Version_When_Row_In_BeginEdit()
     {
         var table = new AsyncDataTable("T");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.InnerDataTable.Rows.Add(1, "Original");
-        table.InnerDataTable.AcceptChanges();
-        table.InnerDataTable.Rows[0].BeginEdit();
-        table.InnerDataTable.Rows[0]["Name"] = "Proposed";
+        await table.Rows.AddAsync([1, "Original"]);
+        await table.AcceptChangesAsync();
+        await table.Rows[0].BeginEditAsync();
+        await table.Rows[0].SetValueAsync("Name", "Proposed");
         // EndEdit NOT called — row has DataRowVersion.Proposed
 
         var settings = CreateSettings();

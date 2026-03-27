@@ -45,7 +45,7 @@ public class AsyncDataTable : IDisposable
         _rows = new AsyncDataRowCollection(_inner.Rows, this);
     }
 
-    public DataTable InnerDataTable => _inner;
+    internal DataTable InnerDataTable => _inner;
 
     // Properties
     public string TableName { get => _inner.TableName; set => _inner.TableName = value; }

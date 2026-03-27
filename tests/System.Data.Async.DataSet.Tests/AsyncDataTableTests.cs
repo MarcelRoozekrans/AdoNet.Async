@@ -33,16 +33,16 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void Columns_Add_And_Rows_Add_Work()
+    public async Task Columns_Add_And_Rows_Add_Work()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
 
         var row = table.NewRow();
-        row.InnerDataRow["Id"] = 1;
-        row.InnerDataRow["Name"] = "Widget";
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        await row.SetValueAsync("Id", 1);
+        await row.SetValueAsync("Name", "Widget");
+        await table.Rows.AddAsync(row);
 
         table.Columns.Count.Should().Be(2);
         table.Rows.Count.Should().Be(1);
@@ -55,8 +55,8 @@ public class AsyncDataTableTests
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
 
         row.RowState.Should().Be(DataRowState.Added);
 
@@ -71,11 +71,11 @@ public class AsyncDataTableTests
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
-        row.InnerDataRow["Id"] = 1;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        await row.SetValueAsync("Id", 1);
+        await table.Rows.AddAsync(row);
         await table.AcceptChangesAsync();
 
-        row.InnerDataRow["Id"] = 99;
+        await row.SetValueAsync("Id", 99);
         row.RowState.Should().Be(DataRowState.Modified);
 
         table.RejectChanges();
@@ -85,15 +85,15 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void Clone_Copies_Schema_Only()
+    public async Task Clone_Copies_Schema_Only()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         var row = table.NewRow();
-        row.InnerDataRow["Id"] = 1;
-        row.InnerDataRow["Name"] = "Widget";
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        await row.SetValueAsync("Id", 1);
+        await row.SetValueAsync("Name", "Widget");
+        await table.Rows.AddAsync(row);
 
         var clone = table.Clone();
 
@@ -107,8 +107,8 @@ public class AsyncDataTableTests
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
-        row.InnerDataRow["Id"] = 42;
-        table.InnerDataTable.Rows.Add(row.InnerDataRow);
+        await row.SetValueAsync("Id", 42);
+        await table.Rows.AddAsync(row);
         await table.AcceptChangesAsync();
 
         var copy = table.Copy();
@@ -119,15 +119,15 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void Select_Filters_Rows()
+    public async Task Select_Filters_Rows()
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
 
-        table.InnerDataTable.Rows.Add(1, "Alice");
-        table.InnerDataTable.Rows.Add(2, "Bob");
-        table.InnerDataTable.Rows.Add(3, "Alice");
+        await table.Rows.AddAsync(new object?[] { 1, "Alice" });
+        await table.Rows.AddAsync(new object?[] { 2, "Bob" });
+        await table.Rows.AddAsync(new object?[] { 3, "Alice" });
 
         var filtered = table.Select("Name = 'Alice'");
 
@@ -139,10 +139,10 @@ public class AsyncDataTableTests
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
-        table.InnerDataTable.Rows.Add(1);
+        await table.Rows.AddAsync(new object?[] { 1 });
         await table.AcceptChangesAsync();
 
-        table.InnerDataTable.Rows.Add(2);
+        await table.Rows.AddAsync(new object?[] { 2 });
 
         var changes = table.GetChanges();
 
@@ -156,8 +156,8 @@ public class AsyncDataTableTests
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
-        table.InnerDataTable.Rows.Add(1);
-        table.InnerDataTable.Rows.Add(2);
+        await table.Rows.AddAsync(new object?[] { 1 });
+        await table.Rows.AddAsync(new object?[] { 2 });
 
         await table.ClearAsync();
 
@@ -169,7 +169,7 @@ public class AsyncDataTableTests
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
-        table.InnerDataTable.Rows.Add(1);
+        await table.Rows.AddAsync(new object?[] { 1 });
 
         var clearingFired = false;
         var clearedFired = false;
@@ -206,7 +206,7 @@ public class AsyncDataTableTests
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
-        table.InnerDataTable.Rows.Add(1);
+        await table.Rows.AddAsync(new object?[] { 1 });
 
         using var cts = new CancellationTokenSource();
         table.TableClearingAsync += (_, _) => { cts.Cancel(); return ValueTask.CompletedTask; };
@@ -223,12 +223,12 @@ public class AsyncDataTableTests
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.InnerDataTable.Rows.Add(1, "Alice");
-        table.InnerDataTable.Rows.Add(2, "Bob");
+        await table.Rows.AddAsync(new object?[] { 1, "Alice" });
+        await table.Rows.AddAsync(new object?[] { 2, "Bob" });
         await table.AcceptChangesAsync();
 
-        table.InnerDataTable.Rows.Add(3, "Added");
-        table.InnerDataTable.Rows[0]["Name"] = "Modified";
+        await table.Rows.AddAsync(new object?[] { 3, "Added" });
+        await table.Rows[0].SetValueAsync("Name", "Modified");
 
         var commitArgs = new List<DataRowChangeEventArgs>();
         table.RowChangedAsync += (args, _) =>
@@ -259,13 +259,13 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void Wrapping_DataTable_Via_Name_Constructor_Reflects_Changes()
+    public async Task Wrapping_DataTable_Via_Name_Constructor_Reflects_Changes()
     {
         // Since internal constructor is not accessible from test assembly,
         // verify that AsyncDataTable properly delegates to inner DataTable
         using var asyncTable = new AsyncDataTable("Existing");
         asyncTable.Columns.Add("Col1", typeof(string));
-        asyncTable.InnerDataTable.Rows.Add("value");
+        await asyncTable.Rows.AddAsync(new object?[] { "value" });
 
         // Implicit conversion gives us the inner DataTable
         DataTable innerDt = asyncTable;
