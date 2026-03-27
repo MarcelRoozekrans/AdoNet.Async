@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>System.Data.Async.Serialization.NewtonsoftJson</RootNamespace>
+    <PackageId>AdoNet.Async.Serialization.NewtonsoftJson</PackageId>
+    <Title>AdoNet.Async.Serialization.NewtonsoftJson</Title>
+    <Description>Newtonsoft.Json converters for AsyncDataTable and AsyncDataSet, wire-compatible with Json.Net.DataSetConverters.</Description>
+    <PackageTags>system.data.async;async;ado.net;dataset;datatable;json;newtonsoft</PackageTags>
+    <!-- Suppress duplicate-type conflict while the originals still exist in DataSet (removed in Task 3) -->
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\System.Data.Async.DataSet\System.Data.Async.DataSet.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
+  </ItemGroup>
+</Project>
