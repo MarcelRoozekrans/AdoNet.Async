@@ -499,8 +499,7 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
 
     internal static void ReadExtendedProperties(ref Utf8JsonReader reader, PropertyCollection properties)
     {
-        reader.Read(); // StartArray
-        reader.Read(); // first StartObject or EndArray
+        reader.Read(); // past StartArray, to first StartObject or EndArray
         while (reader.TokenType == JsonTokenType.StartObject)
         {
             string keyType = "System.String", key = string.Empty, valueType = "System.String";
