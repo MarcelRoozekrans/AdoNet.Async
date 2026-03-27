@@ -11,7 +11,8 @@ public sealed class AdapterDbConnection : AsyncDbConnection
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public DbConnection InnerConnection => _inner;
+    internal DbConnection InnerConnection => _inner;
+    public static explicit operator DbConnection(AdapterDbConnection connection) => connection._inner;
 
     public override string ConnectionString
     {

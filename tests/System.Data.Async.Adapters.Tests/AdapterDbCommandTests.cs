@@ -108,7 +108,7 @@ public class AdapterDbCommandTests : IAsyncLifetime
         var innerCmd = _connection.CreateCommand();
         var cmd = new AdapterDbCommand(innerCmd, _adapterConnection);
 
-        cmd.InnerCommand.Should().BeSameAs(innerCmd);
+        ((DbCommand)cmd).Should().BeSameAs(innerCmd);
         cmd.Dispose();
     }
 

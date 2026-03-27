@@ -41,38 +41,38 @@ public class AdapterDbDataAdapterUpdateTests : IAsyncLifetime
         var selectCmd = CreateAdapterCommand("SELECT Id, Name, Price FROM Items ORDER BY Id");
 
         var insertCmd = CreateAdapterCommand("INSERT INTO Items (Id, Name, Price) VALUES (@Id, @Name, @Price)");
-        var idParam = insertCmd.InnerCommand.CreateParameter();
+        var idParam = ((DbCommand)insertCmd).CreateParameter();
         idParam.ParameterName = "@Id";
         idParam.SourceColumn = "Id";
-        insertCmd.InnerCommand.Parameters.Add(idParam);
-        var nameParam = insertCmd.InnerCommand.CreateParameter();
+        ((DbCommand)insertCmd).Parameters.Add(idParam);
+        var nameParam = ((DbCommand)insertCmd).CreateParameter();
         nameParam.ParameterName = "@Name";
         nameParam.SourceColumn = "Name";
-        insertCmd.InnerCommand.Parameters.Add(nameParam);
-        var priceParam = insertCmd.InnerCommand.CreateParameter();
+        ((DbCommand)insertCmd).Parameters.Add(nameParam);
+        var priceParam = ((DbCommand)insertCmd).CreateParameter();
         priceParam.ParameterName = "@Price";
         priceParam.SourceColumn = "Price";
-        insertCmd.InnerCommand.Parameters.Add(priceParam);
+        ((DbCommand)insertCmd).Parameters.Add(priceParam);
 
         var updateCmd = CreateAdapterCommand("UPDATE Items SET Name = @Name, Price = @Price WHERE Id = @Id");
-        var updIdParam = updateCmd.InnerCommand.CreateParameter();
+        var updIdParam = ((DbCommand)updateCmd).CreateParameter();
         updIdParam.ParameterName = "@Id";
         updIdParam.SourceColumn = "Id";
-        updateCmd.InnerCommand.Parameters.Add(updIdParam);
-        var updNameParam = updateCmd.InnerCommand.CreateParameter();
+        ((DbCommand)updateCmd).Parameters.Add(updIdParam);
+        var updNameParam = ((DbCommand)updateCmd).CreateParameter();
         updNameParam.ParameterName = "@Name";
         updNameParam.SourceColumn = "Name";
-        updateCmd.InnerCommand.Parameters.Add(updNameParam);
-        var updPriceParam = updateCmd.InnerCommand.CreateParameter();
+        ((DbCommand)updateCmd).Parameters.Add(updNameParam);
+        var updPriceParam = ((DbCommand)updateCmd).CreateParameter();
         updPriceParam.ParameterName = "@Price";
         updPriceParam.SourceColumn = "Price";
-        updateCmd.InnerCommand.Parameters.Add(updPriceParam);
+        ((DbCommand)updateCmd).Parameters.Add(updPriceParam);
 
         var deleteCmd = CreateAdapterCommand("DELETE FROM Items WHERE Id = @Id");
-        var delIdParam = deleteCmd.InnerCommand.CreateParameter();
+        var delIdParam = ((DbCommand)deleteCmd).CreateParameter();
         delIdParam.ParameterName = "@Id";
         delIdParam.SourceColumn = "Id";
-        deleteCmd.InnerCommand.Parameters.Add(delIdParam);
+        ((DbCommand)deleteCmd).Parameters.Add(delIdParam);
 
         return new AdapterDbDataAdapter(selectCmd)
         {

@@ -99,7 +99,7 @@ public class AdapterDbTransactionTests : IAsyncLifetime
         DbTransaction innerTx = await _connection.BeginTransactionAsync();
         var tx = new AdapterDbTransaction(innerTx, adapterConn);
 
-        tx.InnerTransaction.Should().BeSameAs(innerTx);
+        ((DbTransaction)tx).Should().BeSameAs(innerTx);
 
         await tx.RollbackAsync();
     }

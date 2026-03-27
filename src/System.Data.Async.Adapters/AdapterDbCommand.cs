@@ -19,7 +19,8 @@ public sealed class AdapterDbCommand : AsyncDbCommand
         }
     }
 
-    public DbCommand InnerCommand => _inner;
+    internal DbCommand InnerCommand => _inner;
+    public static explicit operator DbCommand(AdapterDbCommand command) => command._inner;
 
     public override string CommandText
     {

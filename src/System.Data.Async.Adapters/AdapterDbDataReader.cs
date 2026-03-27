@@ -11,7 +11,8 @@ public sealed class AdapterDbDataReader : AsyncDbDataReader
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public DbDataReader InnerReader => _inner;
+    internal DbDataReader InnerReader => _inner;
+    public static explicit operator DbDataReader(AdapterDbDataReader reader) => reader._inner;
 
     // Properties
     public override int FieldCount => _inner.FieldCount;

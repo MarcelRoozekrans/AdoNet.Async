@@ -123,7 +123,7 @@ public class AdapterDbDataReaderTests : IAsyncLifetime
         await using var innerReader = await cmd.ExecuteReaderAsync();
         var reader = new AdapterDbDataReader(innerReader);
 
-        reader.InnerReader.Should().BeSameAs(innerReader);
+        ((DbDataReader)reader).Should().BeSameAs(innerReader);
     }
 
     [Fact]
