@@ -62,7 +62,7 @@ public class AdapterDbConnectionTests
         IAsyncDbConnection conn = inner.AsAsync();
 
         conn.Should().BeOfType<AdapterDbConnection>();
-        ((AdapterDbConnection)conn).InnerConnection.Should().BeSameAs(inner);
+        ((DbConnection)(AdapterDbConnection)conn).Should().BeSameAs(inner);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class AdapterDbConnectionTests
         using var inner = new SqliteConnection("Data Source=:memory:");
         var conn = new AdapterDbConnection(inner);
 
-        conn.InnerConnection.Should().BeSameAs(inner);
+        ((DbConnection)conn).Should().BeSameAs(inner);
     }
 
     [Fact]
