@@ -13,7 +13,8 @@ public sealed class AdapterDbTransaction : AsyncDbTransaction
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
     }
 
-    public DbTransaction InnerTransaction => _inner;
+    internal DbTransaction InnerTransaction => _inner;
+    public static explicit operator DbTransaction(AdapterDbTransaction transaction) => transaction._inner;
 
     public override IAsyncDbConnection Connection => _connection;
     public override IsolationLevel IsolationLevel => _inner.IsolationLevel;
