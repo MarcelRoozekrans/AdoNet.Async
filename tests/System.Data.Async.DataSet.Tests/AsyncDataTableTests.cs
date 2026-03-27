@@ -40,9 +40,9 @@ public class AsyncDataTableTests
         table.Columns.Add("Name", typeof(string));
 
         var row = table.NewRow();
-        row["Id"] = 1;
-        row["Name"] = "Widget";
-        table.Rows.Add(row);
+        row.InnerDataRow["Id"] = 1;
+        row.InnerDataRow["Name"] = "Widget";
+        table.InnerDataTable.Rows.Add(row.InnerDataRow);
 
         table.Columns.Count.Should().Be(2);
         table.Rows.Count.Should().Be(1);
@@ -55,8 +55,8 @@ public class AsyncDataTableTests
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
-        row["Id"] = 1;
-        table.Rows.Add(row);
+        row.InnerDataRow["Id"] = 1;
+        table.InnerDataTable.Rows.Add(row.InnerDataRow);
 
         row.RowState.Should().Be(DataRowState.Added);
 
@@ -71,11 +71,11 @@ public class AsyncDataTableTests
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
-        row["Id"] = 1;
-        table.Rows.Add(row);
+        row.InnerDataRow["Id"] = 1;
+        table.InnerDataTable.Rows.Add(row.InnerDataRow);
         table.AcceptChanges();
 
-        row["Id"] = 99;
+        row.InnerDataRow["Id"] = 99;
         row.RowState.Should().Be(DataRowState.Modified);
 
         table.RejectChanges();
@@ -91,9 +91,9 @@ public class AsyncDataTableTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         var row = table.NewRow();
-        row["Id"] = 1;
-        row["Name"] = "Widget";
-        table.Rows.Add(row);
+        row.InnerDataRow["Id"] = 1;
+        row.InnerDataRow["Name"] = "Widget";
+        table.InnerDataTable.Rows.Add(row.InnerDataRow);
 
         var clone = table.Clone();
 
@@ -107,8 +107,8 @@ public class AsyncDataTableTests
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
         var row = table.NewRow();
-        row["Id"] = 42;
-        table.Rows.Add(row);
+        row.InnerDataRow["Id"] = 42;
+        table.InnerDataTable.Rows.Add(row.InnerDataRow);
         table.AcceptChanges();
 
         var copy = table.Copy();
@@ -125,9 +125,9 @@ public class AsyncDataTableTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
 
-        table.Rows.Add(1, "Alice");
-        table.Rows.Add(2, "Bob");
-        table.Rows.Add(3, "Alice");
+        table.InnerDataTable.Rows.Add(1, "Alice");
+        table.InnerDataTable.Rows.Add(2, "Bob");
+        table.InnerDataTable.Rows.Add(3, "Alice");
 
         var filtered = table.Select("Name = 'Alice'");
 
@@ -139,10 +139,10 @@ public class AsyncDataTableTests
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
-        table.Rows.Add(1);
+        table.InnerDataTable.Rows.Add(1);
         table.AcceptChanges();
 
-        table.Rows.Add(2);
+        table.InnerDataTable.Rows.Add(2);
 
         var changes = table.GetChanges();
 
@@ -156,8 +156,8 @@ public class AsyncDataTableTests
     {
         using var table = new AsyncDataTable("Items");
         table.Columns.Add("Id", typeof(int));
-        table.Rows.Add(1);
-        table.Rows.Add(2);
+        table.InnerDataTable.Rows.Add(1);
+        table.InnerDataTable.Rows.Add(2);
 
         table.Clear();
 
@@ -183,7 +183,7 @@ public class AsyncDataTableTests
         // verify that AsyncDataTable properly delegates to inner DataTable
         using var asyncTable = new AsyncDataTable("Existing");
         asyncTable.Columns.Add("Col1", typeof(string));
-        asyncTable.Rows.Add("value");
+        asyncTable.InnerDataTable.Rows.Add("value");
 
         // Implicit conversion gives us the inner DataTable
         DataTable innerDt = asyncTable;

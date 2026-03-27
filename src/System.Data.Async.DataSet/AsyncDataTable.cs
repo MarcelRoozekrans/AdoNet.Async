@@ -1,21 +1,53 @@
 using System.Globalization;
 using System.Runtime.Serialization;
 using System.Xml;
+using ZeroAlloc.AsyncEvents;
 
 namespace System.Data.Async.DataSet;
 
 public class AsyncDataTable : IDisposable
 {
     private readonly DataTable _inner;
+    private readonly AsyncDataRowCollection _rows;
 
-    public AsyncDataTable() => _inner = new DataTable();
-    public AsyncDataTable(string tableName) => _inner = new DataTable(tableName);
-    public AsyncDataTable(string tableName, string tableNamespace) => _inner = new DataTable(tableName, tableNamespace);
-    public AsyncDataTable(DataTable inner) => _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+    // Internal async event backing fields — accessed by AsyncDataRow and AsyncDataRowCollection
+    internal AsyncEventHandler<DataColumnChangeEventArgs> _columnChanging = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataColumnChangeEventArgs> _columnChanged = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataRowChangeEventArgs> _rowChanging = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataRowChangeEventArgs> _rowChanged = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataRowChangeEventArgs> _rowDeleting = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataRowChangeEventArgs> _rowDeleted = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataTableClearEventArgs> _tableClearing = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataTableClearEventArgs> _tableCleared = new(InvokeMode.Sequential);
+    internal AsyncEventHandler<DataTableNewRowEventArgs> _tableNewRow = new(InvokeMode.Sequential);
+
+    public AsyncDataTable()
+    {
+        _inner = new DataTable();
+        _rows = new AsyncDataRowCollection(_inner.Rows, this);
+    }
+
+    public AsyncDataTable(string tableName)
+    {
+        _inner = new DataTable(tableName);
+        _rows = new AsyncDataRowCollection(_inner.Rows, this);
+    }
+
+    public AsyncDataTable(string tableName, string tableNamespace)
+    {
+        _inner = new DataTable(tableName, tableNamespace);
+        _rows = new AsyncDataRowCollection(_inner.Rows, this);
+    }
+
+    public AsyncDataTable(DataTable inner)
+    {
+        _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+        _rows = new AsyncDataRowCollection(_inner.Rows, this);
+    }
 
     public DataTable InnerDataTable => _inner;
 
-    // Properties - all delegate to _inner
+    // Properties
     public string TableName { get => _inner.TableName; set => _inner.TableName = value; }
     public string Namespace { get => _inner.Namespace; set => _inner.Namespace = value; }
     public string Prefix { get => _inner.Prefix; set => _inner.Prefix = value; }
@@ -27,9 +59,9 @@ public class AsyncDataTable : IDisposable
     public SerializationFormat RemotingFormat { get => _inner.RemotingFormat; set => _inner.RemotingFormat = value; }
     public bool IsInitialized => _inner.IsInitialized;
 
-    // Collections - expose inner's collections directly
+    // Collections
     public DataColumnCollection Columns => _inner.Columns;
-    public DataRowCollection Rows => _inner.Rows;
+    public AsyncDataRowCollection Rows => _rows;
     public ConstraintCollection Constraints => _inner.Constraints;
     public DataRelationCollection ParentRelations => _inner.ParentRelations;
     public DataRelationCollection ChildRelations => _inner.ChildRelations;
@@ -38,8 +70,8 @@ public class AsyncDataTable : IDisposable
     public DataColumn[] PrimaryKey { get => _inner.PrimaryKey; set => _inner.PrimaryKey = value; }
     public System.Data.DataSet? DataSet => _inner.DataSet;
 
-    // Methods - all delegate to _inner
-    public DataRow NewRow() => _inner.NewRow();
+    // Methods
+    public AsyncDataRow NewRow() => new(_inner.NewRow(), this);
     public void ImportRow(DataRow row) => _inner.ImportRow(row);
     public void AcceptChanges() => _inner.AcceptChanges();
     public void RejectChanges() => _inner.RejectChanges();
@@ -71,7 +103,22 @@ public class AsyncDataTable : IDisposable
     public DataRow[] GetErrors() => _inner.GetErrors();
     public void Reset() => _inner.Reset();
 
-    // Sync I/O - delegate to _inner
+    // Async table-level mutations
+    public async ValueTask ClearAsync(CancellationToken cancellationToken = default)
+    {
+        await _tableClearing.InvokeAsync(new DataTableClearEventArgs(_inner), cancellationToken).ConfigureAwait(false);
+        _inner.Clear();
+        await _tableCleared.InvokeAsync(new DataTableClearEventArgs(_inner), cancellationToken).ConfigureAwait(false);
+    }
+
+    public ValueTask AcceptChangesAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _inner.AcceptChanges();
+        return ValueTask.CompletedTask;
+    }
+
+    // Sync I/O
     public void Load(IDataReader reader) => _inner.Load(reader);
     public void Load(IDataReader reader, LoadOption loadOption) => _inner.Load(reader, loadOption);
     public XmlReadMode ReadXml(Stream stream) => _inner.ReadXml(stream);
@@ -84,8 +131,6 @@ public class AsyncDataTable : IDisposable
     public ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        // Note: DataTable.ReadXml does not support async I/O internally.
-        // This method provides API consistency but executes synchronously.
         using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
         _inner.ReadXml(reader);
         return default;
@@ -104,8 +149,6 @@ public class AsyncDataTable : IDisposable
     public ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        // Note: DataTable.ReadXmlSchema does not support async I/O internally.
-        // This method provides API consistency but executes synchronously.
         using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
         _inner.ReadXmlSchema(reader);
         return default;
@@ -129,7 +172,6 @@ public class AsyncDataTable : IDisposable
 
     public async ValueTask<int> LoadAsync(IAsyncDataReader reader, LoadOption loadOption, CancellationToken cancellationToken = default)
     {
-        // Build columns from schema if table has no columns yet
         if (_inner.Columns.Count == 0)
         {
             var schemaTable = await reader.GetSchemaTableAsync(cancellationToken).ConfigureAwait(false);
@@ -184,7 +226,7 @@ public class AsyncDataTable : IDisposable
     // Implicit conversion
     public static implicit operator DataTable(AsyncDataTable asyncTable) => asyncTable._inner;
 
-    // Events
+    // Sync events (preserved)
     public event DataColumnChangeEventHandler? ColumnChanged
     {
         add => _inner.ColumnChanged += value;
@@ -238,4 +280,61 @@ public class AsyncDataTable : IDisposable
         add => _inner.TableNewRow += value;
         remove => _inner.TableNewRow -= value;
     }
+
+    // Async events — AsyncEvent<TArgs> returns ValueTask, not void; MA0046 suppressed intentionally
+#pragma warning disable MA0046
+    public event AsyncEvent<DataColumnChangeEventArgs> ColumnChangingAsync
+    {
+        add => _columnChanging.Register(value);
+        remove => _columnChanging.Unregister(value);
+    }
+
+    public event AsyncEvent<DataColumnChangeEventArgs> ColumnChangedAsync
+    {
+        add => _columnChanged.Register(value);
+        remove => _columnChanged.Unregister(value);
+    }
+
+    public event AsyncEvent<DataRowChangeEventArgs> RowChangingAsync
+    {
+        add => _rowChanging.Register(value);
+        remove => _rowChanging.Unregister(value);
+    }
+
+    public event AsyncEvent<DataRowChangeEventArgs> RowChangedAsync
+    {
+        add => _rowChanged.Register(value);
+        remove => _rowChanged.Unregister(value);
+    }
+
+    public event AsyncEvent<DataRowChangeEventArgs> RowDeletingAsync
+    {
+        add => _rowDeleting.Register(value);
+        remove => _rowDeleting.Unregister(value);
+    }
+
+    public event AsyncEvent<DataRowChangeEventArgs> RowDeletedAsync
+    {
+        add => _rowDeleted.Register(value);
+        remove => _rowDeleted.Unregister(value);
+    }
+
+    public event AsyncEvent<DataTableClearEventArgs> TableClearingAsync
+    {
+        add => _tableClearing.Register(value);
+        remove => _tableClearing.Unregister(value);
+    }
+
+    public event AsyncEvent<DataTableClearEventArgs> TableClearedAsync
+    {
+        add => _tableCleared.Register(value);
+        remove => _tableCleared.Unregister(value);
+    }
+
+    public event AsyncEvent<DataTableNewRowEventArgs> TableNewRowAsync
+    {
+        add => _tableNewRow.Register(value);
+        remove => _tableNewRow.Unregister(value);
+    }
+#pragma warning restore MA0046
 }

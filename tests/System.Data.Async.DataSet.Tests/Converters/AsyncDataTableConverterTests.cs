@@ -24,8 +24,8 @@ public class AsyncDataTableConverterTests
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, "Alice");
-        table.Rows.Add(2, "Bob");
+        table.InnerDataTable.Rows.Add(1, "Alice");
+        table.InnerDataTable.Rows.Add(2, "Bob");
         table.AcceptChanges();
 
         var settings = CreateSettings();
@@ -46,9 +46,9 @@ public class AsyncDataTableConverterTests
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, "Alice");
+        table.InnerDataTable.Rows.Add(1, "Alice");
         table.AcceptChanges();
-        table.Rows[0]["Name"] = "Alicia";
+        table.InnerDataTable.Rows[0]["Name"] = "Alicia";
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -65,7 +65,7 @@ public class AsyncDataTableConverterTests
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, "Alice");
+        table.InnerDataTable.Rows.Add(1, "Alice");
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -81,9 +81,9 @@ public class AsyncDataTableConverterTests
         var table = new AsyncDataTable("Users");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, "Alice");
+        table.InnerDataTable.Rows.Add(1, "Alice");
         table.AcceptChanges();
-        table.Rows[0].Delete();
+        table.InnerDataTable.Rows[0].Delete();
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -98,7 +98,7 @@ public class AsyncDataTableConverterTests
         var table = new AsyncDataTable("Test");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, DBNull.Value);
+        table.InnerDataTable.Rows.Add(1, DBNull.Value);
         table.AcceptChanges();
 
         var settings = CreateSettings();
@@ -113,7 +113,7 @@ public class AsyncDataTableConverterTests
     {
         var table = new AsyncDataTable("Test");
         table.Columns.Add("Amount", typeof(decimal));
-        table.Rows.Add(123.456789012345678901234567890m);
+        table.InnerDataTable.Rows.Add(123.456789012345678901234567890m);
         table.AcceptChanges();
 
         var settings = CreateSettings();
@@ -130,7 +130,7 @@ public class AsyncDataTableConverterTests
         var idCol = table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
         table.PrimaryKey = [idCol];
-        table.Rows.Add(1, "Alice");
+        table.InnerDataTable.Rows.Add(1, "Alice");
         table.AcceptChanges();
 
         var settings = CreateSettings();
@@ -168,7 +168,7 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Long", typeof(long));
 
         var dt = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
-        table.Rows.Add(42, "hello", true, 3.14, dt, 9876543210L);
+        table.InnerDataTable.Rows.Add(42, "hello", true, 3.14, dt, 9876543210L);
         table.AcceptChanges();
 
         var settings = CreateSettings();
@@ -225,14 +225,14 @@ public class AsyncDataTableConverterTests
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
 
-        table.Rows.Add(1, "Unchanged");
-        table.Rows.Add(2, "ToModify");
-        table.Rows.Add(3, "ToDelete");
+        table.InnerDataTable.Rows.Add(1, "Unchanged");
+        table.InnerDataTable.Rows.Add(2, "ToModify");
+        table.InnerDataTable.Rows.Add(3, "ToDelete");
         table.AcceptChanges();
 
-        table.Rows[1]["Name"] = "Modified";
-        table.Rows[2].Delete();
-        table.Rows.Add(4, "Added");
+        table.InnerDataTable.Rows[1]["Name"] = "Modified";
+        table.InnerDataTable.Rows[2].Delete();
+        table.InnerDataTable.Rows.Add(4, "Added");
 
         var settings = CreateSettings();
         var json = JsonConvert.SerializeObject(table, settings);
@@ -251,10 +251,10 @@ public class AsyncDataTableConverterTests
         var table = new AsyncDataTable("T");
         table.Columns.Add("Id", typeof(int));
         table.Columns.Add("Name", typeof(string));
-        table.Rows.Add(1, "Original");
+        table.InnerDataTable.Rows.Add(1, "Original");
         table.AcceptChanges();
-        table.Rows[0].BeginEdit();
-        table.Rows[0]["Name"] = "Proposed";
+        table.InnerDataTable.Rows[0].BeginEdit();
+        table.InnerDataTable.Rows[0]["Name"] = "Proposed";
         // EndEdit NOT called — row has DataRowVersion.Proposed
 
         var settings = CreateSettings();
