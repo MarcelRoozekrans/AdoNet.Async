@@ -4,6 +4,7 @@
     <Project Path="src/System.Data.Async.DataSet/System.Data.Async.DataSet.csproj" />
     <Project Path="src/System.Data.Async.Adapters/System.Data.Async.Adapters.csproj" />
     <Project Path="src/System.Data.Async.Serialization.NewtonsoftJson/System.Data.Async.Serialization.NewtonsoftJson.csproj" />
+    <Project Path="src/System.Data.Async.Serialization.SystemTextJson/System.Data.Async.Serialization.SystemTextJson.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/System.Data.Async.Tests/System.Data.Async.Tests.csproj" />

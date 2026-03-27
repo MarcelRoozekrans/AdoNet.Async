@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>System.Data.Async.Serialization.SystemTextJson</RootNamespace>
+    <PackageId>AdoNet.Async.Serialization.SystemTextJson</PackageId>
+    <Title>AdoNet.Async.Serialization.SystemTextJson</Title>
+    <Description>System.Text.Json converters for AsyncDataTable and AsyncDataSet, wire-compatible with Json.Net.DataSetConverters.</Description>
+    <PackageTags>system.data.async;async;ado.net;dataset;datatable;json;system.text.json</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\System.Data.Async.DataSet\System.Data.Async.DataSet.csproj" />
+  </ItemGroup>
+</Project>
