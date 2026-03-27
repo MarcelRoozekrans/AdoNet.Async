@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.3.2...v0.4.0) (2026-03-27)
+
+
+### Features
+
+* add AsyncDataRow.AsyncTable property returning AsyncDataTable ([ad9d581](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/ad9d58143dbf6ecb4065d297c2f5e97acd1ff9e1))
+
 ## [0.3.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.3.1...v0.3.2) (2026-03-27)
 
 
