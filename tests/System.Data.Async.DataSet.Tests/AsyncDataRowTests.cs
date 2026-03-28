@@ -217,6 +217,24 @@ public class AsyncDataRowTests
     }
 
     [Fact]
+    public void AsyncDataRow_Can_Be_Subclassed()
+    {
+        using var table = new AsyncDataTable("Test");
+        table.Columns.Add("Id", typeof(int));
+        DataTable dt = table;
+        var innerRow = dt.NewRow();
+
+        var row = new TestAsyncDataRow(innerRow, table);
+
+        row.Should().BeAssignableTo<AsyncDataRow>();
+    }
+
+    private sealed class TestAsyncDataRow : AsyncDataRow
+    {
+        public TestAsyncDataRow(DataRow inner, AsyncDataTable table) : base(inner, table) { }
+    }
+
+    [Fact]
     public async Task EndEditAsync_Fires_RowChangingAsync_Before_And_RowChangedAsync_After()
     {
         var (table, row) = BuildRow();

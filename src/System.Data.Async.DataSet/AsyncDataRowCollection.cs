@@ -2,12 +2,15 @@ using System.Collections;
 
 namespace System.Data.Async.DataSet;
 
-public sealed class AsyncDataRowCollection : IEnumerable<AsyncDataRow>
+public class AsyncDataRowCollection : IEnumerable<AsyncDataRow>
 {
     private readonly DataRowCollection _inner;
     private readonly AsyncDataTable _table;
 
-    internal AsyncDataRowCollection(DataRowCollection inner, AsyncDataTable table)
+    protected DataRowCollection InnerCollection => _inner;
+    protected AsyncDataTable Table => _table;
+
+    protected internal AsyncDataRowCollection(DataRowCollection inner, AsyncDataTable table)
     {
         _inner = inner;
         _table = table;
