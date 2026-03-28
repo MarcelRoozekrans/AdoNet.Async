@@ -247,6 +247,19 @@ public class AsyncDataTableTests
     }
 
     [Fact]
+    public async Task Row_Indexer_Returns_Same_Instance()
+    {
+        using var table = new AsyncDataTable("Test");
+        table.Columns.Add("Id", typeof(int));
+        await table.Rows.AddAsync(new object?[] { 1 });
+
+        var row1 = table.Rows[0];
+        var row2 = table.Rows[0];
+
+        row1.Should().BeSameAs(row2);
+    }
+
+    [Fact]
     public void Implicit_Conversion_To_DataTable_Works()
     {
         using var asyncTable = new AsyncDataTable("Test");

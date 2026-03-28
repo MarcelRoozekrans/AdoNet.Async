@@ -10,6 +10,7 @@ public abstract class AsyncDataTable<TRow> : AsyncDataTable
     protected AsyncDataTable(DataTable inner) : base(inner) { }
 
     protected abstract TRow WrapRow(DataRow innerRow);
+    protected override AsyncDataRow CreateRow(DataRow inner) => WrapRow(inner);
 
     public new AsyncDataRowCollection<TRow> Rows =>
         _typedRows ??= new AsyncDataRowCollection<TRow>(InnerDataTable.Rows, this, (inner, _) => WrapRow(inner));

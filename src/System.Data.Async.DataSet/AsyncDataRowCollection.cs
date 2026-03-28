@@ -19,7 +19,7 @@ public class AsyncDataRowCollection : IEnumerable<AsyncDataRow>
     public int Count => _inner.Count;
     public bool Contains(object key) => _inner.Contains(key);
 
-    public AsyncDataRow this[int index] => new(_inner[index], _table);
+    public AsyncDataRow this[int index] => _table.GetOrCreateRow(_inner[index]);
 
     public async ValueTask AddAsync(AsyncDataRow row, CancellationToken cancellationToken = default)
     {
@@ -69,7 +69,7 @@ public class AsyncDataRowCollection : IEnumerable<AsyncDataRow>
     {
         for (int i = 0; i < _inner.Count; i++)
         {
-            yield return new AsyncDataRow(_inner[i], _table);
+            yield return _table.GetOrCreateRow(_inner[i]);
         }
     }
 #pragma warning restore HLQ006

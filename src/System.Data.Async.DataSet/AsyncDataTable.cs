@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
 using ZeroAlloc.AsyncEvents;
@@ -9,6 +10,7 @@ public class AsyncDataTable : IDisposable
 {
     private readonly DataTable _inner;
     private readonly AsyncDataRowCollection _rows;
+    private readonly ConditionalWeakTable<DataRow, AsyncDataRow> _rowCache = new();
 
     // Internal async event backing fields — accessed by AsyncDataRow and AsyncDataRowCollection
     internal AsyncEventHandler<DataColumnChangeEventArgs> _columnChanging = new(InvokeMode.Sequential);
@@ -45,6 +47,13 @@ public class AsyncDataTable : IDisposable
         _rows = new AsyncDataRowCollection(_inner.Rows, this);
     }
 
+    protected virtual AsyncDataRow CreateRow(DataRow inner) => new(inner, this);
+
+    internal AsyncDataRow GetOrCreateRow(DataRow inner)
+    {
+        return _rowCache.GetValue(inner, CreateRow);
+    }
+
     protected internal DataTable InnerDataTable => _inner;
 
     // Properties
@@ -71,7 +80,7 @@ public class AsyncDataTable : IDisposable
     public System.Data.DataSet? DataSet => _inner.DataSet;
 
     // Methods
-    public AsyncDataRow NewRow() => new(_inner.NewRow(), this);
+    public AsyncDataRow NewRow() => GetOrCreateRow(_inner.NewRow());
     public void ImportRow(DataRow row) => _inner.ImportRow(row);
     [Obsolete("Use AcceptChangesAsync(). Calling AcceptChanges() bypasses async events.", error: true)]
     public void AcceptChanges() => throw new NotSupportedException("Use AcceptChangesAsync().");
