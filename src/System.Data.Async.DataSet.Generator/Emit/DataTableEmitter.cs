@@ -130,7 +130,7 @@ internal static class DataTableEmitter
 
         foreach (var col in table.Columns)
         {
-            if (col.IsHidden || col.AutoIncrement)
+            if (col.IsHidden || col.AutoIncrement || col.Expression != null || col.ReadOnly)
                 continue;
 
             if (fkChildColumns.TryGetValue(col.Name, out var rel) && addedParentParams.Add(rel.Name))
