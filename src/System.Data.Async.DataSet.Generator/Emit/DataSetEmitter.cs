@@ -46,8 +46,9 @@ internal static class DataSetEmitter
         foreach (var table in model.Tables)
         {
             var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
+            var accessorName = table.TypedPlural ?? table.Name;
             sb.AppendLine();
-            sb.AppendLine($"    public {tableClass} {table.Name} => table{table.Name};");
+            sb.AppendLine($"    public {tableClass} {accessorName} => table{table.Name};");
         }
 
         // Relation accessors

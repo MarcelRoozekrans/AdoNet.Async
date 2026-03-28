@@ -50,7 +50,7 @@ public sealed class TypedDataSetGenerator : IIncrementalGenerator
             foreach (var table in model.Tables)
             {
                 spc.AddSource($"{model.Name}.{table.Name}.AsyncDataTable.g.cs",
-                    DataTableEmitter.Emit(model.Name, table, model.Relations));
+                    DataTableEmitter.Emit(model.Name, table, model.Relations, model.Tables));
 
                 spc.AddSource($"{model.Name}.{table.Name}.AsyncDataRow.g.cs",
                     DataRowEmitter.Emit(model.Name, table, model.Relations, model.Tables));

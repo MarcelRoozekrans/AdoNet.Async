@@ -10,7 +10,8 @@ internal static class DataTableEmitter
     public static string Emit(
         string dataSetName,
         TableModel table,
-        ImmutableArray<RelationModel> allRelations)
+        ImmutableArray<RelationModel> allRelations,
+        ImmutableArray<TableModel> allTables)
     {
         var rowClass = NamingHelper.RowClassName(table.Name, table.TypedName);
         var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
@@ -71,7 +72,7 @@ internal static class DataTableEmitter
         sb.AppendLine($"    public {rowClass} {newRowMethod}() => WrapRow(((global::System.Data.DataTable)this).NewRow());");
 
         // AddXxxRowAsync - with typed parameters, returns the row
-        EmitAddRowMethod(sb, table, rowClass, allRelations);
+        EmitAddRowMethod(sb, table, rowClass, allRelations, allTables);
 
         // RemoveXxxRowAsync
         var removeRowMethod = NamingHelper.RemoveRowMethodName(table.Name, table.TypedName);
@@ -99,7 +100,8 @@ internal static class DataTableEmitter
         StringBuilder sb,
         TableModel table,
         string rowClass,
-        ImmutableArray<RelationModel> allRelations)
+        ImmutableArray<RelationModel> allRelations,
+        ImmutableArray<TableModel> allTables)
     {
         var addRowMethod = NamingHelper.AddRowMethodName(table.Name, table.TypedName);
 
@@ -133,8 +135,9 @@ internal static class DataTableEmitter
 
             if (fkChildColumns.TryGetValue(col.Name, out var rel) && addedParentParams.Add(rel.Name))
             {
-                // Use parent row type as parameter
-                var parentRowClass = NamingHelper.RowClassName(rel.ParentTableName, null);
+                // Use parent row type as parameter — look up the parent table's typedName for correct class name
+                var parentTable = FindTable(allTables, rel.ParentTableName);
+                var parentRowClass = NamingHelper.RowClassName(rel.ParentTableName, parentTable?.TypedName);
                 var paramName = $"parent{rel.ParentTableName}Row";
                 parameters.Add($"{parentRowClass}? {paramName}");
 
@@ -285,5 +288,15 @@ internal static class DataTableEmitter
     private static string EscapeString(string value)
     {
         return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+    }
+
+    private static TableModel? FindTable(ImmutableArray<TableModel> tables, string name)
+    {
+        foreach (var t in tables)
+        {
+            if (string.Equals(t.Name, name, StringComparison.Ordinal))
+                return t;
+        }
+        return null;
     }
 }

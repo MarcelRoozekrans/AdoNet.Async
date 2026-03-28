@@ -8,12 +8,16 @@ namespace System.Data.Async.DataSet.Generator.Tests.Emit;
 
 public class DataTableEmitterTests
 {
+    private static readonly ImmutableArray<TableModel> AllTables =
+        ImmutableArray.Create(TestModels.CustomerTable, TestModels.OrderTable);
+
     private static string EmitCustomerTable()
     {
         return DataTableEmitter.Emit(
             "OrdersDS",
             TestModels.CustomerTable,
-            ImmutableArray.Create(TestModels.CustomerOrderRelation));
+            ImmutableArray.Create(TestModels.CustomerOrderRelation),
+            AllTables);
     }
 
     private static string EmitOrderTable()
@@ -21,7 +25,8 @@ public class DataTableEmitterTests
         return DataTableEmitter.Emit(
             "OrdersDS",
             TestModels.OrderTable,
-            ImmutableArray.Create(TestModels.CustomerOrderRelation));
+            ImmutableArray.Create(TestModels.CustomerOrderRelation),
+            AllTables);
     }
 
     [Fact]
@@ -180,7 +185,8 @@ public class DataTableEmitterTests
         var source = DataTableEmitter.Emit(
             "DS",
             TestModels.TypedCategoryTable,
-            ImmutableArray<RelationModel>.Empty);
+            ImmutableArray<RelationModel>.Empty,
+            ImmutableArray.Create(TestModels.TypedCategoryTable));
 
         source.Should().Contain("public partial class AsyncCategoriesDataTable : AsyncDataTable<AsyncCategoryEntryRow>");
     }
