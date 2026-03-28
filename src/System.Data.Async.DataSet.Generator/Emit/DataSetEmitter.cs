@@ -62,7 +62,7 @@ internal static class DataSetEmitter
         sb.AppendLine();
         sb.AppendLine("    private void InitClass()");
         sb.AppendLine("    {");
-        sb.AppendLine($"        var inner = (global::System.Data.DataSet)this;");
+        sb.AppendLine($"        var inner = InnerDataSet;");
         sb.AppendLine($"        inner.DataSetName = \"{model.Name}\";");
 
         if (model.Locale != null)
@@ -140,7 +140,7 @@ internal static class DataSetEmitter
         sb.AppendLine();
         sb.AppendLine("    internal void InitVars()");
         sb.AppendLine("    {");
-        sb.AppendLine("        var inner = (global::System.Data.DataSet)this;");
+        sb.AppendLine("        var inner = InnerDataSet;");
         foreach (var table in model.Tables)
         {
             var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);

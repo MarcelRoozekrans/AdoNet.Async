@@ -84,14 +84,14 @@ public class DataTableEmitterTests
     public void Emit_Customer_Count()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public int Count => ((global::System.Data.DataTable)this).Rows.Count;");
+        source.Should().Contain("public int Count => (InnerDataTable).Rows.Count;");
     }
 
     [Fact]
     public void Emit_Customer_Indexer()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public new AsyncCustomerRow this[int index] => WrapRow(((global::System.Data.DataTable)this).Rows[index]);");
+        source.Should().Contain("public new AsyncCustomerRow this[int index] => WrapRow((InnerDataTable).Rows[index]);");
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class DataTableEmitterTests
     public void Emit_Customer_NewRow()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public AsyncCustomerRow NewCustomerRow() => WrapRow(((global::System.Data.DataTable)this).NewRow());");
+        source.Should().Contain("public AsyncCustomerRow NewCustomerRow() => WrapRow((InnerDataTable).NewRow());");
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class DataTableEmitterTests
     {
         var source = EmitCustomerTable();
         source.Should().Contain("public AsyncCustomerRow? FindByCustomerId(int customerId)");
-        source.Should().Contain("((global::System.Data.DataTable)this).Rows.Find");
+        source.Should().Contain("(InnerDataTable).Rows.Find");
     }
 
     [Fact]

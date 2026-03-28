@@ -56,11 +56,11 @@ internal static class DataTableEmitter
 
         // Count property
         sb.AppendLine();
-        sb.AppendLine($"    public int Count => ((global::System.Data.DataTable)this).Rows.Count;");
+        sb.AppendLine($"    public int Count => (InnerDataTable).Rows.Count;");
 
         // Typed indexer — hides base, use new
         sb.AppendLine();
-        sb.AppendLine($"    public new {rowClass} this[int index] => WrapRow(((global::System.Data.DataTable)this).Rows[index]);");
+        sb.AppendLine($"    public new {rowClass} this[int index] => WrapRow((InnerDataTable).Rows[index]);");
 
         // WrapRow override
         sb.AppendLine();
@@ -69,7 +69,7 @@ internal static class DataTableEmitter
         // NewXxxRow
         var newRowMethod = NamingHelper.NewRowMethodName(table.Name, table.TypedName);
         sb.AppendLine();
-        sb.AppendLine($"    public {rowClass} {newRowMethod}() => WrapRow(((global::System.Data.DataTable)this).NewRow());");
+        sb.AppendLine($"    public {rowClass} {newRowMethod}() => WrapRow((InnerDataTable).NewRow());");
 
         // AddXxxRowAsync - with typed parameters, returns the row
         EmitAddRowMethod(sb, table, rowClass, allRelations, allTables);
@@ -160,7 +160,7 @@ internal static class DataTableEmitter
         sb.Append(string.Join(", ", parameters));
         sb.AppendLine(", global::System.Threading.CancellationToken ct = default)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        var row = ((global::System.Data.DataTable)this).NewRow();");
+        sb.AppendLine($"        var row = (InnerDataTable).NewRow();");
         for (int i = 0; i < assignments.Count; i++)
         {
             sb.AppendLine(assignments[i]);
@@ -199,7 +199,7 @@ internal static class DataTableEmitter
         sb.Append(string.Join(", ", parameters));
         sb.AppendLine(")");
         sb.AppendLine("    {");
-        sb.AppendLine($"        var row = ((global::System.Data.DataTable)this).Rows.Find(new object[] {{ {string.Join(", ", table.PrimaryKeyColumnNames.Select(n => ToCamelCase(n)))} }});");
+        sb.AppendLine($"        var row = (InnerDataTable).Rows.Find(new object[] {{ {string.Join(", ", table.PrimaryKeyColumnNames.Select(n => ToCamelCase(n)))} }});");
         sb.AppendLine($"        return row != null ? WrapRow(row) : null;");
         sb.AppendLine("    }");
     }
@@ -209,7 +209,7 @@ internal static class DataTableEmitter
         sb.AppendLine();
         sb.AppendLine("    private void InitClass()");
         sb.AppendLine("    {");
-        sb.AppendLine("        var dt = (global::System.Data.DataTable)this;");
+        sb.AppendLine("        var dt = InnerDataTable;");
 
         foreach (var col in table.Columns)
         {
@@ -270,7 +270,7 @@ internal static class DataTableEmitter
         sb.AppendLine();
         sb.AppendLine("    internal void InitVars()");
         sb.AppendLine("    {");
-        sb.AppendLine("        var dt = (global::System.Data.DataTable)this;");
+        sb.AppendLine("        var dt = InnerDataTable;");
         foreach (var col in table.Columns)
         {
             sb.AppendLine($"        column{col.Name} = dt.Columns[\"{col.Name}\"]!;");
