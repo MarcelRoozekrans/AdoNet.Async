@@ -1,5 +1,6 @@
 #pragma warning disable CA1001 // Type owns disposable field(s) -- disposed via IAsyncLifetime
 
+using System.Data.Common;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Xunit;

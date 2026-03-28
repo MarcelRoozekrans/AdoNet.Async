@@ -1,3 +1,4 @@
+using System.Data.Common;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Xunit;
