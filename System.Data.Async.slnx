@@ -15,5 +15,6 @@
     <Project Path="tests/System.Data.Async.Benchmarks/System.Data.Async.Benchmarks.csproj" />
     <Project Path="tests/System.Data.Async.Integration.Tests/System.Data.Async.Integration.Tests.csproj" />
     <Project Path="tests/System.Data.Async.DataSet.Generator.Tests/System.Data.Async.DataSet.Generator.Tests.csproj" />
+    <Project Path="tests/System.Data.Async.DataSet.Generator.Integration.Tests/System.Data.Async.DataSet.Generator.Integration.Tests.csproj" />
   </Folder>
 </Solution>
