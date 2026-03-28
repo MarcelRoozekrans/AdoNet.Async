@@ -6,8 +6,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\System.Data.Async.Adapters\System.Data.Async.Adapters.csproj" />
     <ProjectReference Include="..\..\src\System.Data.Async.DataSet\System.Data.Async.DataSet.csproj" />
+    <ProjectReference Include="..\..\src\System.Data.Async.DataSet.Generator\System.Data.Async.DataSet.Generator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\System.Data.Async.Serialization.NewtonsoftJson\System.Data.Async.Serialization.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\System.Data.Async.Serialization.SystemTextJson\System.Data.Async.Serialization.SystemTextJson.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\tests\System.Data.Async.DataSet.Generator.Integration.Tests\Schemas\OrdersDS.xsd" />
   </ItemGroup>
 
   <ItemGroup>
