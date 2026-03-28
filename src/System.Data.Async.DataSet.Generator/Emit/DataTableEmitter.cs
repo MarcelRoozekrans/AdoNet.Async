@@ -55,11 +55,11 @@ internal static class DataTableEmitter
 
         // Count property
         sb.AppendLine();
-        sb.AppendLine("    public int Count => InnerDataTable.Rows.Count;");
+        sb.AppendLine($"    public int Count => ((global::System.Data.DataTable)this).Rows.Count;");
 
-        // Typed indexer
+        // Typed indexer — hides base, use new
         sb.AppendLine();
-        sb.AppendLine($"    public {rowClass} this[int index] => WrapRow(InnerDataTable.Rows[index]);");
+        sb.AppendLine($"    public new {rowClass} this[int index] => WrapRow(((global::System.Data.DataTable)this).Rows[index]);");
 
         // WrapRow override
         sb.AppendLine();
@@ -68,16 +68,16 @@ internal static class DataTableEmitter
         // NewXxxRow
         var newRowMethod = NamingHelper.NewRowMethodName(table.Name, table.TypedName);
         sb.AppendLine();
-        sb.AppendLine($"    public {rowClass} {newRowMethod}() => WrapRow(InnerDataTable.NewRow());");
+        sb.AppendLine($"    public {rowClass} {newRowMethod}() => WrapRow(((global::System.Data.DataTable)this).NewRow());");
 
-        // AddXxxRowAsync - with typed parameters
+        // AddXxxRowAsync - with typed parameters, returns the row
         EmitAddRowMethod(sb, table, rowClass, allRelations);
 
         // RemoveXxxRowAsync
         var removeRowMethod = NamingHelper.RemoveRowMethodName(table.Name, table.TypedName);
         sb.AppendLine();
         sb.AppendLine($"    public global::System.Threading.Tasks.ValueTask {removeRowMethod}({rowClass} row, global::System.Threading.CancellationToken ct = default)");
-        sb.AppendLine("        => RemoveRowAsync(row, ct);");
+        sb.AppendLine("        => Rows.RemoveAsync(row, ct);");
 
         // FindByXxx for primary keys
         if (table.PrimaryKeyColumnNames.Length > 0)
@@ -135,11 +135,10 @@ internal static class DataTableEmitter
             {
                 // Use parent row type as parameter
                 var parentRowClass = NamingHelper.RowClassName(rel.ParentTableName, null);
-                // Try to find typed name for parent
                 var paramName = $"parent{rel.ParentTableName}Row";
                 parameters.Add($"{parentRowClass}? {paramName}");
 
-                // Assign FK columns from parent row
+                // Assign FK columns from parent row via InnerRow
                 for (int i = 0; i < rel.ChildColumnNames.Length; i++)
                 {
                     assignments.Add($"            if ({paramName} != null) row[\"{rel.ChildColumnNames[i]}\"] = {paramName}[\"{rel.ParentColumnNames[i]}\"];");
@@ -154,17 +153,18 @@ internal static class DataTableEmitter
         }
 
         sb.AppendLine();
-        sb.Append($"    public global::System.Threading.Tasks.ValueTask {addRowMethod}(");
+        sb.Append($"    public async global::System.Threading.Tasks.ValueTask<{rowClass}> {addRowMethod}(");
         sb.Append(string.Join(", ", parameters));
         sb.AppendLine(", global::System.Threading.CancellationToken ct = default)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        var row = InnerDataTable.NewRow();");
+        sb.AppendLine($"        var row = ((global::System.Data.DataTable)this).NewRow();");
         for (int i = 0; i < assignments.Count; i++)
         {
             sb.AppendLine(assignments[i]);
         }
-        sb.AppendLine("        InnerDataTable.Rows.Add(row);");
-        sb.AppendLine("        return default;");
+        sb.AppendLine("        ((global::System.Data.DataTable)this).Rows.Add(row);");
+        sb.AppendLine($"        var typedRow = WrapRow(row);");
+        sb.AppendLine("        return typedRow;");
         sb.AppendLine("    }");
     }
 
@@ -196,7 +196,7 @@ internal static class DataTableEmitter
         sb.Append(string.Join(", ", parameters));
         sb.AppendLine(")");
         sb.AppendLine("    {");
-        sb.AppendLine($"        var row = InnerDataTable.Rows.Find(new object[] {{ {string.Join(", ", table.PrimaryKeyColumnNames.Select(n => ToCamelCase(n)))} }});");
+        sb.AppendLine($"        var row = ((global::System.Data.DataTable)this).Rows.Find(new object[] {{ {string.Join(", ", table.PrimaryKeyColumnNames.Select(n => ToCamelCase(n)))} }});");
         sb.AppendLine($"        return row != null ? WrapRow(row) : null;");
         sb.AppendLine("    }");
     }
@@ -206,11 +206,12 @@ internal static class DataTableEmitter
         sb.AppendLine();
         sb.AppendLine("    private void InitClass()");
         sb.AppendLine("    {");
+        sb.AppendLine("        var dt = (global::System.Data.DataTable)this;");
 
         foreach (var col in table.Columns)
         {
             sb.AppendLine($"        column{col.Name} = new global::System.Data.DataColumn(\"{col.Name}\", typeof({NamingHelper.ClrTypeToKeyword(col.ClrTypeName)}), null, global::System.Data.MappingType.Element);");
-            sb.AppendLine($"        InnerDataTable.Columns.Add(column{col.Name});");
+            sb.AppendLine($"        dt.Columns.Add(column{col.Name});");
 
             if (col.AutoIncrement)
             {
@@ -253,7 +254,7 @@ internal static class DataTableEmitter
         // Set primary key
         if (table.PrimaryKeyColumnNames.Length > 0)
         {
-            sb.Append("        InnerDataTable.PrimaryKey = new global::System.Data.DataColumn[] { ");
+            sb.Append("        dt.PrimaryKey = new global::System.Data.DataColumn[] { ");
             sb.Append(string.Join(", ", table.PrimaryKeyColumnNames.Select(n => $"column{n}")));
             sb.AppendLine(" };");
         }
@@ -266,9 +267,10 @@ internal static class DataTableEmitter
         sb.AppendLine();
         sb.AppendLine("    internal void InitVars()");
         sb.AppendLine("    {");
+        sb.AppendLine("        var dt = (global::System.Data.DataTable)this;");
         foreach (var col in table.Columns)
         {
-            sb.AppendLine($"        column{col.Name} = InnerDataTable.Columns[\"{col.Name}\"]!;");
+            sb.AppendLine($"        column{col.Name} = dt.Columns[\"{col.Name}\"]!;");
         }
         sb.AppendLine("    }");
     }

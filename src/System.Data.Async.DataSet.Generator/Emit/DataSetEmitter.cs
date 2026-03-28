@@ -61,22 +61,23 @@ internal static class DataSetEmitter
         sb.AppendLine();
         sb.AppendLine("    private void InitClass()");
         sb.AppendLine("    {");
-        sb.AppendLine($"        InnerDataSet.DataSetName = \"{model.Name}\";");
+        sb.AppendLine($"        var inner = (global::System.Data.DataSet)this;");
+        sb.AppendLine($"        inner.DataSetName = \"{model.Name}\";");
 
         if (model.Locale != null)
         {
-            sb.AppendLine($"        InnerDataSet.Locale = new global::System.Globalization.CultureInfo(\"{model.Locale}\");");
+            sb.AppendLine($"        inner.Locale = new global::System.Globalization.CultureInfo(\"{model.Locale}\");");
         }
 
-        sb.AppendLine($"        InnerDataSet.CaseSensitive = {(model.CaseSensitive ? "true" : "false")};");
-        sb.AppendLine($"        InnerDataSet.EnforceConstraints = {(model.EnforceConstraints ? "true" : "false")};");
+        sb.AppendLine($"        inner.CaseSensitive = {(model.CaseSensitive ? "true" : "false")};");
+        sb.AppendLine($"        inner.EnforceConstraints = {(model.EnforceConstraints ? "true" : "false")};");
 
         // Create typed tables and add to Tables
         foreach (var table in model.Tables)
         {
             var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
             sb.AppendLine($"        table{table.Name} = new {tableClass}();");
-            sb.AppendLine($"        InnerDataSet.Tables.Add(table{table.Name}.InnerDataTable);");
+            sb.AppendLine($"        inner.Tables.Add((global::System.Data.DataTable)table{table.Name});");
         }
 
         // Create relations
@@ -104,7 +105,7 @@ internal static class DataSetEmitter
                 sb.AppendLine($"        relation{rel.Name}.Nested = true;");
             }
 
-            sb.AppendLine($"        InnerDataSet.Relations.Add(relation{rel.Name});");
+            sb.AppendLine($"        inner.Relations.Add(relation{rel.Name});");
         }
 
         // Create FK constraints
@@ -129,7 +130,7 @@ internal static class DataSetEmitter
             sb.AppendLine($"        fk{fk.Name}.AcceptRejectRule = global::System.Data.AcceptRejectRule.{fk.AcceptRejectRule};");
             sb.AppendLine($"        fk{fk.Name}.DeleteRule = global::System.Data.Rule.{fk.DeleteRule};");
             sb.AppendLine($"        fk{fk.Name}.UpdateRule = global::System.Data.Rule.{fk.UpdateRule};");
-            sb.AppendLine($"        table{fk.ChildTableName}.InnerDataTable.Constraints.Add(fk{fk.Name});");
+            sb.AppendLine($"        ((global::System.Data.DataTable)table{fk.ChildTableName}).Constraints.Add(fk{fk.Name});");
         }
 
         sb.AppendLine("    }");
@@ -138,10 +139,11 @@ internal static class DataSetEmitter
         sb.AppendLine();
         sb.AppendLine("    internal void InitVars()");
         sb.AppendLine("    {");
+        sb.AppendLine("        var inner = (global::System.Data.DataSet)this;");
         foreach (var table in model.Tables)
         {
             var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
-            sb.AppendLine($"        var dt{table.Name} = InnerDataSet.Tables[\"{table.Name}\"];");
+            sb.AppendLine($"        var dt{table.Name} = inner.Tables[\"{table.Name}\"];");
             sb.AppendLine($"        if (dt{table.Name} != null)");
             sb.AppendLine("        {");
             sb.AppendLine($"            table{table.Name} = new {tableClass}(dt{table.Name});");
@@ -149,7 +151,7 @@ internal static class DataSetEmitter
         }
         foreach (var rel in model.Relations)
         {
-            sb.AppendLine($"        relation{rel.Name} = InnerDataSet.Relations[\"{rel.Name}\"]!;");
+            sb.AppendLine($"        relation{rel.Name} = inner.Relations[\"{rel.Name}\"]!;");
         }
         sb.AppendLine("    }");
 
@@ -171,7 +173,7 @@ internal static class DataSetEmitter
 
         // Clone
         sb.AppendLine();
-        sb.AppendLine($"    public {dsClass} Clone()");
+        sb.AppendLine($"    public new {dsClass} Clone()");
         sb.AppendLine("    {");
         sb.AppendLine($"        var clone = new {dsClass}();");
         sb.AppendLine("        clone.InitVars();");

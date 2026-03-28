@@ -79,14 +79,14 @@ public class DataTableEmitterTests
     public void Emit_Customer_Count()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public int Count => InnerDataTable.Rows.Count;");
+        source.Should().Contain("public int Count => ((global::System.Data.DataTable)this).Rows.Count;");
     }
 
     [Fact]
     public void Emit_Customer_Indexer()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public AsyncCustomerRow this[int index] => WrapRow(InnerDataTable.Rows[index]);");
+        source.Should().Contain("public new AsyncCustomerRow this[int index] => WrapRow(((global::System.Data.DataTable)this).Rows[index]);");
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class DataTableEmitterTests
     public void Emit_Customer_NewRow()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public AsyncCustomerRow NewCustomerRow() => WrapRow(InnerDataTable.NewRow());");
+        source.Should().Contain("public AsyncCustomerRow NewCustomerRow() => WrapRow(((global::System.Data.DataTable)this).NewRow());");
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class DataTableEmitterTests
     {
         var source = EmitCustomerTable();
         source.Should().Contain("public AsyncCustomerRow? FindByCustomerId(int customerId)");
-        source.Should().Contain("InnerDataTable.Rows.Find");
+        source.Should().Contain("((global::System.Data.DataTable)this).Rows.Find");
     }
 
     [Fact]
@@ -131,21 +131,21 @@ public class DataTableEmitterTests
     {
         var source = EmitCustomerTable();
         source.Should().Contain("columnCustomerId = new global::System.Data.DataColumn(\"CustomerId\"");
-        source.Should().Contain("InnerDataTable.Columns.Add(columnCustomerId);");
+        source.Should().Contain("dt.Columns.Add(columnCustomerId);");
     }
 
     [Fact]
     public void Emit_Customer_InitClass_SetsPrimaryKey()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("InnerDataTable.PrimaryKey = new global::System.Data.DataColumn[] { columnCustomerId }");
+        source.Should().Contain("dt.PrimaryKey = new global::System.Data.DataColumn[] { columnCustomerId }");
     }
 
     [Fact]
     public void Emit_Customer_InitVars_ResolvesColumns()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("columnCustomerId = InnerDataTable.Columns[\"CustomerId\"]!;");
+        source.Should().Contain("columnCustomerId = dt.Columns[\"CustomerId\"]!;");
     }
 
     [Fact]

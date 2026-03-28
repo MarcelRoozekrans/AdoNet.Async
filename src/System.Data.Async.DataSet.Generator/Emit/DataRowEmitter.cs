@@ -29,8 +29,8 @@ internal static class DataRowEmitter
         sb.AppendLine($"    private readonly {tableClass} _table;");
         sb.AppendLine();
 
-        // Constructor
-        sb.AppendLine($"    internal {rowClass}(global::System.Data.DataRow inner, {tableClass} table) : base(inner)");
+        // Constructor — pass both inner row AND table to base
+        sb.AppendLine($"    internal {rowClass}(global::System.Data.DataRow inner, {tableClass} table) : base(inner, table)");
         sb.AppendLine("    {");
         sb.AppendLine("        _table = table;");
         sb.AppendLine("    }");
@@ -95,6 +95,7 @@ internal static class DataRowEmitter
                 continue;
 
             var childRowClass = NamingHelper.RowClassName(childTable.Name, childTable.TypedName);
+            var childTableClass = NamingHelper.TableClassName(childTable.Name, childTable.TypedPlural);
             var methodName = NamingHelper.GetChildRowsMethodName(childTable.Name, rel.TypedChildren);
             sb.AppendLine();
             sb.AppendLine($"    public {childRowClass}[] {methodName}()");
@@ -103,7 +104,6 @@ internal static class DataRowEmitter
             sb.AppendLine($"        var result = new {childRowClass}[innerRows.Length];");
             sb.AppendLine("        for (int i = 0; i < innerRows.Length; i++)");
             sb.AppendLine("        {");
-            // We need to find the child table to wrap. Use a simple new for now.
             sb.AppendLine($"            result[i] = new {childRowClass}(innerRows[i], null!);");
             sb.AppendLine("        }");
             sb.AppendLine("        return result;");
@@ -123,6 +123,7 @@ internal static class DataRowEmitter
                 continue;
 
             var parentRowClass = NamingHelper.RowClassName(parentTable.Name, parentTable.TypedName);
+            var parentTableClass = NamingHelper.TableClassName(parentTable.Name, parentTable.TypedPlural);
             var propName = NamingHelper.ParentRowPropertyName(parentTable.Name, rel.TypedParent);
             var setMethodName = NamingHelper.SetParentRowMethodName(parentTable.Name, rel.TypedParent);
             sb.AppendLine();
@@ -140,17 +141,17 @@ internal static class DataRowEmitter
             sb.AppendLine("        // Setting parent row requires updating FK columns");
             sb.AppendLine("        if (value == null)");
             sb.AppendLine("        {");
-            // Set FK columns to DBNull
+            // Set FK columns to DBNull via InnerRow
             foreach (var childCol in rel.ChildColumnNames)
             {
-                sb.AppendLine($"            this[\"{childCol}\"] = global::System.DBNull.Value;");
+                sb.AppendLine($"            InnerRow[\"{childCol}\"] = global::System.DBNull.Value;");
             }
             sb.AppendLine("        }");
             sb.AppendLine("        else");
             sb.AppendLine("        {");
             for (int i = 0; i < rel.ChildColumnNames.Length; i++)
             {
-                sb.AppendLine($"            this[\"{rel.ChildColumnNames[i]}\"] = value[\"{rel.ParentColumnNames[i]}\"];");
+                sb.AppendLine($"            InnerRow[\"{rel.ChildColumnNames[i]}\"] = value[\"{rel.ParentColumnNames[i]}\"];");
             }
             sb.AppendLine("        }");
             sb.AppendLine($"        return default;");

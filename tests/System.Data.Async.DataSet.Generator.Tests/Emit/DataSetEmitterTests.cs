@@ -82,7 +82,7 @@ public class DataSetEmitterTests
     public void Emit_InitClass_SetsDataSetName()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("InnerDataSet.DataSetName = \"OrdersDS\";");
+        source.Should().Contain("inner.DataSetName = \"OrdersDS\";");
     }
 
     [Fact]
@@ -96,14 +96,14 @@ public class DataSetEmitterTests
     public void Emit_InitClass_SetsCaseSensitive()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("InnerDataSet.CaseSensitive = false;");
+        source.Should().Contain("inner.CaseSensitive = false;");
     }
 
     [Fact]
     public void Emit_InitClass_SetsEnforceConstraints()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("InnerDataSet.EnforceConstraints = true;");
+        source.Should().Contain("inner.EnforceConstraints = true;");
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class DataSetEmitterTests
     {
         var source = EmitSimpleDataSet();
         source.Should().Contain("tableCustomer = new AsyncCustomerDataTable();");
-        source.Should().Contain("InnerDataSet.Tables.Add(tableCustomer.InnerDataTable);");
+        source.Should().Contain("inner.Tables.Add((global::System.Data.DataTable)tableCustomer);");
     }
 
     [Fact]
@@ -119,16 +119,16 @@ public class DataSetEmitterTests
     {
         var source = EmitSimpleDataSet();
         source.Should().Contain("relationFK_Customer_Order = new global::System.Data.DataRelation(\"FK_Customer_Order\"");
-        source.Should().Contain("InnerDataSet.Relations.Add(relationFK_Customer_Order);");
+        source.Should().Contain("inner.Relations.Add(relationFK_Customer_Order);");
     }
 
     [Fact]
     public void Emit_InitVars_ResolvesTablesAndRelations()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("InnerDataSet.Tables[\"Customer\"]");
-        source.Should().Contain("InnerDataSet.Tables[\"Order\"]");
-        source.Should().Contain("relationFK_Customer_Order = InnerDataSet.Relations[\"FK_Customer_Order\"]!;");
+        source.Should().Contain("inner.Tables[\"Customer\"]");
+        source.Should().Contain("inner.Tables[\"Order\"]");
+        source.Should().Contain("relationFK_Customer_Order = inner.Relations[\"FK_Customer_Order\"]!;");
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class DataSetEmitterTests
     public void Emit_Clone()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("public AsyncOrdersDS Clone()");
+        source.Should().Contain("public new AsyncOrdersDS Clone()");
         source.Should().Contain("var clone = new AsyncOrdersDS();");
         source.Should().Contain("clone.InitVars();");
     }
