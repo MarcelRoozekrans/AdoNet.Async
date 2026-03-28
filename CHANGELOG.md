@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.5.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.4.0...v0.5.0) (2026-03-28)
+
+
+### Features
+
+* add AsyncDataRowCollection&lt;TRow&gt; generic typed collection ([370ac57](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/370ac570e2348c16f20a8a73b444e00d206b6fda))
+* add AsyncDataTable&lt;TRow&gt; generic typed table base class ([82ec058](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/82ec05844ee532906c4782679fe59fcb6f973664))
+* add intermediate model types and XSD parser ([3826ac5](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/3826ac5b2e9f97a1f521c5e46ee50cda74c90384))
+* add NamingHelper and code emitters for typed DataRow, DataTable, DataSet, and EventArgs ([2fe5681](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/2fe5681a6e9dfddbd11f9369b9fafebc8464b6bd))
+* scaffold source generator and test projects ([25a96b8](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/25a96b8d5383708e7c128b0163c2d4503b28c699))
+* typed DataSet source generator from .xsd files ([11cd1d9](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/11cd1d91a9ea805b5e397745771bc97f661c4b61))
+* wire incremental generator pipeline with driver tests ([fa2bd75](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/fa2bd75cd17ce1fea8fa98454e20ee63715dc26d))
+
+
+### Bug Fixes
+
+* add missing System.Data.Common using to adapter test files ([316c65a](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/316c65a7f3974f2674d223c20be798783443cc77))
+* correct emitter issues found during integration testing ([a285705](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/a2857055b9f4d74f987d899ea03a400744971df1))
+* exclude expression and read-only columns from AddRowAsync parameters ([1576a19](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/1576a195aed051d63ea8c4bd5209c45b8f84b3ae))
+* resolve null table in relation navigation and bypass of async events in AddRowAsync ([9fffc69](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/9fffc699b013870293470bd765f46ca6e9afdfee))
+* use typedPlural for DataSet accessor names and typedName for parent row params ([7e56530](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/7e565305dc2998ed53fa236906c46e29f4bd05e7))
+
+
+### Performance Improvements
+
+* add typed vs untyped DataSet benchmarks ([274c2da](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/274c2da161bf67e5e3782535a7ed3bb847b6259c))
+
 ## [0.4.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.3.2...v0.4.0) (2026-03-27)
 
 
