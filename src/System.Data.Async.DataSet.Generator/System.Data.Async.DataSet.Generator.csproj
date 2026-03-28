@@ -29,4 +29,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="System.Data.Async.DataSet.Generator.Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
 </Project>
