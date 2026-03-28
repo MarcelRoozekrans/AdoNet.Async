@@ -100,7 +100,7 @@ public class AdvancedTypedDataSetTests
     public void CaseSensitive_Applied()
     {
         using var ds = new AsyncAdvancedDS();
-        System.Data.DataSet inner = ds; // implicit conversion
+        var inner = (System.Data.DataSet)ds;
         inner.CaseSensitive.Should().BeTrue();
     }
 
@@ -108,7 +108,7 @@ public class AdvancedTypedDataSetTests
     public void EnforceConstraints_Applied()
     {
         using var ds = new AsyncAdvancedDS();
-        System.Data.DataSet inner = ds; // implicit conversion
+        var inner = (System.Data.DataSet)ds;
         inner.EnforceConstraints.Should().BeTrue();
     }
 }

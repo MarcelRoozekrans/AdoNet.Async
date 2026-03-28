@@ -120,4 +120,39 @@ public class AsyncDataSetTests
         ds.DataSetName.Should().Be("TestDS");
         ds.Tables.Count.Should().Be(1);
     }
+
+    [Fact]
+    public void Tables_Returns_AsyncDataTableCollection()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ds.Tables.Should().BeOfType<AsyncDataTableCollection>();
+    }
+
+    [Fact]
+    public void Tables_Indexer_Returns_Cached_Instance()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ((System.Data.DataSet)ds).Tables.Add(new DataTable("T"));
+
+        var t1 = ds.Tables["T"];
+        var t2 = ds.Tables["T"];
+        t1.Should().BeSameAs(t2);
+    }
+
+    [Fact]
+    public void Clone_Returns_AsyncDataSet()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ds.Clone().Should().BeOfType<AsyncDataSet>();
+    }
+
+    [Fact]
+    public void GetChanges_Returns_AsyncDataSet()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ((System.Data.DataSet)ds).Tables.Add(new DataTable("T"));
+        ((System.Data.DataSet)ds).Tables["T"]!.Columns.Add("Id", typeof(int));
+        ((System.Data.DataSet)ds).Tables["T"]!.Rows.Add(1);
+        ds.GetChanges().Should().BeOfType<AsyncDataSet>();
+    }
 }

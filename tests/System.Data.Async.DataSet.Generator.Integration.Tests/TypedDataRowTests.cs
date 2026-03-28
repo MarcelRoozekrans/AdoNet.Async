@@ -74,8 +74,8 @@ public class TypedDataRowTests
 
         row.HasErrors.Should().BeFalse();
 
-        // Access inner DataTable via implicit cast to set RowError
-        DataTable innerTable = ds.Customer;
+        // Access inner DataTable via explicit cast to set RowError
+        var innerTable = (DataTable)ds.Customer;
         innerTable.Rows[0].RowError = "Something went wrong";
 
         row.HasErrors.Should().BeTrue();

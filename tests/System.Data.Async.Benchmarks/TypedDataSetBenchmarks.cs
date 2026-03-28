@@ -27,8 +27,8 @@ public class TypedDataSetBenchmarks : IDisposable
         table.Columns.Add("Name", typeof(string));
         table.Columns.Add("Email", typeof(string));
         table.PrimaryKey = [table.Columns["CustomerId"]!];
-        System.Data.DataSet innerDs = _untypedDs;
-        System.Data.DataTable innerDt = table;
+        var innerDs = (System.Data.DataSet)_untypedDs;
+        var innerDt = (System.Data.DataTable)table;
         innerDs.Tables.Add(innerDt);
         for (int i = 0; i < RowCount; i++)
             await table.Rows.AddAsync(new object?[] { i, $"Customer_{i}", $"c{i}@example.com" });
