@@ -1,0 +1,62 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="ComprehensiveDS"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+           xmlns:codegen="urn:schemas-microsoft-com:xml-msprop">
+  <xs:element name="ComprehensiveDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Sku">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="SkuId" type="xs:int" />
+              <xs:element name="Title" type="xs:string" />
+              <xs:element name="UnitPrice" type="xs:decimal" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SalesOrder">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="SalesOrderId" type="xs:int" />
+              <xs:element name="OrderDate" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SalesOrderLine">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="SalesOrderId" type="xs:int" />
+              <xs:element name="SkuId" type="xs:int" />
+              <xs:element name="Quantity" type="xs:int" />
+              <xs:element name="UnitPrice" type="xs:decimal" />
+              <xs:element name="LineTotal" type="xs:decimal" msdata:ReadOnly="true" msdata:Expression="Quantity * UnitPrice" />
+              <xs:element name="Discount" type="xs:decimal" msdata:ReadOnly="true" msdata:DefaultValue="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="PK_Sku" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Sku" />
+      <xs:field xpath="SkuId" />
+    </xs:unique>
+    <xs:unique name="PK_SalesOrder" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//SalesOrder" />
+      <xs:field xpath="SalesOrderId" />
+    </xs:unique>
+    <xs:unique name="PK_SalesOrderLine" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//SalesOrderLine" />
+      <xs:field xpath="SalesOrderId" />
+      <xs:field xpath="SkuId" />
+    </xs:unique>
+    <xs:keyref name="FK_SalesOrder_SalesOrderLine" refer="PK_SalesOrder">
+      <xs:selector xpath=".//SalesOrderLine" />
+      <xs:field xpath="SalesOrderId" />
+    </xs:keyref>
+    <xs:keyref name="FK_Sku_SalesOrderLine" refer="PK_Sku">
+      <xs:selector xpath=".//SalesOrderLine" />
+      <xs:field xpath="SkuId" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>
