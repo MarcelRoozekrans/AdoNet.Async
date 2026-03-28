@@ -155,4 +155,22 @@ public class AsyncDataSetTests
         ((System.Data.DataSet)ds).Tables["T"]!.Rows.Add(1);
         ds.GetChanges().Should().BeOfType<AsyncDataSet>();
     }
+
+    [Fact]
+    public void Table_DataSet_Property_Returns_Parent_AsyncDataSet()
+    {
+        using var ds = new AsyncDataSet("Test");
+        var table = new AsyncDataTable("T");
+        ds.Tables.Add(table);
+
+        var retrieved = ds.Tables["T"];
+        retrieved.DataSet.Should().BeSameAs(ds);
+    }
+
+    [Fact]
+    public void Table_DataSet_Property_Returns_Null_When_Not_In_DataSet()
+    {
+        var table = new AsyncDataTable("T");
+        table.DataSet.Should().BeNull();
+    }
 }

@@ -78,7 +78,8 @@ public class AsyncDataTable : IDisposable
     public DataView DefaultView => _inner.DefaultView;
     public PropertyCollection ExtendedProperties => _inner.ExtendedProperties;
     public DataColumn[] PrimaryKey { get => _inner.PrimaryKey; set => _inner.PrimaryKey = value; }
-    public System.Data.DataSet? DataSet => _inner.DataSet;
+    internal AsyncDataSet? ParentAsyncDataSet { get; set; }
+    public AsyncDataSet? DataSet => ParentAsyncDataSet;
 
     // Methods
     public AsyncDataRow NewRow() => GetOrCreateRow(_inner.NewRow());

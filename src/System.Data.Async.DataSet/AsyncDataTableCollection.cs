@@ -28,7 +28,11 @@ public class AsyncDataTableCollection : IEnumerable<AsyncDataTable>
 
     public bool Contains(string name) => _inner.Contains(name);
 
-    public void Add(AsyncDataTable table) => _inner.Add(table.InnerDataTable);
+    public void Add(AsyncDataTable table)
+    {
+        _inner.Add(table.InnerDataTable);
+        table.ParentAsyncDataSet = _parent;
+    }
     public void Add(DataTable table) => _inner.Add(table);
     public void Remove(AsyncDataTable table) => _inner.Remove(table.InnerDataTable);
     public void Remove(DataTable table) => _inner.Remove(table);

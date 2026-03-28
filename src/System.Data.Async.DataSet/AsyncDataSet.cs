@@ -35,7 +35,12 @@ public class AsyncDataSet : IDisposable
 
     internal AsyncDataTable GetOrCreateTable(DataTable inner)
     {
-        return _tableCache.GetValue(inner, CreateTable);
+        return _tableCache.GetValue(inner, key =>
+        {
+            var t = CreateTable(key);
+            t.ParentAsyncDataSet = this;
+            return t;
+        });
     }
 
     // Properties
