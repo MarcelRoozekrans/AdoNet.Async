@@ -288,4 +288,49 @@ public class AsyncDataTableTests
         innerDt.Rows.Count.Should().Be(1);
         innerDt.Rows[0]["Col1"].Should().Be("value");
     }
+
+    [Fact]
+    public async Task Select_Returns_AsyncDataRow_Array()
+    {
+        using var table = new AsyncDataTable("Test");
+        table.Columns.Add("Id", typeof(int));
+        await table.Rows.AddAsync(new object?[] { 1 });
+        await table.Rows.AddAsync(new object?[] { 2 });
+
+        var rows = table.Select();
+        rows.Should().HaveCount(2);
+        rows.Should().AllBeOfType<AsyncDataRow>();
+    }
+
+    [Fact]
+    public async Task Select_Returns_Cached_Rows()
+    {
+        using var table = new AsyncDataTable("Test");
+        table.Columns.Add("Id", typeof(int));
+        await table.Rows.AddAsync(new object?[] { 1 });
+
+        var row1 = table.Select()[0];
+        var row2 = table.Rows[0];
+        row1.Should().BeSameAs(row2);
+    }
+
+    [Fact]
+    public void Clone_Returns_AsyncDataTable()
+    {
+        using var table = new AsyncDataTable("Test");
+        table.Columns.Add("Id", typeof(int));
+        var clone = table.Clone();
+        clone.Should().BeOfType<AsyncDataTable>();
+    }
+
+    [Fact]
+    public async Task GetChanges_Returns_AsyncDataTable()
+    {
+        using var table = new AsyncDataTable("Test");
+        table.Columns.Add("Id", typeof(int));
+        await table.Rows.AddAsync(new object?[] { 1 });
+        var changes = table.GetChanges();
+        changes.Should().NotBeNull();
+        changes.Should().BeOfType<AsyncDataTable>();
+    }
 }
