@@ -2,18 +2,21 @@ using ZeroAlloc.AsyncEvents;
 
 namespace System.Data.Async.DataSet;
 
-public sealed class AsyncDataRow
+public class AsyncDataRow
 {
     private readonly DataRow _inner;
     private readonly AsyncDataTable _table;
 
-    internal AsyncDataRow(DataRow inner, AsyncDataTable table)
+    protected internal AsyncDataRow(DataRow inner, AsyncDataTable table)
     {
         _inner = inner;
         _table = table;
     }
 
     internal DataRow InnerDataRow => _inner;
+    protected DataRow InnerRow => _inner;
+    protected bool IsNull(string columnName) => _inner.IsNull(columnName);
+    protected bool IsNull(DataColumn column) => _inner.IsNull(column);
     public DataRowState RowState => _inner.RowState;
     public bool HasErrors => _inner.HasErrors;
     public string RowError => _inner.RowError;

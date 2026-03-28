@@ -1,0 +1,46 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="AdvancedDS"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+           xmlns:codegen="urn:schemas-microsoft-com:xml-msprop">
+  <xs:element name="AdvancedDS" msdata:IsDataSet="true" msdata:CaseSensitive="true" msdata:EnforceConstraints="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Category" codegen:typedName="CategoryEntry" codegen:typedPlural="Categories">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="CategoryId" type="xs:int" />
+              <xs:element name="Name" type="xs:string" />
+              <xs:element name="Description" type="xs:string" minOccurs="0" codegen:nullValue="_null" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Product">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ProductId" type="xs:int" />
+              <xs:element name="CategoryId" type="xs:int" />
+              <xs:element name="Name" type="xs:string" />
+              <xs:element name="Price" type="xs:decimal" msdata:DefaultValue="0" />
+              <xs:element name="Stock" type="xs:int" />
+              <xs:element name="Sku" msdata:DataType="System.Guid" minOccurs="0" />
+              <xs:element name="Notes" type="xs:string" minOccurs="0" codegen:nullValue="N/A" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="PK_Category" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Category" />
+      <xs:field xpath="CategoryId" />
+    </xs:unique>
+    <xs:unique name="PK_Product" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Product" />
+      <xs:field xpath="ProductId" />
+    </xs:unique>
+    <xs:keyref name="FK_Category_Product" refer="PK_Category" codegen:typedParent="Category" codegen:typedChildren="GetProducts">
+      <xs:selector xpath=".//Product" />
+      <xs:field xpath="CategoryId" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

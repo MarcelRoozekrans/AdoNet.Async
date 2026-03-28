@@ -11,6 +11,7 @@
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Serialization.NewtonsoftJson.svg)](https://www.nuget.org/packages/AdoNet.Async.Serialization.NewtonsoftJson)
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Serialization.SystemTextJson.svg)](https://www.nuget.org/packages/AdoNet.Async.Serialization.SystemTextJson)
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Adapters.svg)](https://www.nuget.org/packages/AdoNet.Async.Adapters)
+[![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.DataSet.Generator.svg)](https://www.nuget.org/packages/AdoNet.Async.DataSet.Generator)
 
 ## Installation
 
@@ -29,6 +30,9 @@ dotnet add package AdoNet.Async.Serialization.SystemTextJson
 
 # Adapter wrappers for existing ADO.NET providers + DI extensions
 dotnet add package AdoNet.Async.Adapters
+
+# Typed DataSet source generator (generates typed async classes from .xsd)
+dotnet add package AdoNet.Async.DataSet.Generator
 ```
 
 ## Quick Start
@@ -144,6 +148,46 @@ await table.ClearAsync();                             // fires TableClearingAsyn
 
 Sync event subscribers (e.g. `table.RowChanged += ...`) continue to work unchanged via the inner `DataTable`.
 
+### Typed DataSets from .xsd
+
+Add `.xsd` schema files as `AdditionalFiles` and the source generator produces fully typed async DataSet classes:
+
+```xml
+<!-- In your .csproj -->
+<ItemGroup>
+  <PackageReference Include="AdoNet.Async.DataSet.Generator" />
+  <AdditionalFiles Include="Schemas\OrdersDS.xsd" />
+</ItemGroup>
+```
+
+The generator reads your `.xsd` and creates strongly typed classes:
+
+```csharp
+using System.Data.Async.DataSet;
+
+// Fully typed — no string column names, no casts
+using var ds = new AsyncOrdersDS();
+
+var customer = await ds.Customer.AddCustomerRowAsync(1, "Alice");
+await customer.SetEmailAsync("alice@example.com");
+
+// FK-aware: pass parent row instead of raw FK value
+var order = await ds.Order.AddOrderRowAsync(customer, DateTime.Now, 99.99m);
+
+// Typed relation navigation
+AsyncOrderRow[] orders = customer.GetOrderRows();
+AsyncCustomerRow? parent = order.CustomerRow;
+
+// Typed null handling
+if (!customer.IsEmailNull())
+    Console.WriteLine(customer.Email);
+
+// Primary key lookup
+var found = ds.Customer.FindByCustomerId(1);
+```
+
+All `codegen:` and `msdata:` XSD annotations are supported: `typedName`, `typedPlural`, `typedParent`, `typedChildren`, `nullValue` (_throw, _null, _empty, replacement), `AutoIncrement`, `DefaultValue`, `ReadOnly`, `Expression`, `DataType`, composite primary keys, and foreign key constraints.
+
 ### JSON serialization with Newtonsoft.Json
 
 `AsyncDataTable` and `AsyncDataSet` include converters compatible with the Json.Net.DataSetConverters format:
@@ -215,6 +259,7 @@ public class MyRepository(IAsyncDbProviderFactory factory)
 | **AdoNet.Async.Serialization.NewtonsoftJson** | `AsyncDataTableConverter`, `AsyncDataSetConverter` for Newtonsoft.Json. Wire-compatible with `Json.Net.DataSetConverters`. | AdoNet.Async.DataSet, Newtonsoft.Json |
 | **AdoNet.Async.Serialization.SystemTextJson** | `AsyncDataTableJsonConverter`, `AsyncDataSetJsonConverter` for System.Text.Json. Same wire format. | AdoNet.Async.DataSet |
 | **AdoNet.Async.Adapters** | Adapter wrappers (`AdapterDbConnection`, etc.), `.AsAsync()` extension, DI registration | Microsoft.Extensions.DependencyInjection.Abstractions |
+| **AdoNet.Async.DataSet.Generator** | Roslyn source generator — produces typed `AsyncDataTable<TRow>`, `AsyncDataRow` subclasses from `.xsd` schema files. Supports all `codegen:` and `msdata:` annotations. | AdoNet.Async.DataSet (at compile time) |
 
 ## Validation & Benchmarks
 
