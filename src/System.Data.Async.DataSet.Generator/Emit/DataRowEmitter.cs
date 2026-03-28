@@ -101,10 +101,11 @@ internal static class DataRowEmitter
             sb.AppendLine($"    public {childRowClass}[] {methodName}()");
             sb.AppendLine("    {");
             sb.AppendLine($"        var innerRows = InnerRow.GetChildRows(InnerRow.Table.ChildRelations[\"{rel.Name}\"]);");
+            sb.AppendLine($"        var childTable = new {childTableClass}(InnerRow.Table.DataSet!.Tables[\"{rel.ChildTableName}\"]!);");
             sb.AppendLine($"        var result = new {childRowClass}[innerRows.Length];");
             sb.AppendLine("        for (int i = 0; i < innerRows.Length; i++)");
             sb.AppendLine("        {");
-            sb.AppendLine($"            result[i] = new {childRowClass}(innerRows[i], null!);");
+            sb.AppendLine($"            result[i] = new {childRowClass}(innerRows[i], childTable);");
             sb.AppendLine("        }");
             sb.AppendLine("        return result;");
             sb.AppendLine("    }");
@@ -132,7 +133,9 @@ internal static class DataRowEmitter
             sb.AppendLine("        get");
             sb.AppendLine("        {");
             sb.AppendLine($"            var parentRow = InnerRow.GetParentRow(InnerRow.Table.ParentRelations[\"{rel.Name}\"]);");
-            sb.AppendLine($"            return parentRow != null ? new {parentRowClass}(parentRow, null!) : null;");
+            sb.AppendLine($"            if (parentRow == null) return null;");
+            sb.AppendLine($"            var parentTable = new {parentTableClass}(InnerRow.Table.DataSet!.Tables[\"{rel.ParentTableName}\"]!);");
+            sb.AppendLine($"            return new {parentRowClass}(parentRow, parentTable);");
             sb.AppendLine("        }");
             sb.AppendLine("    }");
             sb.AppendLine();

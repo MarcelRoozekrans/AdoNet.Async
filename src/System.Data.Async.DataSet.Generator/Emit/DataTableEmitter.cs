@@ -165,8 +165,8 @@ internal static class DataTableEmitter
         {
             sb.AppendLine(assignments[i]);
         }
-        sb.AppendLine("        ((global::System.Data.DataTable)this).Rows.Add(row);");
         sb.AppendLine($"        var typedRow = WrapRow(row);");
+        sb.AppendLine("        await Rows.AddAsync(typedRow, ct).ConfigureAwait(false);");
         sb.AppendLine("        return typedRow;");
         sb.AppendLine("    }");
     }
