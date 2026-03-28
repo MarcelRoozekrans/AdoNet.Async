@@ -221,7 +221,7 @@ public class AsyncDataRowTests
     {
         using var table = new AsyncDataTable("Test");
         table.Columns.Add("Id", typeof(int));
-        DataTable dt = table;
+        var dt = (DataTable)table;
         var innerRow = dt.NewRow();
 
         var row = new TestAsyncDataRow(innerRow, table);

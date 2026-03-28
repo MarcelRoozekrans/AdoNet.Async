@@ -73,7 +73,7 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
                         await table.AcceptChangesAsync(cancellationToken).ConfigureAwait(false);
                     }
 
-                    dataSet.Tables.Add(table);
+                    dataSet.Tables.Add((DataTable)table);
                     totalCount += count;
                 }
                 while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));

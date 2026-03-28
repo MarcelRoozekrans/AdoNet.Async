@@ -243,8 +243,8 @@ public class AsyncDataTable : IDisposable
         }
     }
 
-    // Implicit conversion
-    public static implicit operator DataTable(AsyncDataTable asyncTable) => asyncTable._inner;
+    // Explicit conversion
+    public static explicit operator DataTable(AsyncDataTable asyncTable) => asyncTable._inner;
 
     // Sync events (preserved)
     public event DataColumnChangeEventHandler? ColumnChanged

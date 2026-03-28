@@ -110,12 +110,12 @@ public class AsyncDataSetTests
     }
 
     [Fact]
-    public void Implicit_Conversion_To_DataSet_Works()
+    public void Explicit_Conversion_To_DataSet_Works()
     {
         using var asyncDs = new AsyncDataSet("TestDS");
         asyncDs.Tables.Add(new DataTable("T1"));
 
-        System.Data.DataSet ds = asyncDs;
+        var ds = (System.Data.DataSet)asyncDs;
 
         ds.DataSetName.Should().Be("TestDS");
         ds.Tables.Count.Should().Be(1);

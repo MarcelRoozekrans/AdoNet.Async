@@ -16,7 +16,7 @@ public class AsyncDataRowCollectionGenericTests
     {
         using var table = new AsyncDataTable("Test");
         table.Columns.Add("Id", typeof(int));
-        DataTable dt = table;
+        var dt = (DataTable)table;
         dt.Rows.Add(42);
 
         var collection = new AsyncDataRowCollection<TestRow>(
@@ -31,7 +31,7 @@ public class AsyncDataRowCollectionGenericTests
     {
         using var table = new AsyncDataTable("Test");
         table.Columns.Add("Id", typeof(int));
-        DataTable dt = table;
+        var dt = (DataTable)table;
         dt.Rows.Add(1);
         dt.Rows.Add(2);
 
@@ -47,7 +47,7 @@ public class AsyncDataRowCollectionGenericTests
     {
         using var table = new AsyncDataTable("Test");
         table.Columns.Add("Id", typeof(int));
-        DataTable dt = table;
+        var dt = (DataTable)table;
 
         var collection = new AsyncDataRowCollection<TestRow>(
             dt.Rows, table, (inner, t) => new TestRow(inner, t));

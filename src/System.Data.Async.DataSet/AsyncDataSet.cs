@@ -126,6 +126,6 @@ public class AsyncDataSet : IDisposable
         remove => _inner.MergeFailed -= value;
     }
 
-    // Implicit conversion
-    public static implicit operator System.Data.DataSet(AsyncDataSet asyncDataSet) => asyncDataSet._inner;
+    // Explicit conversion
+    public static explicit operator System.Data.DataSet(AsyncDataSet asyncDataSet) => asyncDataSet._inner;
 }

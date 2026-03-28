@@ -260,12 +260,12 @@ public class AsyncDataTableTests
     }
 
     [Fact]
-    public void Implicit_Conversion_To_DataTable_Works()
+    public void Explicit_Conversion_To_DataTable_Works()
     {
         using var asyncTable = new AsyncDataTable("Test");
         asyncTable.Columns.Add("Id", typeof(int));
 
-        DataTable dt = asyncTable;
+        var dt = (DataTable)asyncTable;
 
         dt.TableName.Should().Be("Test");
         dt.Columns.Count.Should().Be(1);
@@ -280,8 +280,8 @@ public class AsyncDataTableTests
         asyncTable.Columns.Add("Col1", typeof(string));
         await asyncTable.Rows.AddAsync(new object?[] { "value" });
 
-        // Implicit conversion gives us the inner DataTable
-        DataTable innerDt = asyncTable;
+        // Explicit conversion gives us the inner DataTable
+        var innerDt = (DataTable)asyncTable;
 
         innerDt.TableName.Should().Be("Existing");
         innerDt.Columns.Count.Should().Be(1);

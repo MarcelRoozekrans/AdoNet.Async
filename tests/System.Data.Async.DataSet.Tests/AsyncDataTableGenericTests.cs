@@ -63,7 +63,7 @@ public class AsyncDataTableGenericTests
         table.Columns.Add("Id", typeof(int));
 
         // Add row via inner DataTable to test indexer
-        DataTable dt = table; // implicit conversion
+        var dt = (DataTable)table; // explicit conversion
         dt.Rows.Add(42);
 
         table[0].Should().BeOfType<TestRow>();
