@@ -10,11 +10,15 @@ namespace System.Data.Async.DataSet.Generator.Tests.Parsing;
 
 public class XsdParserTests
 {
+    private static string LoadSchema(string fileName)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Schemas", fileName);
+        return File.ReadAllText(path);
+    }
+
     private static DataSetModel ParseSimple()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Schemas", "Simple.xsd");
-        var xsd = File.ReadAllText(path);
-        return XsdParser.Parse(xsd);
+        return XsdParser.Parse(LoadSchema("Simple.xsd"));
     }
 
     [Fact]
@@ -102,5 +106,89 @@ public class XsdParserTests
         rel.ParentColumnNames.Should().BeEquivalentTo("CustomerId");
         rel.ChildTableName.Should().Be("Order");
         rel.ChildColumnNames.Should().BeEquivalentTo("CustomerId");
+    }
+
+    // --- Advanced XSD tests ---
+
+    [Fact]
+    public void Parse_Advanced_CaseSensitive()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        model.CaseSensitive.Should().BeTrue();
+        model.EnforceConstraints.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_Advanced_TypedName_Override()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var category = model.Tables.First(t => string.Equals(t.Name, "Category", StringComparison.Ordinal));
+        category.TypedName.Should().Be("CategoryEntry");
+        category.TypedPlural.Should().Be("Categories");
+    }
+
+    [Fact]
+    public void Parse_Advanced_NullValue_Null()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var desc = model.Tables.First(t => string.Equals(t.Name, "Category", StringComparison.Ordinal))
+            .Columns.First(c => string.Equals(c.Name, "Description", StringComparison.Ordinal));
+        desc.NullValueBehavior.Kind.Should().Be(NullValueBehaviorKind.ReturnNull);
+    }
+
+    [Fact]
+    public void Parse_Advanced_NullValue_Replacement()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var notes = model.Tables.First(t => string.Equals(t.Name, "Product", StringComparison.Ordinal))
+            .Columns.First(c => string.Equals(c.Name, "Notes", StringComparison.Ordinal));
+        notes.NullValueBehavior.Kind.Should().Be(NullValueBehaviorKind.ReplacementValue);
+        notes.NullValueBehavior.ReplacementValue.Should().Be("N/A");
+    }
+
+    [Fact]
+    public void Parse_Advanced_DefaultValue()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var price = model.Tables.First(t => string.Equals(t.Name, "Product", StringComparison.Ordinal))
+            .Columns.First(c => string.Equals(c.Name, "Price", StringComparison.Ordinal));
+        price.DefaultValue.Should().Be("0");
+    }
+
+    [Fact]
+    public void Parse_Advanced_ReadOnly()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var stock = model.Tables.First(t => string.Equals(t.Name, "Product", StringComparison.Ordinal))
+            .Columns.First(c => string.Equals(c.Name, "Stock", StringComparison.Ordinal));
+        stock.ReadOnly.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_Advanced_Expression()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var total = model.Tables.First(t => string.Equals(t.Name, "Product", StringComparison.Ordinal))
+            .Columns.First(c => string.Equals(c.Name, "TotalValue", StringComparison.Ordinal));
+        total.Expression.Should().Be("Price * Stock");
+        total.ReadOnly.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_Advanced_DataType_Override()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var sku = model.Tables.First(t => string.Equals(t.Name, "Product", StringComparison.Ordinal))
+            .Columns.First(c => string.Equals(c.Name, "Sku", StringComparison.Ordinal));
+        sku.ClrTypeName.Should().Be("System.Guid");
+    }
+
+    [Fact]
+    public void Parse_Advanced_TypedParent_TypedChildren()
+    {
+        var model = XsdParser.Parse(LoadSchema("Advanced.xsd"));
+        var rel = model.Relations.First(r => string.Equals(r.Name, "FK_Category_Product", StringComparison.Ordinal));
+        rel.TypedParent.Should().Be("Category");
+        rel.TypedChildren.Should().Be("GetProducts");
     }
 }
