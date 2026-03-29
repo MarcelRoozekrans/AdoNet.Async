@@ -46,7 +46,7 @@ public class TypedSerializationTests
         baseDs.Should().NotBeNull();
 
         // Check data survived
-        System.Data.DataSet inner = baseDs!;
+        var inner = (System.Data.DataSet)baseDs!;
         inner.Tables["Customer"]!.Rows.Count.Should().Be(2);
         inner.Tables["Order"]!.Rows.Count.Should().Be(1);
     }
@@ -78,7 +78,7 @@ public class TypedSerializationTests
         var json = JsonConvert.SerializeObject((AsyncDataSet)ds, NewtonsoftSettings());
         var restored = JsonConvert.DeserializeObject<AsyncDataSet>(json, NewtonsoftSettings())!;
 
-        System.Data.DataSet inner = restored;
+        var inner = (System.Data.DataSet)restored;
         var customerRow = inner.Tables["Customer"]!.Rows[0];
         ((int)customerRow["CustomerId"]).Should().Be(1);
         ((string)customerRow["Name"]).Should().Be("Alice");
@@ -103,7 +103,7 @@ public class TypedSerializationTests
         var json = STJ.JsonSerializer.Serialize((AsyncDataSet)ds, options);
         var restored = STJ.JsonSerializer.Deserialize<AsyncDataSet>(json, options)!;
 
-        System.Data.DataSet inner = restored;
+        var inner = (System.Data.DataSet)restored;
         inner.Tables["Customer"]!.Rows.Count.Should().Be(1);
         inner.Tables["Order"]!.Rows.Count.Should().Be(1);
     }
@@ -136,7 +136,7 @@ public class TypedSerializationTests
         var json = STJ.JsonSerializer.Serialize((AsyncDataSet)ds, options);
         var restored = STJ.JsonSerializer.Deserialize<AsyncDataSet>(json, options)!;
 
-        System.Data.DataSet inner = restored;
+        var inner = (System.Data.DataSet)restored;
         var customerRow = inner.Tables["Customer"]!.Rows[0];
         ((int)customerRow["CustomerId"]).Should().Be(1);
         ((string)customerRow["Name"]).Should().Be("Alice");

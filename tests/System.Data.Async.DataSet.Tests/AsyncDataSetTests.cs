@@ -110,14 +110,67 @@ public class AsyncDataSetTests
     }
 
     [Fact]
-    public void Implicit_Conversion_To_DataSet_Works()
+    public void Explicit_Conversion_To_DataSet_Works()
     {
         using var asyncDs = new AsyncDataSet("TestDS");
         asyncDs.Tables.Add(new DataTable("T1"));
 
-        System.Data.DataSet ds = asyncDs;
+        var ds = (System.Data.DataSet)asyncDs;
 
         ds.DataSetName.Should().Be("TestDS");
         ds.Tables.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public void Tables_Returns_AsyncDataTableCollection()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ds.Tables.Should().BeOfType<AsyncDataTableCollection>();
+    }
+
+    [Fact]
+    public void Tables_Indexer_Returns_Cached_Instance()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ((System.Data.DataSet)ds).Tables.Add(new DataTable("T"));
+
+        var t1 = ds.Tables["T"];
+        var t2 = ds.Tables["T"];
+        t1.Should().BeSameAs(t2);
+    }
+
+    [Fact]
+    public void Clone_Returns_AsyncDataSet()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ds.Clone().Should().BeOfType<AsyncDataSet>();
+    }
+
+    [Fact]
+    public void GetChanges_Returns_AsyncDataSet()
+    {
+        using var ds = new AsyncDataSet("Test");
+        ((System.Data.DataSet)ds).Tables.Add(new DataTable("T"));
+        ((System.Data.DataSet)ds).Tables["T"]!.Columns.Add("Id", typeof(int));
+        ((System.Data.DataSet)ds).Tables["T"]!.Rows.Add(1);
+        ds.GetChanges().Should().BeOfType<AsyncDataSet>();
+    }
+
+    [Fact]
+    public void Table_DataSet_Property_Returns_Parent_AsyncDataSet()
+    {
+        using var ds = new AsyncDataSet("Test");
+        var table = new AsyncDataTable("T");
+        ds.Tables.Add(table);
+
+        var retrieved = ds.Tables["T"];
+        retrieved.DataSet.Should().BeSameAs(ds);
+    }
+
+    [Fact]
+    public void Table_DataSet_Property_Returns_Null_When_Not_In_DataSet()
+    {
+        var table = new AsyncDataTable("T");
+        table.DataSet.Should().BeNull();
     }
 }

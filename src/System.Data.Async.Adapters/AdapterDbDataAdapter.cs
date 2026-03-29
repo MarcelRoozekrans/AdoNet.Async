@@ -98,7 +98,8 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
     public override async ValueTask<int> UpdateAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default)
     {
         int totalAffected = 0;
-        foreach (DataTable table in dataSet.Tables)
+        var inner = (System.Data.DataSet)dataSet;
+        foreach (DataTable table in inner.Tables)
         {
             totalAffected += await UpdateRowsAsync(table.Rows, table.Columns, cancellationToken).ConfigureAwait(false);
         }

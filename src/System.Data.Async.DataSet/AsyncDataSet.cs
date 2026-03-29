@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Xml;
 
 namespace System.Data.Async.DataSet;
@@ -6,12 +8,40 @@ namespace System.Data.Async.DataSet;
 public class AsyncDataSet : IDisposable
 {
     private readonly System.Data.DataSet _inner;
+    private readonly ConditionalWeakTable<DataTable, AsyncDataTable> _tableCache = new();
+    private readonly AsyncDataTableCollection _tables;
 
-    public AsyncDataSet() => _inner = new System.Data.DataSet();
-    public AsyncDataSet(string dataSetName) => _inner = new System.Data.DataSet(dataSetName);
-    public AsyncDataSet(System.Data.DataSet inner) => _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+    public AsyncDataSet()
+    {
+        _inner = new System.Data.DataSet();
+        _tables = new AsyncDataTableCollection(_inner.Tables, this);
+    }
 
-    internal System.Data.DataSet InnerDataSet => _inner;
+    public AsyncDataSet(string dataSetName)
+    {
+        _inner = new System.Data.DataSet(dataSetName);
+        _tables = new AsyncDataTableCollection(_inner.Tables, this);
+    }
+
+    public AsyncDataSet(System.Data.DataSet inner)
+    {
+        _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+        _tables = new AsyncDataTableCollection(_inner.Tables, this);
+    }
+
+    protected internal System.Data.DataSet InnerDataSet => _inner;
+
+    protected virtual AsyncDataTable CreateTable(DataTable inner) => new(inner);
+
+    internal AsyncDataTable GetOrCreateTable(DataTable inner)
+    {
+        return _tableCache.GetValue(inner, key =>
+        {
+            var t = CreateTable(key);
+            t.ParentAsyncDataSet = this;
+            return t;
+        });
+    }
 
     // Properties
     public string DataSetName { get => _inner.DataSetName; set => _inner.DataSetName = value; }
@@ -27,7 +57,7 @@ public class AsyncDataSet : IDisposable
     public DataViewManager DefaultViewManager => _inner.DefaultViewManager;
 
     // Collections
-    public DataTableCollection Tables => _inner.Tables;
+    public AsyncDataTableCollection Tables => _tables;
     public DataRelationCollection Relations => _inner.Relations;
     public PropertyCollection ExtendedProperties => _inner.ExtendedProperties;
 
@@ -36,18 +66,36 @@ public class AsyncDataSet : IDisposable
     public void RejectChanges() => _inner.RejectChanges();
     public bool HasChanges() => _inner.HasChanges();
     public bool HasChanges(DataRowState rowStates) => _inner.HasChanges(rowStates);
-    public System.Data.DataSet? GetChanges() => _inner.GetChanges();
-    public System.Data.DataSet? GetChanges(DataRowState rowStates) => _inner.GetChanges(rowStates);
+    public AsyncDataSet? GetChanges()
+    {
+        var changes = _inner.GetChanges();
+        return changes != null ? new AsyncDataSet(changes) : null;
+    }
+
+    public AsyncDataSet? GetChanges(DataRowState rowStates)
+    {
+        var changes = _inner.GetChanges(rowStates);
+        return changes != null ? new AsyncDataSet(changes) : null;
+    }
+
     public void Clear() => _inner.Clear();
-    public System.Data.DataSet Clone() => _inner.Clone();
-    public System.Data.DataSet Copy() => _inner.Copy();
+    public AsyncDataSet Clone() => new(_inner.Clone());
+    public AsyncDataSet Copy() => new(_inner.Copy());
+
+    // Merge overloads accepting async types
+    public void Merge(AsyncDataSet dataSet) => _inner.Merge(dataSet._inner);
+    public void Merge(AsyncDataTable table) => _inner.Merge(table.InnerDataTable);
+    public void Merge(AsyncDataSet dataSet, bool preserveChanges) => _inner.Merge(dataSet._inner, preserveChanges);
+    public void Merge(AsyncDataTable table, bool preserveChanges, MissingSchemaAction missingSchemaAction)
+        => _inner.Merge(table.InnerDataTable, preserveChanges, missingSchemaAction);
+    public void Merge(AsyncDataRow[] rows) => _inner.Merge(rows.Select(r => r.InnerDataRow).ToArray());
+
+    // Merge overloads accepting raw types for backward compatibility
     public void Merge(System.Data.DataSet dataSet) => _inner.Merge(dataSet);
     public void Merge(DataTable table) => _inner.Merge(table);
     public void Merge(System.Data.DataSet dataSet, bool preserveChanges) => _inner.Merge(dataSet, preserveChanges);
-
     public void Merge(DataTable table, bool preserveChanges, MissingSchemaAction missingSchemaAction)
         => _inner.Merge(table, preserveChanges, missingSchemaAction);
-
     public void Merge(DataRow[] rows) => _inner.Merge(rows);
     public void Reset() => _inner.Reset();
     public void BeginInit() => _inner.BeginInit();
@@ -126,6 +174,6 @@ public class AsyncDataSet : IDisposable
         remove => _inner.MergeFailed -= value;
     }
 
-    // Implicit conversion
-    public static implicit operator System.Data.DataSet(AsyncDataSet asyncDataSet) => asyncDataSet._inner;
+    // Explicit conversion
+    public static explicit operator System.Data.DataSet(AsyncDataSet asyncDataSet) => asyncDataSet._inner;
 }

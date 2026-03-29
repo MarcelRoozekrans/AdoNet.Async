@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
 using ZeroAlloc.AsyncEvents;
@@ -9,6 +11,7 @@ public class AsyncDataTable : IDisposable
 {
     private readonly DataTable _inner;
     private readonly AsyncDataRowCollection _rows;
+    private readonly ConditionalWeakTable<DataRow, AsyncDataRow> _rowCache = new();
 
     // Internal async event backing fields — accessed by AsyncDataRow and AsyncDataRowCollection
     internal AsyncEventHandler<DataColumnChangeEventArgs> _columnChanging = new(InvokeMode.Sequential);
@@ -45,6 +48,13 @@ public class AsyncDataTable : IDisposable
         _rows = new AsyncDataRowCollection(_inner.Rows, this);
     }
 
+    protected virtual AsyncDataRow CreateRow(DataRow inner) => new(inner, this);
+
+    internal AsyncDataRow GetOrCreateRow(DataRow inner)
+    {
+        return _rowCache.GetValue(inner, CreateRow);
+    }
+
     protected internal DataTable InnerDataTable => _inner;
 
     // Properties
@@ -68,41 +78,58 @@ public class AsyncDataTable : IDisposable
     public DataView DefaultView => _inner.DefaultView;
     public PropertyCollection ExtendedProperties => _inner.ExtendedProperties;
     public DataColumn[] PrimaryKey { get => _inner.PrimaryKey; set => _inner.PrimaryKey = value; }
-    public System.Data.DataSet? DataSet => _inner.DataSet;
+    internal AsyncDataSet? ParentAsyncDataSet { get; set; }
+    public AsyncDataSet? DataSet => ParentAsyncDataSet;
 
     // Methods
-    public AsyncDataRow NewRow() => new(_inner.NewRow(), this);
-    public void ImportRow(DataRow row) => _inner.ImportRow(row);
+    public AsyncDataRow NewRow() => GetOrCreateRow(_inner.NewRow());
+    public void ImportRow(AsyncDataRow row) => _inner.ImportRow(row.InnerDataRow);
     [Obsolete("Use AcceptChangesAsync(). Calling AcceptChanges() bypasses async events.", error: true)]
     public void AcceptChanges() => throw new NotSupportedException("Use AcceptChangesAsync().");
     public void RejectChanges() => _inner.RejectChanges();
-    public DataTable? GetChanges() => _inner.GetChanges();
-    public DataTable? GetChanges(DataRowState rowStates) => _inner.GetChanges(rowStates);
+
+    public AsyncDataTable? GetChanges()
+    {
+        var changes = _inner.GetChanges();
+        return changes != null ? new AsyncDataTable(changes) : null;
+    }
+
+    public AsyncDataTable? GetChanges(DataRowState rowStates)
+    {
+        var changes = _inner.GetChanges(rowStates);
+        return changes != null ? new AsyncDataTable(changes) : null;
+    }
+
     [Obsolete("Use ClearAsync(). Calling Clear() bypasses async events.", error: true)]
     public void Clear() => throw new NotSupportedException("Use ClearAsync().");
-    public DataTable Clone() => _inner.Clone();
-    public DataTable Copy() => _inner.Copy();
-    public void Merge(DataTable table) => _inner.Merge(table);
-    public void Merge(DataTable table, bool preserveChanges) => _inner.Merge(table, preserveChanges);
+    public AsyncDataTable Clone() => new(_inner.Clone());
+    public AsyncDataTable Copy() => new(_inner.Copy());
+    public void Merge(AsyncDataTable table) => _inner.Merge(table.InnerDataTable);
+    public void Merge(AsyncDataTable table, bool preserveChanges) => _inner.Merge(table.InnerDataTable, preserveChanges);
 
-    public void Merge(DataTable table, bool preserveChanges, MissingSchemaAction missingSchemaAction)
-        => _inner.Merge(table, preserveChanges, missingSchemaAction);
+    public void Merge(AsyncDataTable table, bool preserveChanges, MissingSchemaAction missingSchemaAction)
+        => _inner.Merge(table.InnerDataTable, preserveChanges, missingSchemaAction);
 
-    public DataRow[] Select() => _inner.Select();
-    public DataRow[] Select(string? filterExpression) => _inner.Select(filterExpression);
-    public DataRow[] Select(string? filterExpression, string? sort) => _inner.Select(filterExpression, sort);
+    public AsyncDataRow[] Select()
+        => _inner.Select().Select(GetOrCreateRow).ToArray();
+    public AsyncDataRow[] Select(string? filterExpression)
+        => _inner.Select(filterExpression).Select(GetOrCreateRow).ToArray();
+    public AsyncDataRow[] Select(string? filterExpression, string? sort)
+        => _inner.Select(filterExpression, sort).Select(GetOrCreateRow).ToArray();
+    public AsyncDataRow[] Select(string? filterExpression, string? sort, DataViewRowState recordStates)
+        => _inner.Select(filterExpression, sort, recordStates).Select(GetOrCreateRow).ToArray();
 
-    public DataRow[] Select(string? filterExpression, string? sort, DataViewRowState recordStates)
-        => _inner.Select(filterExpression, sort, recordStates);
-
-    public DataRow LoadDataRow(object?[] values, bool fAcceptChanges) => _inner.LoadDataRow(values, fAcceptChanges);
-    public DataRow LoadDataRow(object?[] values, LoadOption loadOption) => _inner.LoadDataRow(values, loadOption);
+    public AsyncDataRow LoadDataRow(object?[] values, bool fAcceptChanges)
+        => GetOrCreateRow(_inner.LoadDataRow(values, fAcceptChanges));
+    public AsyncDataRow LoadDataRow(object?[] values, LoadOption loadOption)
+        => GetOrCreateRow(_inner.LoadDataRow(values, loadOption));
     public object Compute(string? expression, string? filter) => _inner.Compute(expression, filter);
     public void BeginInit() => _inner.BeginInit();
     public void EndInit() => _inner.EndInit();
     public void BeginLoadData() => _inner.BeginLoadData();
     public void EndLoadData() => _inner.EndLoadData();
-    public DataRow[] GetErrors() => _inner.GetErrors();
+    public AsyncDataRow[] GetErrors()
+        => _inner.GetErrors().Select(GetOrCreateRow).ToArray();
     public void Reset() => _inner.Reset();
 
     // Async table-level mutations
@@ -234,8 +261,8 @@ public class AsyncDataTable : IDisposable
         }
     }
 
-    // Implicit conversion
-    public static implicit operator DataTable(AsyncDataTable asyncTable) => asyncTable._inner;
+    // Explicit conversion
+    public static explicit operator DataTable(AsyncDataTable asyncTable) => asyncTable._inner;
 
     // Sync events (preserved)
     public event DataColumnChangeEventHandler? ColumnChanged
