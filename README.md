@@ -12,6 +12,9 @@
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Serialization.SystemTextJson.svg)](https://www.nuget.org/packages/AdoNet.Async.Serialization.SystemTextJson)
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.Adapters.svg)](https://www.nuget.org/packages/AdoNet.Async.Adapters)
 [![NuGet](https://img.shields.io/nuget/v/AdoNet.Async.DataSet.Generator.svg)](https://www.nuget.org/packages/AdoNet.Async.DataSet.Generator)
+[![Docs](https://img.shields.io/badge/docs-website-blue)](https://marcelroozekrans.github.io/AdoNet.Async/)
+
+> **Full documentation:** [marcelroozekrans.github.io/AdoNet.Async](https://marcelroozekrans.github.io/AdoNet.Async/)
 
 ## Installation
 
