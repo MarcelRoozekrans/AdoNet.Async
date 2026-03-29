@@ -27,6 +27,7 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/MarcelRoozekrans/AdoNet.Async/tree/main/website/',
+          routeBasePath: '/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -43,6 +44,7 @@ const config = {
         logo: {
           alt: 'AdoNet.Async Logo',
           src: 'img/logo.svg',
+          href: '/docs/intro',
         },
         items: [
           {
