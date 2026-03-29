@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.0.0...v1.1.0) (2026-03-29)
+
+
+### Features
+
+* add landing page with hero banner, features, code comparison, and social card ([34878df](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/34878df9b99696f300ba6ae6c3a348272d8fdbec))
+
+
+### Bug Fixes
+
+* lighten dark mode hero gradient for better visibility ([7ee2c61](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/7ee2c61458d90b5a8ff31305d98dd591355c627c))
+* match hero gradient to logo color palette ([cab84b7](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/cab84b78154d5408030c9bf6f350285dda9a58e5))
+* remove brightness filter from hero logo ([f4ccdfb](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/f4ccdfbe0c188b733b90c1974fb3e5dcf1d67d8d))
+* set docs as root route and fix navbar logo link ([04653eb](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/04653eb17a83e2e17949b410f8dd18cfa442c675))
+* update navbar and footer links for docs-as-root route ([f0f9d46](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/f0f9d468295684c1d5ce42f05eae0d7adf69cf28))
+* use 'markup' instead of 'xml' for Prism language in Docusaurus ([4929755](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/492975545d0e6e78a3c3ee113167120c439dc32c))
+
 ## [1.0.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.5.0...v1.0.0) (2026-03-29)
 
 
