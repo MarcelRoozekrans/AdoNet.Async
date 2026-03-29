@@ -51,11 +51,8 @@ jobs:
           JSON=$(dotnet gitversion)
           echo "$JSON"
           SEMVER=$(echo "$JSON" | jq -r '.SemVer')
-          NUGET_VERSION=$(echo "$JSON" | jq -r '.NuGetVersionV2')
           echo "version=$SEMVER" >> "$GITHUB_OUTPUT"
-          echo "nuget_version=$NUGET_VERSION" >> "$GITHUB_OUTPUT"
-          echo "SemVer: $SEMVER"
-          echo "NuGet version: $NUGET_VERSION"
+          echo "Version: $SEMVER"
 
       - name: Restore
         run: dotnet restore
@@ -65,12 +62,12 @@ jobs:
 
       - name: Pack
         run: |
-          dotnet pack src/System.Data.Async/System.Data.Async.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.nuget_version }} -o ./artifacts
-          dotnet pack src/System.Data.Async.Adapters/System.Data.Async.Adapters.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.nuget_version }} -o ./artifacts
-          dotnet pack src/System.Data.Async.DataSet/System.Data.Async.DataSet.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.nuget_version }} -o ./artifacts
-          dotnet pack src/System.Data.Async.DataSet.Generator/System.Data.Async.DataSet.Generator.csproj -c Release -p:PackageVersion=${{ steps.gitversion.outputs.nuget_version }} -o ./artifacts
-          dotnet pack src/System.Data.Async.Serialization.NewtonsoftJson/System.Data.Async.Serialization.NewtonsoftJson.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.nuget_version }} -o ./artifacts
-          dotnet pack src/System.Data.Async.Serialization.SystemTextJson/System.Data.Async.Serialization.SystemTextJson.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.nuget_version }} -o ./artifacts
+          dotnet pack src/System.Data.Async/System.Data.Async.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.Adapters/System.Data.Async.Adapters.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.DataSet/System.Data.Async.DataSet.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.DataSet.Generator/System.Data.Async.DataSet.Generator.csproj -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.Serialization.NewtonsoftJson/System.Data.Async.Serialization.NewtonsoftJson.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
+          dotnet pack src/System.Data.Async.Serialization.SystemTextJson/System.Data.Async.Serialization.SystemTextJson.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.version }} -o ./artifacts
 
       - name: Push to NuGet (pre-release)
         run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
