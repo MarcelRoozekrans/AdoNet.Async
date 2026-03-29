@@ -44,7 +44,7 @@ const config = {
         logo: {
           alt: 'AdoNet.Async Logo',
           src: 'img/logo.svg',
-          href: '/docs/intro',
+          href: '/intro',
         },
         items: [
           {
@@ -71,9 +71,9 @@ const config = {
           {
             title: 'Docs',
             items: [
-              { label: 'Introduction', to: '/docs/intro' },
-              { label: 'Getting Started', to: '/docs/getting-started/installation' },
-              { label: 'Typed DataSets', to: '/docs/typed-datasets/overview' },
+              { label: 'Introduction', to: '/intro' },
+              { label: 'Getting Started', to: '/getting-started/installation' },
+              { label: 'Typed DataSets', to: '/typed-datasets/overview' },
             ],
           },
           {
