@@ -45,6 +45,7 @@ jobs:
           dotnet pack src/System.Data.Async/System.Data.Async.csproj -c Release --no-build -p:PackageVersion=${{ needs.release-please.outputs.version }} -o ./nupkg
           dotnet pack src/System.Data.Async.Adapters/System.Data.Async.Adapters.csproj -c Release --no-build -p:PackageVersion=${{ needs.release-please.outputs.version }} -o ./nupkg
           dotnet pack src/System.Data.Async.DataSet/System.Data.Async.DataSet.csproj -c Release --no-build -p:PackageVersion=${{ needs.release-please.outputs.version }} -o ./nupkg
+          dotnet pack src/System.Data.Async.DataSet.Generator/System.Data.Async.DataSet.Generator.csproj -c Release -p:PackageVersion=${{ needs.release-please.outputs.version }} -o ./nupkg
           dotnet pack src/System.Data.Async.Serialization.NewtonsoftJson/System.Data.Async.Serialization.NewtonsoftJson.csproj -c Release --no-build -p:PackageVersion=${{ needs.release-please.outputs.version }} -o ./nupkg
           dotnet pack src/System.Data.Async.Serialization.SystemTextJson/System.Data.Async.Serialization.SystemTextJson.csproj -c Release --no-build -p:PackageVersion=${{ needs.release-please.outputs.version }} -o ./nupkg
 
