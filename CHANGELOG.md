@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.0.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.5.0...v1.0.0) (2026-03-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* wrap AsyncDataTable return types to prevent inner type leaks
+* convert implicit DataTable/DataSet operators to explicit
+
+### Features
+
+* add AsyncDataTableCollection and seal AsyncDataSet return types ([cde5f34](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/cde5f34f966e2f0bdbca9df57b5f5b46c543d85c))
+* add identity-preserving row cache to AsyncDataTable ([5ce0195](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/5ce01952239758996be9cf407e6dd24a2d6cddd3))
+* AsyncDataTable.DataSet returns AsyncDataSet with parent back-reference ([f0b4d22](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/f0b4d2202fc7aa9c20368041a3d731cb1957faf5))
+* scaffold Docusaurus site with placeholder pages and GitHub Pages workflow ([05c8b86](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/05c8b8669b4784b9bc88e16e951a5fe17fe8c56c))
+
+
+### Bug Fixes
+
+* **ci:** add Generator package to all workflows, use NuGetVersionV2 for prerelease ([3e642fe](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/3e642fe201e772c4fdbaa722d9c2c99fdac348bd))
+* **ci:** fix GitVersion crash and docs build ([9b6a4e6](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/9b6a4e62ec9a96042c11ae923ea1c16f524cde04))
+* **ci:** split CI into build-test and pack-push jobs ([6d5b2e4](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/6d5b2e4510d9542983ddc52f5965d91924006673))
+* **ci:** use ContinuousDelivery mode for alpha prerelease versions ([b785c43](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/b785c43c5caac064f3fdf3f6b8330e94473c8820))
+* **ci:** use SemVer for pack version (NuGetVersionV2 removed in GitVersion 6) ([4421b60](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/4421b6053fab8eccc43a9f9f15208f1e87b18a0d))
+
+
+### Code Refactoring
+
+* convert implicit DataTable/DataSet operators to explicit ([d8cd90f](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/d8cd90f0a4aa20229b9a765ea0dc5ae576027dd3))
+* wrap AsyncDataTable return types to prevent inner type leaks ([6d289cc](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/6d289cc46e4fe4eb13c21375659330fd062dd399))
+
 ## [0.5.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v0.4.0...v0.5.0) (2026-03-28)
 
 
