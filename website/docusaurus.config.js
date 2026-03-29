@@ -14,6 +14,25 @@ const config = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: { property: 'og:image', content: 'https://marcelroozekrans.github.io/AdoNet.Async/img/social-card.svg' },
+    },
+    {
+      tagName: 'meta',
+      attributes: { property: 'og:title', content: 'AdoNet.Async' },
+    },
+    {
+      tagName: 'meta',
+      attributes: { property: 'og:description', content: 'Async-first interfaces and base classes for ADO.NET' },
+    },
+    {
+      tagName: 'meta',
+      attributes: { name: 'twitter:card', content: 'summary_large_image' },
+    },
+  ],
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -27,7 +46,7 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/MarcelRoozekrans/AdoNet.Async/tree/main/website/',
-          routeBasePath: '/',
+          routeBasePath: 'docs',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -44,7 +63,7 @@ const config = {
         logo: {
           alt: 'AdoNet.Async Logo',
           src: 'img/logo.svg',
-          href: '/intro',
+          href: '/AdoNet.Async/',
         },
         items: [
           {
@@ -71,9 +90,9 @@ const config = {
           {
             title: 'Docs',
             items: [
-              { label: 'Introduction', to: '/intro' },
-              { label: 'Getting Started', to: '/getting-started/installation' },
-              { label: 'Typed DataSets', to: '/typed-datasets/overview' },
+              { label: 'Introduction', to: '/docs/intro' },
+              { label: 'Getting Started', to: '/docs/getting-started/installation' },
+              { label: 'Typed DataSets', to: '/docs/typed-datasets/overview' },
             ],
           },
           {

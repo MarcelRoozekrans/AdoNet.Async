@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a"/>
+      <stop offset="50%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="600" y="240" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="middle">AdoNet.Async</text>
+  <text x="600" y="320" font-family="Segoe UI, Arial, sans-serif" font-size="32" fill="rgba(255,255,255,0.85)" text-anchor="middle">Async-first interfaces and base classes for ADO.NET</text>
+  <text x="600" y="400" font-family="Consolas, monospace" font-size="24" fill="rgba(255,255,255,0.6)" text-anchor="middle">ValueTask | IAsyncEnumerable | Async Events | Typed DataSets</text>
+  <text x="600" y="530" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="rgba(255,255,255,0.5)" text-anchor="middle">marcelroozekrans.github.io/AdoNet.Async</text>
+</svg>
