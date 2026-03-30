@@ -3,7 +3,7 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #6366f1 100%);
+  background: linear-gradient(135deg, #3b3f6e 0%, #5558a8 40%, #818cf8 100%);
 }
 
 [data-theme='dark'] .heroBanner {
