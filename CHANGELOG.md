@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.0...v1.1.1) (2026-04-01)
+
+
+### Bug Fixes
+
+* brighten dark mode hero gradient further ([e89f397](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/e89f3978d8c1107d4ce05a20cfa62602154ad3f8))
+* lighten light mode hero gradient ([e1ad25d](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/e1ad25da4d046c752379206afabfcafdf570ce81))
+
 ## [1.1.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.0.0...v1.1.0) (2026-03-29)
 
 
