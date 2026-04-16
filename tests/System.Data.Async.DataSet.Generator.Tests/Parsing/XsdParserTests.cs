@@ -191,4 +191,49 @@ public class XsdParserTests
         rel.TypedParent.Should().Be("Category");
         rel.TypedChildren.Should().Be("GetProducts");
     }
+
+    // --- Namespace-prefixed XPath tests (issue #42) ---
+
+    [Fact]
+    public void Parse_NamespacePrefixed_Tables()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        model.Tables.Should().HaveCount(2);
+        model.Tables.Select(t => t.Name).Should().BeEquivalentTo("DIENSTNR", "DIENSTREDEN");
+    }
+
+    [Fact]
+    public void Parse_NamespacePrefixed_PrimaryKeys_StripPrefix()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        var dienstnr = model.Tables.First(t => string.Equals(t.Name, "DIENSTNR", StringComparison.Ordinal));
+        dienstnr.PrimaryKeyColumnNames.Should().BeEquivalentTo("DIENSTNR");
+    }
+
+    [Fact]
+    public void Parse_NamespacePrefixed_Relations_StripPrefix()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        model.Relations.Should().HaveCount(1);
+
+        var rel = model.Relations[0];
+        rel.Name.Should().Be("DIENSTNRDIENSTREDEN");
+        rel.ParentTableName.Should().Be("DIENSTNR");
+        rel.ParentColumnNames.Should().BeEquivalentTo("DIENSTNR");
+        rel.ChildTableName.Should().Be("DIENSTREDEN");
+        rel.ChildColumnNames.Should().BeEquivalentTo("DIENSTNR");
+    }
+
+    [Fact]
+    public void Parse_NamespacePrefixed_ForeignKeyConstraints_StripPrefix()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        model.ForeignKeyConstraints.Should().HaveCount(1);
+
+        var fk = model.ForeignKeyConstraints[0];
+        fk.ParentTableName.Should().Be("DIENSTNR");
+        fk.ParentColumnNames.Should().BeEquivalentTo("DIENSTNR");
+        fk.ChildTableName.Should().Be("DIENSTREDEN");
+        fk.ChildColumnNames.Should().BeEquivalentTo("DIENSTNR");
+    }
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="DienstDS"
+           targetNamespace="http://tempuri.org/DienstDS.xsd"
+           xmlns:mstns="http://tempuri.org/DienstDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="DienstDS" msdata:IsDataSet="true" msdata:Locale="nl-NL">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="DIENSTNR">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="DIENSTNR" type="xs:int" />
+              <xs:element name="OMSCHRIJVING" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DIENSTREDEN">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="REDEN" type="xs:int" />
+              <xs:element name="DIENSTNR" type="xs:int" />
+              <xs:element name="OMSCHRIJVING" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="DienstDSKey5" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:DIENSTNR" />
+      <xs:field xpath="mstns:DIENSTNR" />
+    </xs:unique>
+    <xs:unique name="DienstDSKey6" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:DIENSTREDEN" />
+      <xs:field xpath="mstns:REDEN" />
+    </xs:unique>
+    <xs:keyref name="DIENSTNRDIENSTREDEN" refer="DienstDSKey5">
+      <xs:selector xpath=".//mstns:DIENSTREDEN" />
+      <xs:field xpath="mstns:DIENSTNR" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

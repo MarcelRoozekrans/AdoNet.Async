@@ -81,6 +81,25 @@ public class GeneratorDriverTests
     }
 
     [Fact]
+    public void NamespacePrefixed_Xsd_Generates_No_Diagnostics()
+    {
+        var result = RunGenerator(LoadSchema("NamespacePrefixed.xsd"), "NamespacePrefixed.xsd");
+        result.Diagnostics.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void NamespacePrefixed_Xsd_DataSet_Contains_No_Namespace_Prefix()
+    {
+        var result = RunGenerator(LoadSchema("NamespacePrefixed.xsd"), "NamespacePrefixed.xsd");
+        var dsTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("AsyncDataSet.g.cs"));
+        dsTree.Should().NotBeNull();
+        var text = dsTree!.GetText().ToString();
+        text.Should().NotContain("mstns:");
+        text.Should().Contain("tableDIENSTNR.DIENSTNRColumn");
+        text.Should().Contain("tableDIENSTREDEN.DIENSTNRColumn");
+    }
+
+    [Fact]
     public void Non_Xsd_Files_Are_Ignored()
     {
         var compilation = CSharpCompilation.Create("TestAssembly",
