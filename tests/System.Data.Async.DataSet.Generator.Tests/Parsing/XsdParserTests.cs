@@ -191,4 +191,49 @@ public class XsdParserTests
         rel.TypedParent.Should().Be("Category");
         rel.TypedChildren.Should().Be("GetProducts");
     }
+
+    // --- Namespace-prefixed XPath tests (issue #42) ---
+
+    [Fact]
+    public void Parse_NamespacePrefixed_Tables()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        model.Tables.Should().HaveCount(2);
+        model.Tables.Select(t => t.Name).Should().BeEquivalentTo("CATEGORY", "SUBCATEGORY");
+    }
+
+    [Fact]
+    public void Parse_NamespacePrefixed_PrimaryKeys_StripPrefix()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        var category = model.Tables.First(t => string.Equals(t.Name, "CATEGORY", StringComparison.Ordinal));
+        category.PrimaryKeyColumnNames.Should().BeEquivalentTo("CATID");
+    }
+
+    [Fact]
+    public void Parse_NamespacePrefixed_Relations_StripPrefix()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        model.Relations.Should().HaveCount(1);
+
+        var rel = model.Relations[0];
+        rel.Name.Should().Be("CATEGORYSUBCATEGORY");
+        rel.ParentTableName.Should().Be("CATEGORY");
+        rel.ParentColumnNames.Should().BeEquivalentTo("CATID");
+        rel.ChildTableName.Should().Be("SUBCATEGORY");
+        rel.ChildColumnNames.Should().BeEquivalentTo("CATID");
+    }
+
+    [Fact]
+    public void Parse_NamespacePrefixed_ForeignKeyConstraints_StripPrefix()
+    {
+        var model = XsdParser.Parse(LoadSchema("NamespacePrefixed.xsd"));
+        model.ForeignKeyConstraints.Should().HaveCount(1);
+
+        var fk = model.ForeignKeyConstraints[0];
+        fk.ParentTableName.Should().Be("CATEGORY");
+        fk.ParentColumnNames.Should().BeEquivalentTo("CATID");
+        fk.ChildTableName.Should().Be("SUBCATEGORY");
+        fk.ChildColumnNames.Should().BeEquivalentTo("CATID");
+    }
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="CategoryDS"
+           targetNamespace="http://tempuri.org/CategoryDS.xsd"
+           xmlns:mstns="http://tempuri.org/CategoryDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="CategoryDS" msdata:IsDataSet="true" msdata:Locale="nl-NL">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="CATEGORY">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="CATID" type="xs:int" />
+              <xs:element name="DESCRIPTION" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SUBCATEGORY">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="REASON" type="xs:int" />
+              <xs:element name="CATID" type="xs:int" />
+              <xs:element name="DESCRIPTION" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="CategoryDSKey1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:CATEGORY" />
+      <xs:field xpath="mstns:CATID" />
+    </xs:unique>
+    <xs:unique name="CategoryDSKey2" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:SUBCATEGORY" />
+      <xs:field xpath="mstns:REASON" />
+    </xs:unique>
+    <xs:keyref name="CATEGORYSUBCATEGORY" refer="CategoryDSKey1">
+      <xs:selector xpath=".//mstns:SUBCATEGORY" />
+      <xs:field xpath="mstns:CATID" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

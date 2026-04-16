@@ -246,12 +246,20 @@ internal static class XsdParser
     private static string ExtractTableNameFromXPath(string xpath)
     {
         var idx = xpath.LastIndexOf('/');
-        return idx >= 0 ? xpath.Substring(idx + 1) : xpath;
+        var localName = idx >= 0 ? xpath.Substring(idx + 1) : xpath;
+        return StripNamespacePrefix(localName);
     }
 
     private static string ExtractColumnNameFromXPath(string xpath)
     {
         var idx = xpath.LastIndexOf('/');
-        return idx >= 0 ? xpath.Substring(idx + 1) : xpath;
+        var localName = idx >= 0 ? xpath.Substring(idx + 1) : xpath;
+        return StripNamespacePrefix(localName);
+    }
+
+    private static string StripNamespacePrefix(string name)
+    {
+        var colonIdx = name.IndexOf(':');
+        return colonIdx >= 0 ? name.Substring(colonIdx + 1) : name;
     }
 }
