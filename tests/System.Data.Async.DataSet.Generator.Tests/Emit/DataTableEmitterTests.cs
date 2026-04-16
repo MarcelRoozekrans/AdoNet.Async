@@ -61,7 +61,7 @@ public class DataTableEmitterTests
     public void Emit_Customer_ClassName()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public partial class AsyncCustomerDataTable : AsyncDataTable<AsyncCustomerRow>");
+        source.Should().Contain("public partial class AsyncOrdersDSCustomerDataTable : AsyncDataTable<AsyncOrdersDSCustomerRow>");
     }
 
     [Fact]
@@ -91,21 +91,21 @@ public class DataTableEmitterTests
     public void Emit_Customer_Indexer()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public new AsyncCustomerRow this[int index] => WrapRow((InnerDataTable).Rows[index]);");
+        source.Should().Contain("public new AsyncOrdersDSCustomerRow this[int index] => WrapRow((InnerDataTable).Rows[index]);");
     }
 
     [Fact]
     public void Emit_Customer_WrapRow()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("protected override AsyncCustomerRow WrapRow(global::System.Data.DataRow innerRow) => new AsyncCustomerRow(innerRow, this);");
+        source.Should().Contain("protected override AsyncOrdersDSCustomerRow WrapRow(global::System.Data.DataRow innerRow) => new AsyncOrdersDSCustomerRow(innerRow, this);");
     }
 
     [Fact]
     public void Emit_Customer_NewRow()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public AsyncCustomerRow NewCustomerRow() => WrapRow((InnerDataTable).NewRow());");
+        source.Should().Contain("public AsyncOrdersDSCustomerRow NewCustomerRow() => WrapRow((InnerDataTable).NewRow());");
     }
 
     [Fact]
@@ -120,14 +120,14 @@ public class DataTableEmitterTests
     public void Emit_Customer_RemoveRowAsync()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("RemoveCustomerRowAsync(AsyncCustomerRow row");
+        source.Should().Contain("RemoveCustomerRowAsync(AsyncOrdersDSCustomerRow row");
     }
 
     [Fact]
     public void Emit_Customer_FindBy()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public AsyncCustomerRow? FindByCustomerId(int customerId)");
+        source.Should().Contain("public AsyncOrdersDSCustomerRow? FindByCustomerId(int customerId)");
         source.Should().Contain("(InnerDataTable).Rows.Find");
     }
 
@@ -188,14 +188,14 @@ public class DataTableEmitterTests
             ImmutableArray<RelationModel>.Empty,
             ImmutableArray.Create(TestModels.TypedCategoryTable));
 
-        source.Should().Contain("public partial class AsyncCategoriesDataTable : AsyncDataTable<AsyncCategoryEntryRow>");
+        source.Should().Contain("public partial class AsyncDSCategoriesDataTable : AsyncDataTable<AsyncDSCategoryEntryRow>");
     }
 
     [Fact]
     public void Emit_Constructor_Default()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("public AsyncCustomerDataTable() : base(\"Customer\")");
+        source.Should().Contain("public AsyncOrdersDSCustomerDataTable() : base(\"Customer\")");
         source.Should().Contain("InitClass();");
     }
 
@@ -203,7 +203,7 @@ public class DataTableEmitterTests
     public void Emit_Constructor_FromDataTable()
     {
         var source = EmitCustomerTable();
-        source.Should().Contain("internal AsyncCustomerDataTable(global::System.Data.DataTable table) : base(table)");
+        source.Should().Contain("internal AsyncOrdersDSCustomerDataTable(global::System.Data.DataTable table) : base(table)");
         source.Should().Contain("InitVars();");
     }
 }

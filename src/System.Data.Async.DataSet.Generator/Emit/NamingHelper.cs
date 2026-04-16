@@ -4,17 +4,17 @@ namespace System.Data.Async.DataSet.Generator.Emit;
 
 internal static class NamingHelper
 {
-    public static string RowClassName(string tableName, string? typedName)
-        => $"Async{typedName ?? tableName}Row";
+    public static string RowClassName(string dataSetName, string tableName, string? typedName)
+        => $"Async{dataSetName}{typedName ?? tableName}Row";
 
-    public static string TableClassName(string tableName, string? typedPlural)
-        => $"Async{typedPlural ?? tableName}DataTable";
+    public static string TableClassName(string dataSetName, string tableName, string? typedPlural)
+        => $"Async{dataSetName}{typedPlural ?? tableName}DataTable";
 
     public static string DataSetClassName(string dsName)
         => $"Async{dsName}";
 
-    public static string EventArgsClassName(string tableName, string? typedName)
-        => $"Async{typedName ?? tableName}RowChangeEvent";
+    public static string EventArgsClassName(string dataSetName, string tableName, string? typedName)
+        => $"Async{dataSetName}{typedName ?? tableName}RowChangeEvent";
 
     public static string FindByMethodName(ImmutableArray<string> pkColumns)
         => "FindBy" + string.Join("", pkColumns);

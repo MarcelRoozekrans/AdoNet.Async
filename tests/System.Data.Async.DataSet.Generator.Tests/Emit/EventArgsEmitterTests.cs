@@ -40,21 +40,21 @@ public class EventArgsEmitterTests
     public void Emit_Customer_ClassName()
     {
         var source = EventArgsEmitter.Emit("OrdersDS", TestModels.CustomerTable);
-        source.Should().Contain("public sealed partial class AsyncCustomerRowChangeEvent");
+        source.Should().Contain("public sealed partial class AsyncOrdersDSCustomerRowChangeEvent");
     }
 
     [Fact]
     public void Emit_Customer_Constructor()
     {
         var source = EventArgsEmitter.Emit("OrdersDS", TestModels.CustomerTable);
-        source.Should().Contain("public AsyncCustomerRowChangeEvent(AsyncCustomerRow row, global::System.Data.DataRowAction action)");
+        source.Should().Contain("public AsyncOrdersDSCustomerRowChangeEvent(AsyncOrdersDSCustomerRow row, global::System.Data.DataRowAction action)");
     }
 
     [Fact]
     public void Emit_Customer_RowProperty()
     {
         var source = EventArgsEmitter.Emit("OrdersDS", TestModels.CustomerTable);
-        source.Should().Contain("public AsyncCustomerRow Row { get; }");
+        source.Should().Contain("public AsyncOrdersDSCustomerRow Row { get; }");
     }
 
     [Fact]
@@ -68,9 +68,9 @@ public class EventArgsEmitterTests
     public void Emit_TypedName_UsesTypedName()
     {
         var source = EventArgsEmitter.Emit("DS", TestModels.TypedCategoryTable);
-        source.Should().Contain("public sealed partial class AsyncCategoryEntryRowChangeEvent");
-        source.Should().Contain("AsyncCategoryEntryRow row");
-        source.Should().Contain("public AsyncCategoryEntryRow Row { get; }");
+        source.Should().Contain("public sealed partial class AsyncDSCategoryEntryRowChangeEvent");
+        source.Should().Contain("AsyncDSCategoryEntryRow row");
+        source.Should().Contain("public AsyncDSCategoryEntryRow Row { get; }");
     }
 
     [Fact]

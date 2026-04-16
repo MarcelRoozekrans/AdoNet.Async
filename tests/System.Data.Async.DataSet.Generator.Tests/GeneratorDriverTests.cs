@@ -59,7 +59,7 @@ public class GeneratorDriverTests
         var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Customer.AsyncDataTable.g.cs"));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
-        text.Should().Contain("class AsyncCustomerDataTable");
+        text.Should().Contain("class AsyncOrdersDSCustomerDataTable");
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class GeneratorDriverTests
         var rowTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Customer.AsyncDataRow.g.cs"));
         rowTree.Should().NotBeNull();
         var text = rowTree!.GetText().ToString();
-        text.Should().Contain("class AsyncCustomerRow");
+        text.Should().Contain("class AsyncOrdersDSCustomerRow");
     }
 
     [Fact]
@@ -78,6 +78,25 @@ public class GeneratorDriverTests
         var result = RunGenerator("<invalid>not valid xsd</invalid>", "Bad.xsd");
         result.Diagnostics.Should().ContainSingle()
             .Which.Id.Should().Be("ADAG001");
+    }
+
+    [Fact]
+    public void NamespacePrefixed_Xsd_Generates_No_Diagnostics()
+    {
+        var result = RunGenerator(LoadSchema("NamespacePrefixed.xsd"), "NamespacePrefixed.xsd");
+        result.Diagnostics.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void NamespacePrefixed_Xsd_DataSet_Contains_No_Namespace_Prefix()
+    {
+        var result = RunGenerator(LoadSchema("NamespacePrefixed.xsd"), "NamespacePrefixed.xsd");
+        var dsTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("AsyncDataSet.g.cs"));
+        dsTree.Should().NotBeNull();
+        var text = dsTree!.GetText().ToString();
+        text.Should().NotContain("mstns:");
+        text.Should().Contain("tableCATEGORY.CATIDColumn");
+        text.Should().Contain("tableSUBCATEGORY.CATIDColumn");
     }
 
     [Fact]

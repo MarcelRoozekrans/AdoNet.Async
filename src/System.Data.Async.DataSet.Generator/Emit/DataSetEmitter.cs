@@ -24,7 +24,7 @@ internal static class DataSetEmitter
         // Private fields for typed tables
         foreach (var table in model.Tables)
         {
-            var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
+            var tableClass = NamingHelper.TableClassName(model.Name, table.Name, table.TypedPlural);
             sb.AppendLine($"    private {tableClass} table{table.Name} = null!;");
         }
 
@@ -45,7 +45,7 @@ internal static class DataSetEmitter
         // Typed table accessors
         foreach (var table in model.Tables)
         {
-            var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
+            var tableClass = NamingHelper.TableClassName(model.Name, table.Name, table.TypedPlural);
             var accessorName = table.TypedPlural ?? table.Name;
             sb.AppendLine();
             sb.AppendLine($"    public {tableClass} {accessorName} => table{table.Name};");
@@ -76,7 +76,7 @@ internal static class DataSetEmitter
         // Create typed tables and add to Tables
         foreach (var table in model.Tables)
         {
-            var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
+            var tableClass = NamingHelper.TableClassName(model.Name, table.Name, table.TypedPlural);
             sb.AppendLine($"        table{table.Name} = new {tableClass}();");
             sb.AppendLine($"        inner.Tables.Add((global::System.Data.DataTable)table{table.Name});");
         }
@@ -143,7 +143,7 @@ internal static class DataSetEmitter
         sb.AppendLine("        var inner = InnerDataSet;");
         foreach (var table in model.Tables)
         {
-            var tableClass = NamingHelper.TableClassName(table.Name, table.TypedPlural);
+            var tableClass = NamingHelper.TableClassName(model.Name, table.Name, table.TypedPlural);
             sb.AppendLine($"        var dt{table.Name} = inner.Tables[\"{table.Name}\"];");
             sb.AppendLine($"        if (dt{table.Name} != null)");
             sb.AppendLine("        {");

@@ -52,8 +52,8 @@ public class DataSetEmitterTests
     public void Emit_TypedTableFields()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("private AsyncCustomerDataTable tableCustomer = null!;");
-        source.Should().Contain("private AsyncOrderDataTable tableOrder = null!;");
+        source.Should().Contain("private AsyncOrdersDSCustomerDataTable tableCustomer = null!;");
+        source.Should().Contain("private AsyncOrdersDSOrderDataTable tableOrder = null!;");
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public class DataSetEmitterTests
     public void Emit_TypedTableAccessors()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("public AsyncCustomerDataTable Customer => tableCustomer;");
-        source.Should().Contain("public AsyncOrderDataTable Order => tableOrder;");
+        source.Should().Contain("public AsyncOrdersDSCustomerDataTable Customer => tableCustomer;");
+        source.Should().Contain("public AsyncOrdersDSOrderDataTable Order => tableOrder;");
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class DataSetEmitterTests
     public void Emit_InitClass_CreatesTypedTables()
     {
         var source = EmitSimpleDataSet();
-        source.Should().Contain("tableCustomer = new AsyncCustomerDataTable();");
+        source.Should().Contain("tableCustomer = new AsyncOrdersDSCustomerDataTable();");
         source.Should().Contain("inner.Tables.Add((global::System.Data.DataTable)tableCustomer);");
     }
 

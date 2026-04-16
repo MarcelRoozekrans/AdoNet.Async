@@ -10,25 +10,25 @@ public class NamingHelperTests
     [Fact]
     public void RowClassName_UsesTableName_WhenTypedNameIsNull()
     {
-        NamingHelper.RowClassName("Customer", null).Should().Be("AsyncCustomerRow");
+        NamingHelper.RowClassName("OrdersDS", "Customer", null).Should().Be("AsyncOrdersDSCustomerRow");
     }
 
     [Fact]
     public void RowClassName_UsesTypedName_WhenProvided()
     {
-        NamingHelper.RowClassName("Customer", "CustomerEntry").Should().Be("AsyncCustomerEntryRow");
+        NamingHelper.RowClassName("OrdersDS", "Customer", "CustomerEntry").Should().Be("AsyncOrdersDSCustomerEntryRow");
     }
 
     [Fact]
     public void TableClassName_UsesTableName_WhenTypedPluralIsNull()
     {
-        NamingHelper.TableClassName("Order", null).Should().Be("AsyncOrderDataTable");
+        NamingHelper.TableClassName("OrdersDS", "Order", null).Should().Be("AsyncOrdersDSOrderDataTable");
     }
 
     [Fact]
     public void TableClassName_UsesTypedPlural_WhenProvided()
     {
-        NamingHelper.TableClassName("Order", "Orders").Should().Be("AsyncOrdersDataTable");
+        NamingHelper.TableClassName("OrdersDS", "Order", "Orders").Should().Be("AsyncOrdersDSOrdersDataTable");
     }
 
     [Fact]
@@ -40,13 +40,13 @@ public class NamingHelperTests
     [Fact]
     public void EventArgsClassName_UsesTableName_WhenTypedNameIsNull()
     {
-        NamingHelper.EventArgsClassName("Customer", null).Should().Be("AsyncCustomerRowChangeEvent");
+        NamingHelper.EventArgsClassName("OrdersDS", "Customer", null).Should().Be("AsyncOrdersDSCustomerRowChangeEvent");
     }
 
     [Fact]
     public void EventArgsClassName_UsesTypedName_WhenProvided()
     {
-        NamingHelper.EventArgsClassName("Customer", "Cust").Should().Be("AsyncCustRowChangeEvent");
+        NamingHelper.EventArgsClassName("OrdersDS", "Customer", "Cust").Should().Be("AsyncOrdersDSCustRowChangeEvent");
     }
 
     [Fact]

@@ -58,7 +58,7 @@ public class DataRowEmitterTests
     public void Emit_Customer_ClassName()
     {
         var source = EmitCustomerRow();
-        source.Should().Contain("public partial class AsyncCustomerRow : AsyncDataRow");
+        source.Should().Contain("public partial class AsyncOrdersDSCustomerRow : AsyncDataRow");
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class DataRowEmitterTests
     public void Emit_Customer_ChildRelationAccessor()
     {
         var source = EmitCustomerRow();
-        source.Should().Contain("public AsyncOrderRow[] GetOrderRows()");
+        source.Should().Contain("public AsyncOrdersDSOrderRow[] GetOrderRows()");
         source.Should().Contain("GetChildRows(InnerRow.Table.ChildRelations[\"FK_Customer_Order\"])");
     }
 
@@ -111,7 +111,7 @@ public class DataRowEmitterTests
     public void Emit_Order_ParentRelationAccessor()
     {
         var source = EmitOrderRow();
-        source.Should().Contain("public AsyncCustomerRow? CustomerRow");
+        source.Should().Contain("public AsyncOrdersDSCustomerRow? CustomerRow");
         source.Should().Contain("GetParentRow(InnerRow.Table.ParentRelations[\"FK_Customer_Order\"])");
     }
 
