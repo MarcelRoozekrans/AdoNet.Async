@@ -12,7 +12,7 @@ public class AdvancedTypedDataSetTests
         using var ds = new AsyncAdvancedDS();
         // Category has codegen:typedPlural="Categories" -> property named "Categories"
         ds.Categories.Should().NotBeNull();
-        ds.Categories.Should().BeOfType<AsyncCategoriesDataTable>();
+        ds.Categories.Should().BeOfType<AsyncAdvancedDSCategoriesDataTable>();
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class AdvancedTypedDataSetTests
         using var ds = new AsyncAdvancedDS();
         // AddCategoryEntryRowAsync(categoryId, name, description)
         var row = await ds.Categories.AddCategoryEntryRowAsync(1, "Electronics", "Electronic goods");
-        row.Should().BeOfType<AsyncCategoryEntryRow>();
+        row.Should().BeOfType<AsyncAdvancedDSCategoryEntryRow>();
         row.Name.Should().Be("Electronics");
     }
 

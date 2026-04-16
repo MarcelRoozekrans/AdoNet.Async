@@ -145,7 +145,7 @@ public class TypedDataSetTests
         await ds.Customer.AddCustomerRowAsync(1, "Test", "test@example.com");
 
         AsyncDataRow untyped = ds.Customer[0];
-        untyped.Should().BeOfType<AsyncCustomerRow>();
+        untyped.Should().BeOfType<AsyncOrdersDSCustomerRow>();
     }
 
     [Fact]

@@ -18,7 +18,7 @@ public class TypedDataRowCollectionTests
     }
 
     [Fact]
-    public async Task Typed_Enumeration_Yields_AsyncCustomerRow_Instances()
+    public async Task Typed_Enumeration_Yields_AsyncOrdersDSCustomerRow_Instances()
     {
         using var ds = new AsyncOrdersDS();
         await ds.Customer.AddCustomerRowAsync(1, "Alice", "alice@example.com");
@@ -26,18 +26,18 @@ public class TypedDataRowCollectionTests
 
         foreach (var row in ds.Customer.Rows)
         {
-            row.Should().BeOfType<AsyncCustomerRow>();
+            row.Should().BeOfType<AsyncOrdersDSCustomerRow>();
         }
     }
 
     [Fact]
-    public async Task Typed_Indexer_Returns_AsyncCustomerRow()
+    public async Task Typed_Indexer_Returns_AsyncOrdersDSCustomerRow()
     {
         using var ds = new AsyncOrdersDS();
         await ds.Customer.AddCustomerRowAsync(1, "Alice", "alice@example.com");
 
-        AsyncCustomerRow row = ds.Customer.Rows[0];
-        row.Should().BeOfType<AsyncCustomerRow>();
+        AsyncOrdersDSCustomerRow row = ds.Customer.Rows[0];
+        row.Should().BeOfType<AsyncOrdersDSCustomerRow>();
         row.Name.Should().Be("Alice");
     }
 
@@ -114,10 +114,10 @@ public class TypedDataRowCollectionTests
             await ds.Customer.AddCustomerRowAsync(i + 1, names[i], $"{names[i].ToLowerInvariant()}@example.com");
         }
 
-        var collected = new List<AsyncCustomerRow>();
-        foreach (AsyncCustomerRow row in ds.Customer.Rows)
+        var collected = new List<AsyncOrdersDSCustomerRow>();
+        foreach (AsyncOrdersDSCustomerRow row in ds.Customer.Rows)
         {
-            row.Should().BeOfType<AsyncCustomerRow>();
+            row.Should().BeOfType<AsyncOrdersDSCustomerRow>();
             collected.Add(row);
         }
 

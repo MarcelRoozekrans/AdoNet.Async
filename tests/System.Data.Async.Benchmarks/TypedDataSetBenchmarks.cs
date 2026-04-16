@@ -64,7 +64,7 @@ public class TypedDataSetBenchmarks : IDisposable
     }
 
     [Benchmark]
-    public AsyncCustomerRow? Typed_FindByPK()
+    public AsyncOrdersDSCustomerRow? Typed_FindByPK()
     {
         return _typedDs.Customer.FindByCustomerId(RowCount / 2);
     }
@@ -76,7 +76,7 @@ public class TypedDataSetBenchmarks : IDisposable
     }
 
     [Benchmark]
-    public async Task<AsyncCustomerRow> Typed_AddRow()
+    public async Task<AsyncOrdersDSCustomerRow> Typed_AddRow()
     {
         var row = await _typedDs.Customer.AddCustomerRowAsync(RowCount + 1000, "New", "new@example.com");
         await _typedDs.Customer.RemoveCustomerRowAsync(row);
