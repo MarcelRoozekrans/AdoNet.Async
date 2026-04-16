@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.1...v1.1.2) (2026-04-16)
+
+
+### Bug Fixes
+
+* strip XML namespace prefix from XPath-extracted identifiers in XSD parser ([#43](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/43)) ([b7f24ef](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/b7f24ef0c1ca2430d52b32b3db11537dcdc9a451))
+
 ## [1.1.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.0...v1.1.1) (2026-04-01)
 
 
