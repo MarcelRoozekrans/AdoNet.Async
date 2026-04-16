@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.0...v1.1.1) (2026-04-16)
+
+
+### Bug Fixes
+
+* brighten dark mode hero gradient further ([e89f397](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/e89f3978d8c1107d4ce05a20cfa62602154ad3f8))
+* lighten light mode hero gradient ([e1ad25d](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/e1ad25da4d046c752379206afabfcafdf570ce81))
+* prefix generated per-table class names with dataset name to prevent collisions ([08d36ab](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/08d36ab9690933fd94aacfb63b775e07213107aa))
+* strip XML namespace prefix from XPath-extracted identifiers in XSD parser ([1dea276](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/1dea2762627ea3c22f4c36d3327c8145ef867e0e))
+* update integration tests and benchmarks to use dataset-prefixed class names ([d4034f1](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/d4034f140d496cb7ddb908eeb6e4a000d4ae9a1d))
+
 ## [1.1.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.0.0...v1.1.0) (2026-03-29)
 
 
