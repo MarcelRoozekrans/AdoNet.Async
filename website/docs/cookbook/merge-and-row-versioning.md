@@ -75,6 +75,13 @@ await row.SetValueAsync("Name", "Widget Pro");
 
 var afterEdit = row["Name", DataRowVersion.Current];   // "Widget Pro"
 var before    = row["Name", DataRowVersion.Original];  // "Widget"
+
+// Proposed version is visible between BeginEdit and EndEdit
+row.InnerDataRow.BeginEdit();
+row.InnerDataRow["Name"] = "Widget Ultra";
+var proposed = row["Name", DataRowVersion.Proposed];   // "Widget Ultra"
+row.InnerDataRow.EndEdit();
+// After EndEdit, Proposed is promoted to Current
 ```
 
 ### Common pattern: get all pending changes
