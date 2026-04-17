@@ -508,4 +508,379 @@ public class XsdParserTests
         var tag = model.Tables.First(t => string.Equals(t.Name, "Tag", StringComparison.Ordinal));
         tag.PrimaryKeyColumnNames.Should().BeEquivalentTo("TagId");
     }
+
+    // -------------------------------------------------------------------------
+    // Column metadata: AutoIncrement, ReadOnly, DefaultValue, Expression,
+    //                  Caption, MaxLength, IsHidden, Ordinal
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_ColumnMetadata_SevenColumnsFound()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var item = model.Tables.First();
+        item.Columns.Should().HaveCount(7);
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_AutoIncrement_SeedAndStep()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "ItemId", StringComparison.Ordinal));
+        col.AutoIncrement.Should().BeTrue();
+        col.AutoIncrementSeed.Should().Be(10);
+        col.AutoIncrementStep.Should().Be(5);
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_ReadOnly_Column()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "CreatedAt", StringComparison.Ordinal));
+        col.ReadOnly.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_DefaultValue_Column()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "Status", StringComparison.Ordinal));
+        col.DefaultValue.Should().Be("Active");
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_Expression_Column()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "DisplayName", StringComparison.Ordinal));
+        col.Expression.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_Caption_Column()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "Notes", StringComparison.Ordinal));
+        col.Caption.Should().Be("Internal Notes");
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_MaxLength_Column()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "Notes", StringComparison.Ordinal));
+        col.MaxLength.Should().Be(500);
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_HiddenColumn_IsHidden_True()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "InternalCode", StringComparison.Ordinal));
+        col.IsHidden.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_NonHiddenColumns_IsHidden_False()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        model.Tables.First().Columns
+            .Where(c => !string.Equals(c.Name, "InternalCode", StringComparison.Ordinal))
+            .Should().AllSatisfy(c => c.IsHidden.Should().BeFalse());
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_Ordinal_Parsed()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        var col = model.Tables.First().Columns.First(c => string.Equals(c.Name, "SortOrder", StringComparison.Ordinal));
+        col.Ordinal.Should().Be(6);
+    }
+
+    [Fact]
+    public void Parse_ColumnMetadata_ColumnsWithoutOrdinal_Have_NullOrdinal()
+    {
+        var model = XsdParser.Parse(LoadSchema("ColumnMetadata.xsd"));
+        model.Tables.First().Columns
+            .Where(c => !string.Equals(c.Name, "SortOrder", StringComparison.Ordinal))
+            .Should().AllSatisfy(c => c.Ordinal.Should().BeNull());
+    }
+
+    // -------------------------------------------------------------------------
+    // ConstraintOnly relation: FK constraint without navigation DataRelation
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_ConstraintOnly_NoRelationCreated()
+    {
+        var model = XsdParser.Parse(LoadSchema("ConstraintOnlyRelation.xsd"));
+        model.Relations.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Parse_ConstraintOnly_FkConstraintCreated()
+    {
+        var model = XsdParser.Parse(LoadSchema("ConstraintOnlyRelation.xsd"));
+        model.ForeignKeyConstraints.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void Parse_ConstraintOnly_FkConstraint_CorrectTables()
+    {
+        var model = XsdParser.Parse(LoadSchema("ConstraintOnlyRelation.xsd"));
+        var fk = model.ForeignKeyConstraints.First();
+        fk.ParentTableName.Should().Be("Category");
+        fk.ChildTableName.Should().Be("Product");
+    }
+
+    [Fact]
+    public void Parse_ConstraintOnly_FkConstraint_CorrectColumns()
+    {
+        var model = XsdParser.Parse(LoadSchema("ConstraintOnlyRelation.xsd"));
+        var fk = model.ForeignKeyConstraints.First();
+        fk.ParentColumnNames.Should().BeEquivalentTo("CategoryId");
+        fk.ChildColumnNames.Should().BeEquivalentTo("CategoryId");
+    }
+
+    // -------------------------------------------------------------------------
+    // Nested relation: msdata:IsNested="true"
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_NestedRelation_RelationCreated()
+    {
+        var model = XsdParser.Parse(LoadSchema("NestedRelation.xsd"));
+        model.Relations.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void Parse_NestedRelation_Nested_True()
+    {
+        var model = XsdParser.Parse(LoadSchema("NestedRelation.xsd"));
+        model.Relations.First().Nested.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_NestedRelation_Tables_And_Columns()
+    {
+        var model = XsdParser.Parse(LoadSchema("NestedRelation.xsd"));
+        var rel = model.Relations.First();
+        rel.ParentTableName.Should().Be("Department");
+        rel.ChildTableName.Should().Be("Employee");
+        rel.ParentColumnNames.Should().BeEquivalentTo("DeptId");
+        rel.ChildColumnNames.Should().BeEquivalentTo("DeptId");
+    }
+
+    [Fact]
+    public void Parse_NestedRelation_TypedParent_And_TypedChildren()
+    {
+        var model = XsdParser.Parse(LoadSchema("NestedRelation.xsd"));
+        var rel = model.Relations.First();
+        rel.TypedParent.Should().Be("Department");
+        rel.TypedChildren.Should().Be("GetEmployees");
+    }
+
+    // -------------------------------------------------------------------------
+    // Relation rules: non-default UpdateRule / DeleteRule / AcceptRejectRule
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_RelationRules_FkConstraint_UpdateRule_None()
+    {
+        var model = XsdParser.Parse(LoadSchema("RelationRules.xsd"));
+        model.ForeignKeyConstraints.First().UpdateRule.Should().Be("None");
+    }
+
+    [Fact]
+    public void Parse_RelationRules_FkConstraint_DeleteRule_SetNull()
+    {
+        var model = XsdParser.Parse(LoadSchema("RelationRules.xsd"));
+        model.ForeignKeyConstraints.First().DeleteRule.Should().Be("SetNull");
+    }
+
+    [Fact]
+    public void Parse_RelationRules_FkConstraint_AcceptRejectRule_Cascade()
+    {
+        var model = XsdParser.Parse(LoadSchema("RelationRules.xsd"));
+        model.ForeignKeyConstraints.First().AcceptRejectRule.Should().Be("Cascade");
+    }
+
+    [Fact]
+    public void Parse_RelationRules_DefaultRules_AreCascade()
+    {
+        // When rules are absent the parser defaults to Cascade / Cascade / None
+        var model = XsdParser.Parse(LoadSchema("Simple.xsd"));
+        var fk = model.ForeignKeyConstraints.First();
+        fk.UpdateRule.Should().Be("Cascade");
+        fk.DeleteRule.Should().Be("Cascade");
+        fk.AcceptRejectRule.Should().Be("None");
+    }
+
+    // -------------------------------------------------------------------------
+    // No primary key: table with no xs:key / xs:unique
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_NoPrimaryKey_TableFound()
+    {
+        var model = XsdParser.Parse(LoadSchema("NoPrimaryKey.xsd"));
+        model.Tables.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void Parse_NoPrimaryKey_PrimaryKeyColumnNames_Empty()
+    {
+        var model = XsdParser.Parse(LoadSchema("NoPrimaryKey.xsd"));
+        model.Tables.First().PrimaryKeyColumnNames.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Parse_NoPrimaryKey_Columns_Parsed_Correctly()
+    {
+        var model = XsdParser.Parse(LoadSchema("NoPrimaryKey.xsd"));
+        var table = model.Tables.First();
+        table.Columns.Select(c => c.Name).Should().BeEquivalentTo("Message", "Severity", "Source");
+    }
+
+    [Fact]
+    public void Parse_NoPrimaryKey_NoRelationsOrConstraints()
+    {
+        var model = XsdParser.Parse(LoadSchema("NoPrimaryKey.xsd"));
+        model.Relations.Should().BeEmpty();
+        model.ForeignKeyConstraints.Should().BeEmpty();
+    }
+
+    // -------------------------------------------------------------------------
+    // Non-PK unique constraints: xs:unique / xs:key without msdata:PrimaryKey
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_NonPkUnique_PrimaryKey_IsUserId()
+    {
+        var model = XsdParser.Parse(LoadSchema("NonPkUniqueConstraint.xsd"));
+        model.Tables.First().PrimaryKeyColumnNames.Should().BeEquivalentTo("UserId");
+    }
+
+    [Fact]
+    public void Parse_NonPkUnique_UniqueConstraints_Populated()
+    {
+        var model = XsdParser.Parse(LoadSchema("NonPkUniqueConstraint.xsd"));
+        // UQ_Username (xs:unique) and UQ_Email (xs:key without PrimaryKey) should appear
+        model.Tables.First().UniqueConstraints.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void Parse_NonPkUnique_UniqueConstraints_NotPrimaryKey()
+    {
+        var model = XsdParser.Parse(LoadSchema("NonPkUniqueConstraint.xsd"));
+        model.Tables.First().UniqueConstraints
+            .Should().AllSatisfy(uc => uc.IsPrimaryKey.Should().BeFalse());
+    }
+
+    [Fact]
+    public void Parse_NonPkUnique_UniqueConstraints_ColumnNames()
+    {
+        var model = XsdParser.Parse(LoadSchema("NonPkUniqueConstraint.xsd"));
+        var allUcColumns = model.Tables.First().UniqueConstraints
+            .SelectMany(uc => uc.ColumnNames)
+            .ToList();
+        allUcColumns.Should().Contain("Username");
+        allUcColumns.Should().Contain("Email");
+    }
+
+    // -------------------------------------------------------------------------
+    // DataSet-level flags: Locale, CaseSensitive, EnforceConstraints
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_DataSetFlags_Locale_Parsed()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetFlags.xsd"));
+        model.Locale.Should().Be("en-US");
+    }
+
+    [Fact]
+    public void Parse_DataSetFlags_CaseSensitive_True()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetFlags.xsd"));
+        model.CaseSensitive.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_DataSetFlags_EnforceConstraints_False()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetFlags.xsd"));
+        model.EnforceConstraints.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_DataSetFlags_MissingLocale_IsNull()
+    {
+        // NoPrimaryKey.xsd has no msdata:Locale attribute
+        var model = XsdParser.Parse(LoadSchema("NoPrimaryKey.xsd"));
+        model.Locale.Should().BeNull();
+    }
+
+    [Fact]
+    public void Parse_DataSetFlags_DefaultCaseSensitive_False()
+    {
+        // When msdata:CaseSensitive is absent the parser defaults to false
+        var model = XsdParser.Parse(LoadSchema("Simple.xsd"));
+        model.CaseSensitive.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_DataSetFlags_DefaultEnforceConstraints_True()
+    {
+        // When msdata:EnforceConstraints is absent the parser defaults to true
+        var model = XsdParser.Parse(LoadSchema("Simple.xsd"));
+        model.EnforceConstraints.Should().BeTrue();
+    }
+
+    // -------------------------------------------------------------------------
+    // xs:sequence at DataSet level (instead of xs:choice)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_DataSetSequence_TwoTablesFound()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetSequence.xsd"));
+        model.Tables.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void Parse_DataSetSequence_Header_Columns()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetSequence.xsd"));
+        var header = model.Tables.First(t => string.Equals(t.Name, "Header", StringComparison.Ordinal));
+        header.Columns.Select(c => c.Name).Should().BeEquivalentTo("HeaderId", "Title");
+    }
+
+    [Fact]
+    public void Parse_DataSetSequence_Line_Columns()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetSequence.xsd"));
+        var line = model.Tables.First(t => string.Equals(t.Name, "Line", StringComparison.Ordinal));
+        line.Columns.Select(c => c.Name).Should().BeEquivalentTo("LineId", "HeaderId", "Amount");
+    }
+
+    [Fact]
+    public void Parse_DataSetSequence_Relation_Parsed()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetSequence.xsd"));
+        model.Relations.Should().HaveCount(1);
+        var rel = model.Relations.First();
+        rel.ParentTableName.Should().Be("Header");
+        rel.ChildTableName.Should().Be("Line");
+    }
+
+    [Fact]
+    public void Parse_DataSetSequence_PrimaryKeys_Parsed()
+    {
+        var model = XsdParser.Parse(LoadSchema("DataSetSequence.xsd"));
+        model.Tables.First(t => string.Equals(t.Name, "Header", StringComparison.Ordinal))
+            .PrimaryKeyColumnNames.Should().BeEquivalentTo("HeaderId");
+        model.Tables.First(t => string.Equals(t.Name, "Line", StringComparison.Ordinal))
+            .PrimaryKeyColumnNames.Should().BeEquivalentTo("LineId");
+    }
 }

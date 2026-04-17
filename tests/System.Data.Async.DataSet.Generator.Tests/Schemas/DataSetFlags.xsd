@@ -1,0 +1,31 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  Exercises DataSet-level flags:
+    msdata:Locale="en-US"           — non-null Locale
+    msdata:CaseSensitive="false"    — explicit false (parser default is false, so this tests that we read it)
+    msdata:EnforceConstraints="false" — disables constraint checking at runtime
+-->
+<xs:schema id="DataSetFlagsDS"
+           targetNamespace="http://tempuri.org/DataSetFlagsDS.xsd"
+           xmlns:mstns="http://tempuri.org/DataSetFlagsDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="DataSetFlagsDS"
+              msdata:IsDataSet="true"
+              msdata:Locale="en-US"
+              msdata:CaseSensitive="true"
+              msdata:EnforceConstraints="false">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Record">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RecordId" type="xs:int" />
+              <xs:element name="Value"    type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

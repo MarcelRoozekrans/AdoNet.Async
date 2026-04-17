@@ -1,0 +1,42 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  A table with both a primary key AND a separate non-PK unique constraint.
+  Tests that UniqueConstraintModel is populated for non-PK keys and that
+  it does NOT appear as the table's primary key.
+-->
+<xs:schema id="NonPkUniqueDS"
+           targetNamespace="http://tempuri.org/NonPkUniqueDS.xsd"
+           xmlns:mstns="http://tempuri.org/NonPkUniqueDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="NonPkUniqueDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="User">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="UserId"   type="xs:int" />
+              <xs:element name="Username" type="xs:string" />
+              <xs:element name="Email"    type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <!-- Primary key -->
+    <xs:key name="PK_User" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:User" />
+      <xs:field xpath="UserId" />
+    </xs:key>
+    <!-- Non-PK unique constraint on Username -->
+    <xs:unique name="UQ_Username">
+      <xs:selector xpath=".//mstns:User" />
+      <xs:field xpath="Username" />
+    </xs:unique>
+    <!-- Non-PK unique constraint on Email (using xs:key without msdata:PrimaryKey) -->
+    <xs:key name="UQ_Email">
+      <xs:selector xpath=".//mstns:User" />
+      <xs:field xpath="Email" />
+    </xs:key>
+  </xs:element>
+</xs:schema>

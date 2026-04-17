@@ -1,0 +1,53 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  Exercises every column-level metadata attribute:
+    AutoIncrement / AutoIncrementSeed / AutoIncrementStep
+    ReadOnly, DefaultValue, Expression
+    Caption, maxLength
+    hiddenColumn (IsHidden)
+    Ordinal
+  All on xs:element columns. Regression coverage — these fields are parsed but
+  only some are emitted; tests assert the parsed model is correct.
+-->
+<xs:schema id="ColumnMetadataDS"
+           targetNamespace="http://tempuri.org/ColumnMetadataDS.xsd"
+           xmlns:mstns="http://tempuri.org/ColumnMetadataDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+           xmlns:codegen="urn:schemas-microsoft-com:xml-msprop">
+  <xs:element name="ColumnMetadataDS" msdata:IsDataSet="true" msdata:CaseSensitive="false">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Item">
+          <xs:complexType>
+            <xs:sequence>
+              <!-- AutoIncrement with explicit seed and step -->
+              <xs:element name="ItemId"      type="xs:int"
+                          msdata:AutoIncrement="true"
+                          msdata:AutoIncrementSeed="10"
+                          msdata:AutoIncrementStep="5" />
+              <!-- ReadOnly column -->
+              <xs:element name="CreatedAt"   type="xs:string" msdata:ReadOnly="true" />
+              <!-- DefaultValue column -->
+              <xs:element name="Status"      type="xs:string" msdata:DefaultValue="Active" />
+              <!-- Expression (computed) column -->
+              <xs:element name="DisplayName" type="xs:string" msdata:Expression="Status + ' item'" />
+              <!-- Caption and maxLength -->
+              <xs:element name="Notes"       type="xs:string"
+                          msdata:Caption="Internal Notes"
+                          maxLength="500" />
+              <!-- Hidden column — excluded from AddRowAsync params -->
+              <xs:element name="InternalCode" type="xs:string" msdata:hiddenColumn="true" />
+              <!-- Explicit Ordinal -->
+              <xs:element name="SortOrder"   type="xs:int" msdata:Ordinal="6" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:key name="PK_Item" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Item" />
+      <xs:field xpath="ItemId" />
+    </xs:key>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,50 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  xs:keyref with msdata:ConstraintOnly="true".
+  Should create a ForeignKeyConstraintModel but NOT a RelationModel.
+  Common when the VS Designer generates a FK constraint for referential
+  integrity without wanting a navigation DataRelation.
+-->
+<xs:schema id="ConstraintOnlyDS"
+           targetNamespace="http://tempuri.org/ConstraintOnlyDS.xsd"
+           xmlns:mstns="http://tempuri.org/ConstraintOnlyDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="ConstraintOnlyDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Category">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="CategoryId" type="xs:int" />
+              <xs:element name="Name"       type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Product">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ProductId"  type="xs:int" />
+              <xs:element name="CategoryId" type="xs:int" />
+              <xs:element name="Title"      type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:key name="PK_Category" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Category" />
+      <xs:field xpath="CategoryId" />
+    </xs:key>
+    <xs:key name="PK_Product" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Product" />
+      <xs:field xpath="ProductId" />
+    </xs:key>
+    <!-- ConstraintOnly=true: FK constraint without DataRelation -->
+    <xs:keyref name="FK_Category_Product" refer="PK_Category"
+               msdata:ConstraintOnly="true">
+      <xs:selector xpath=".//mstns:Product" />
+      <xs:field xpath="CategoryId" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

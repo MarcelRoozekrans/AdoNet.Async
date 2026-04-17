@@ -1,0 +1,48 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  DataSet where the top-level container uses xs:sequence instead of xs:choice.
+  The parser handles both (line 30: choice ?? sequence). Tests that xs:sequence
+  at the DataSet level still yields correct table parsing.
+-->
+<xs:schema id="DataSetSequenceDS"
+           targetNamespace="http://tempuri.org/DataSetSequenceDS.xsd"
+           xmlns:mstns="http://tempuri.org/DataSetSequenceDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="DataSetSequenceDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <!-- xs:sequence instead of xs:choice -->
+      <xs:sequence>
+        <xs:element name="Header">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="HeaderId" type="xs:int" />
+              <xs:element name="Title"    type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Line">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="LineId"   type="xs:int" />
+              <xs:element name="HeaderId" type="xs:int" />
+              <xs:element name="Amount"   type="xs:decimal" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+    <xs:key name="PK_Header" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Header" />
+      <xs:field xpath="HeaderId" />
+    </xs:key>
+    <xs:key name="PK_Line" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Line" />
+      <xs:field xpath="LineId" />
+    </xs:key>
+    <xs:keyref name="FK_Header_Line" refer="PK_Header">
+      <xs:selector xpath=".//mstns:Line" />
+      <xs:field xpath="HeaderId" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

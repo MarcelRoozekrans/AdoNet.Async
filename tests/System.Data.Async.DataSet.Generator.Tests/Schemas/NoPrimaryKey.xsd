@@ -1,0 +1,27 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  DataSet with a table that has no xs:key / xs:unique constraint at all.
+  PrimaryKeyColumnNames should be empty; the table is still parseable.
+-->
+<xs:schema id="NoPrimaryKeyDS"
+           targetNamespace="http://tempuri.org/NoPrimaryKeyDS.xsd"
+           xmlns:mstns="http://tempuri.org/NoPrimaryKeyDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="NoPrimaryKeyDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Log">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Message"  type="xs:string" />
+              <xs:element name="Severity" type="xs:int" />
+              <xs:element name="Source"   type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <!-- Intentionally no xs:key or xs:unique -->
+  </xs:element>
+</xs:schema>

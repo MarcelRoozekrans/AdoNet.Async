@@ -1,0 +1,52 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  xs:keyref with msdata:IsNested="true".
+  VS Designer emits this for hierarchical XML datasets where child rows
+  are nested inside parent rows in the serialized XML.
+  Tests that RelationModel.Nested == true.
+-->
+<xs:schema id="NestedRelationDS"
+           targetNamespace="http://tempuri.org/NestedRelationDS.xsd"
+           xmlns:mstns="http://tempuri.org/NestedRelationDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+           xmlns:codegen="urn:schemas-microsoft-com:xml-msprop">
+  <xs:element name="NestedRelationDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Department">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="DeptId" type="xs:int" />
+              <xs:element name="Name"   type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Employee">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="EmpId"  type="xs:int" />
+              <xs:element name="DeptId" type="xs:int" />
+              <xs:element name="Name"   type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:key name="PK_Department" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Department" />
+      <xs:field xpath="DeptId" />
+    </xs:key>
+    <xs:key name="PK_Employee" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Employee" />
+      <xs:field xpath="EmpId" />
+    </xs:key>
+    <xs:keyref name="FK_Dept_Employee" refer="PK_Department"
+               msdata:IsNested="true"
+               codegen:typedParent="Department"
+               codegen:typedChildren="GetEmployees">
+      <xs:selector xpath=".//mstns:Employee" />
+      <xs:field xpath="DeptId" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

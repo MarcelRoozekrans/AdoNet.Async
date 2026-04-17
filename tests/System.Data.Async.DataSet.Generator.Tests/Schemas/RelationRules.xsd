@@ -1,0 +1,49 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  xs:keyref with non-default UpdateRule, DeleteRule, and AcceptRejectRule.
+  Parser defaults all three to "Cascade"/"None"; this schema exercises
+  non-default values to confirm they propagate to ForeignKeyConstraintModel.
+-->
+<xs:schema id="RelationRulesDS"
+           targetNamespace="http://tempuri.org/RelationRulesDS.xsd"
+           xmlns:mstns="http://tempuri.org/RelationRulesDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="RelationRulesDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="Parent">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ParentId" type="xs:int" />
+              <xs:element name="Name"     type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Child">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ChildId"  type="xs:int" />
+              <xs:element name="ParentId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:key name="PK_Parent" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Parent" />
+      <xs:field xpath="ParentId" />
+    </xs:key>
+    <xs:key name="PK_Child" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Child" />
+      <xs:field xpath="ChildId" />
+    </xs:key>
+    <xs:keyref name="FK_Parent_Child" refer="PK_Parent"
+               msdata:UpdateRule="None"
+               msdata:DeleteRule="SetNull"
+               msdata:AcceptRejectRule="Cascade">
+      <xs:selector xpath=".//mstns:Child" />
+      <xs:field xpath="ParentId" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>
