@@ -173,7 +173,7 @@ public class AsyncDataTableAdvancedTests
     }
 
     [Fact]
-    public async Task Compute_Min_And_Max()
+    public async Task Compute_Min_Returns_Minimum_Value()
     {
         using var t = MakeTable("T", ("Score", typeof(int)));
         await t.Rows.AddAsync([5]);
@@ -182,6 +182,17 @@ public class AsyncDataTableAdvancedTests
         await t.AcceptChangesAsync();
 
         t.Compute("Min(Score)", null).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Compute_Max_Returns_Maximum_Value()
+    {
+        using var t = MakeTable("T", ("Score", typeof(int)));
+        await t.Rows.AddAsync([5]);
+        await t.Rows.AddAsync([1]);
+        await t.Rows.AddAsync([9]);
+        await t.AcceptChangesAsync();
+
         t.Compute("Max(Score)", null).Should().Be(9);
     }
 
