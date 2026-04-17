@@ -332,6 +332,8 @@ public class AsyncDataTableAdvancedTests
         t.Rows.Count.Should().Be(2);
         t.Rows[0]["Id"].Should().Be(1);
         t.Rows[1]["Id"].Should().Be(2);
+        // RowChangedAsync fires for each AddAsync — BeginLoadData does not suppress async events
+        rowChangedCount.Should().Be(2);
     }
 
     // ------------------------------------------------------------------
