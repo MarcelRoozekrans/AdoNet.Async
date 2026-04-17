@@ -206,4 +206,73 @@ public class AsyncDataTableAdvancedTests
 
         result.Should().Be(DBNull.Value);
     }
+
+    // ------------------------------------------------------------------
+    // LoadDataRow
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void LoadDataRow_Bool_True_Accepts_Row()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
+        t.PrimaryKey = [t.Columns["Id"]!];
+
+        var row = t.LoadDataRow([1, "Alice"], fAcceptChanges: true);
+
+        t.Rows.Count.Should().Be(1);
+        row.RowState.Should().Be(DataRowState.Unchanged);
+        row["Name"].Should().Be("Alice");
+    }
+
+    [Fact]
+    public void LoadDataRow_Bool_False_Leaves_Row_Added()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
+        t.PrimaryKey = [t.Columns["Id"]!];
+
+        var row = t.LoadDataRow([1, "Alice"], fAcceptChanges: false);
+
+        row.RowState.Should().Be(DataRowState.Added);
+    }
+
+    [Fact]
+    public void LoadDataRow_Upsert_Updates_Existing_Row()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
+        t.PrimaryKey = [t.Columns["Id"]!];
+        t.LoadDataRow([1, "Alice"], fAcceptChanges: true);
+
+        t.LoadDataRow([1, "AliceUpdated"], LoadOption.Upsert);
+
+        t.Rows.Count.Should().Be(1);
+        t.Rows[0]["Name"].Should().Be("AliceUpdated");
+    }
+
+    [Fact]
+    public void LoadDataRow_OverwriteChanges_Overwrites_Current_And_Original()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
+        t.PrimaryKey = [t.Columns["Id"]!];
+        t.LoadDataRow([1, "Alice"], fAcceptChanges: true);
+        t.Rows[0].InnerDataRow["Name"] = "AliceEdited";  // pending change via inner row
+
+        t.LoadDataRow([1, "AliceOverwrite"], LoadOption.OverwriteChanges);
+
+        t.Rows[0]["Name", DataRowVersion.Current].Should().Be("AliceOverwrite");
+        t.Rows[0]["Name", DataRowVersion.Original].Should().Be("AliceOverwrite");
+    }
+
+    [Fact]
+    public void LoadDataRow_PreserveChanges_Keeps_Current_Updates_Original()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
+        t.PrimaryKey = [t.Columns["Id"]!];
+        t.LoadDataRow([1, "Alice"], fAcceptChanges: true);
+        t.Rows[0].InnerDataRow["Name"] = "AliceEdited";  // pending change via inner row
+
+        t.LoadDataRow([1, "AlicePreserved"], LoadOption.PreserveChanges);
+
+        t.Rows[0]["Name", DataRowVersion.Current].Should().Be("AliceEdited");
+        t.Rows[0]["Name", DataRowVersion.Original].Should().Be("AlicePreserved");
+    }
 }
