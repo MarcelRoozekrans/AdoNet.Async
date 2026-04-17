@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.2...v1.1.3) (2026-04-17)
+
+
+### Bug Fixes
+
+* prefix generated per-table class names with dataset name to prevent collisions ([08d36ab](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/08d36ab9690933fd94aacfb63b775e07213107aa))
+* strip XML namespace prefix from XPath-extracted identifiers in XSD parser ([1dea276](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/1dea2762627ea3c22f4c36d3327c8145ef867e0e))
+* update integration tests and benchmarks to use dataset-prefixed class names ([d4034f1](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/d4034f140d496cb7ddb908eeb6e4a000d4ae9a1d))
+
 ## [1.1.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.0...v1.1.1) (2026-04-16)
 
 
