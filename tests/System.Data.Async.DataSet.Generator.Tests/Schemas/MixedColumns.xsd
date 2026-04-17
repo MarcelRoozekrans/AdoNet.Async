@@ -1,0 +1,36 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="MixedDS"
+           targetNamespace="http://tempuri.org/MixedDS.xsd"
+           xmlns:mstns="http://tempuri.org/MixedDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="MixedDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <!--
+          Table with both xs:element (inside xs:sequence) and xs:attribute columns.
+          This exercises the code path that parses both kinds in ParseTable.
+            - Id:       xs:element, required int
+            - Name:     xs:element, required string
+            - Source:   xs:attribute, required string
+            - Priority: xs:attribute, optional int (nullable)
+          PK on Id (single column).
+        -->
+        <xs:element name="Item">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Id" type="xs:int" />
+              <xs:element name="Name" type="xs:string" />
+            </xs:sequence>
+            <xs:attribute name="Source" type="xs:string" use="required" />
+            <xs:attribute name="Priority" type="xs:int" />
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="PK_Item" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Item" />
+      <xs:field xpath="mstns:Id" />
+    </xs:unique>
+  </xs:element>
+</xs:schema>

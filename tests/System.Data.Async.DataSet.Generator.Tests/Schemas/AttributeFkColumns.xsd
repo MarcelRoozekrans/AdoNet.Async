@@ -1,0 +1,46 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="AttributeFkDS"
+           targetNamespace="http://tempuri.org/AttributeFkDS.xsd"
+           xmlns:mstns="http://tempuri.org/AttributeFkDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="AttributeFkDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <!-- Parent table: xs:element columns -->
+        <xs:element name="Region">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RegionId" type="xs:int" />
+              <xs:element name="Name" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <!--
+          Child table: xs:attribute columns.
+          RegionId is an xs:attribute FK pointing to Region.RegionId.
+          The xs:field xpath="@RegionId" must have @ stripped to match column name.
+        -->
+        <xs:element name="Entry">
+          <xs:complexType>
+            <xs:attribute name="RegionId" type="xs:int" use="required" />
+            <xs:attribute name="Code" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:key name="PK_Region" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Region" />
+      <xs:field xpath="mstns:RegionId" />
+    </xs:key>
+    <xs:unique name="PK_Entry" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Entry" />
+      <xs:field xpath="@RegionId" />
+      <xs:field xpath="@Code" />
+    </xs:unique>
+    <xs:keyref name="FK_Region_Entry" refer="PK_Region">
+      <xs:selector xpath=".//mstns:Entry" />
+      <xs:field xpath="@RegionId" />
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

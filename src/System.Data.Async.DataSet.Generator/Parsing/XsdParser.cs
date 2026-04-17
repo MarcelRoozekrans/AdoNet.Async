@@ -170,6 +170,13 @@ internal static class XsdParser
                     columns.Add(ParseColumn(col));
                 }
             }
+
+            // xs:attribute elements represent columns when a table is defined without xs:sequence
+            // (common in VS Dataset Designer schemas where columns are declared as XML attributes)
+            foreach (var attr in complexType.Elements(Xs + "attribute"))
+            {
+                columns.Add(ParseColumn(attr));
+            }
         }
 
         return new TableModel(
@@ -186,8 +193,19 @@ internal static class XsdParser
         var dataTypeOverride = (string?)colElement.Attribute(Msdata + "DataType");
         var clrType = dataTypeOverride ?? (xsdType != null ? XsdTypeMapper.TryMap(xsdType) : null) ?? "System.String";
 
-        var minOccurs = (string?)colElement.Attribute("minOccurs");
-        var allowDbNull = string.Equals(minOccurs, "0", StringComparison.Ordinal);
+        // xs:element uses minOccurs="0" to indicate nullable; xs:attribute is nullable by default
+        // unless use="required" is specified (use="optional" or absent both mean nullable)
+        bool allowDbNull;
+        if (string.Equals(colElement.Name.LocalName, "attribute", StringComparison.Ordinal))
+        {
+            var use = (string?)colElement.Attribute("use");
+            allowDbNull = !string.Equals(use, "required", StringComparison.OrdinalIgnoreCase);
+        }
+        else
+        {
+            var minOccurs = (string?)colElement.Attribute("minOccurs");
+            allowDbNull = string.Equals(minOccurs, "0", StringComparison.Ordinal);
+        }
 
         var readOnly = ParseBool(colElement, Msdata + "ReadOnly");
         var expression = (string?)colElement.Attribute(Msdata + "Expression");
@@ -254,7 +272,11 @@ internal static class XsdParser
     {
         var idx = xpath.LastIndexOf('/');
         var localName = idx >= 0 ? xpath.Substring(idx + 1) : xpath;
-        return StripNamespacePrefix(localName);
+        localName = StripNamespacePrefix(localName);
+        // xs:field xpath="@ColName" references an xs:attribute column — strip the leading @
+        if (localName.Length > 0 && localName[0] == '@')
+            localName = localName.Substring(1);
+        return localName;
     }
 
     private static string StripNamespacePrefix(string name)

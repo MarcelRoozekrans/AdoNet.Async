@@ -1,0 +1,39 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema id="AttributeDS"
+           targetNamespace="http://tempuri.org/AttributeDS.xsd"
+           xmlns:mstns="http://tempuri.org/AttributeDS.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+           xmlns:codegen="urn:schemas-microsoft-com:xml-msprop">
+  <xs:element name="AttributeDS" msdata:IsDataSet="true">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <!--
+          Table with xs:attribute columns only:
+            - RegionId:    required int  (use="required" -> AllowDBNull=false)
+            - Code:        required string
+            - Description: optional string (no use attr -> AllowDBNull=true)
+            - Label:       optional string (use="optional" explicit -> AllowDBNull=true)
+            - TrackingId:  optional Guid  (msdata:DataType override)
+            - Tag:         optional string with codegen:nullValue replacement
+          Composite PK on RegionId + Code.
+        -->
+        <xs:element name="Entry">
+          <xs:complexType>
+            <xs:attribute name="RegionId" type="xs:int" use="required" />
+            <xs:attribute name="Code" type="xs:string" use="required" />
+            <xs:attribute name="Description" type="xs:string" />
+            <xs:attribute name="Label" type="xs:string" use="optional" />
+            <xs:attribute name="TrackingId" msdata:DataType="System.Guid" />
+            <xs:attribute name="Tag" type="xs:string" codegen:nullValue="N/A" />
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:key name="PK_Entry" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Entry" />
+      <xs:field xpath="@RegionId" />
+      <xs:field xpath="@Code" />
+    </xs:key>
+  </xs:element>
+</xs:schema>

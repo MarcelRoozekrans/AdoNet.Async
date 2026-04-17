@@ -124,7 +124,7 @@ Overrides the name of the parent-to-child **method** on the parent row class.
 
 ### codegen:nullValue
 
-**Applies to:** column element (`xs:element` inside a table's `xs:sequence`) that has `minOccurs="0"`
+**Applies to:** column element (`xs:element` with `minOccurs="0"` or `xs:attribute` without `use="required"`) that allows `DBNull`
 
 Controls what happens when the property getter is called on a column whose current value is `DBNull`. Has no effect on non-nullable columns.
 
@@ -158,6 +158,80 @@ Controls what happens when the property getter is called on a column whose curre
 :::warning
 The `_null` behavior changes the property return type to nullable (e.g., `string?`). The other behaviors keep the return type non-nullable since they always return a value.
 :::
+
+---
+
+## xs:attribute Column Declarations
+
+Columns can be declared either as `xs:element` children inside a `xs:sequence`, or as `xs:attribute` children directly on the table's `xs:complexType`. Both forms generate identical typed DataRow properties and DataTable column fields.
+
+### Nullability
+
+| Declaration | Nullable? |
+|---|---|
+| `xs:element minOccurs="0"` | Yes |
+| `xs:element` (no `minOccurs`) | No |
+| `xs:attribute` (no `use`) | Yes (default) |
+| `xs:attribute use="optional"` | Yes |
+| `xs:attribute use="required"` | No |
+
+### Example — all-attribute table with composite PK
+
+```xml
+<xs:element name="Entry">
+  <xs:complexType>
+    <xs:attribute name="RegionId"    type="xs:int"    use="required" />
+    <xs:attribute name="Code"        type="xs:string" use="required" />
+    <xs:attribute name="Description" type="xs:string" />
+    <xs:attribute name="TrackingId"  msdata:DataType="System.Guid" />
+    <xs:attribute name="Tag"         type="xs:string" codegen:nullValue="N/A" />
+  </xs:complexType>
+</xs:element>
+```
+
+`xs:field` selectors that reference attribute columns use the `@ColName` XPath syntax:
+
+```xml
+<xs:key name="PK_Entry" msdata:PrimaryKey="true">
+  <xs:selector xpath=".//Entry" />
+  <xs:field xpath="@RegionId" />
+  <xs:field xpath="@Code" />
+</xs:key>
+```
+
+### Example — mixed xs:element + xs:attribute
+
+A table may freely mix both column declaration forms:
+
+```xml
+<xs:element name="Item">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element name="Id"   type="xs:int"    />
+      <xs:element name="Name" type="xs:string" />
+    </xs:sequence>
+    <xs:attribute name="Source"   type="xs:string" use="required" />
+    <xs:attribute name="Priority" type="xs:int" />
+  </xs:complexType>
+</xs:element>
+```
+
+All `codegen:` and `msdata:` column annotations (`nullValue`, `DataType`, `DefaultValue`, `ReadOnly`, etc.) work the same way on `xs:attribute` columns as they do on `xs:element` columns.
+
+### Namespace-prefixed XPath
+
+When the XSD has a `targetNamespace`, XPath selectors use a namespace prefix. The generator strips the prefix automatically from element references in selectors (`mstns:TableName` → `TableName`). Attribute column `xs:field` references use the `@ColName` form without a namespace prefix — the `@` is stripped to match the column name:
+
+```xml
+<xs:schema targetNamespace="http://tempuri.org/MyDS.xsd"
+           xmlns:mstns="http://tempuri.org/MyDS.xsd" ...>
+  ...
+  <xs:key name="PK_Entry" msdata:PrimaryKey="true">
+    <xs:selector xpath=".//mstns:Entry" />  <!-- mstns: prefix stripped on selector -->
+    <xs:field xpath="@RegionId" />          <!-- @ prefix stripped; no mstns: on field -->
+  </xs:key>
+</xs:schema>
+```
 
 ---
 

@@ -236,4 +236,188 @@ public class XsdParserTests
         fk.ChildTableName.Should().Be("SUBCATEGORY");
         fk.ChildColumnNames.Should().BeEquivalentTo("CATID");
     }
+
+    // --- xs:attribute column tests (issue #52) ---
+
+    [Fact]
+    public void Parse_AttributeColumns_Required_Attribute_Is_Not_Nullable()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        var regionId = entry.Columns.First(c => string.Equals(c.Name, "RegionId", StringComparison.Ordinal));
+        regionId.ClrTypeName.Should().Be("System.Int32");
+        regionId.AllowDBNull.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_AttributeColumns_Optional_Attribute_Is_Nullable()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        var description = entry.Columns.First(c => string.Equals(c.Name, "Description", StringComparison.Ordinal));
+        description.ClrTypeName.Should().Be("System.String");
+        description.AllowDBNull.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_AttributeColumns_CompositePrimaryKey_AtPrefixStripped()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        // xs:field xpath="@RegionId" and xpath="@Code" — the @ prefix must be stripped
+        entry.PrimaryKeyColumnNames.Should().BeEquivalentTo("RegionId", "Code");
+    }
+
+    [Fact]
+    public void Parse_AttributeColumns_TableName_From_NamespacePrefixedSelector()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        // selector xpath=".//mstns:Entry" — namespace prefix stripped, table matched correctly
+        model.Tables.Should().HaveCount(1);
+        model.Tables[0].Name.Should().Be("Entry");
+    }
+
+    [Fact]
+    public void Parse_AttributeColumns_Explicit_Optional_Is_Nullable()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        // use="optional" explicitly set — must be nullable
+        var label = entry.Columns.First(c => string.Equals(c.Name, "Label", StringComparison.Ordinal));
+        label.AllowDBNull.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_AttributeColumns_DataType_Override_Guid()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        // msdata:DataType="System.Guid" on xs:attribute
+        var trackingId = entry.Columns.First(c => string.Equals(c.Name, "TrackingId", StringComparison.Ordinal));
+        trackingId.ClrTypeName.Should().Be("System.Guid");
+        trackingId.AllowDBNull.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_AttributeColumns_NullValue_Replacement()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        // codegen:nullValue="N/A" on xs:attribute
+        var tag = entry.Columns.First(c => string.Equals(c.Name, "Tag", StringComparison.Ordinal));
+        tag.NullValueBehavior.Kind.Should().Be(NullValueBehaviorKind.ReplacementValue);
+        tag.NullValueBehavior.ReplacementValue.Should().Be("N/A");
+    }
+
+    [Fact]
+    public void Parse_AttributeColumns_AllSixColumns_Parsed()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        entry.Columns.Should().HaveCount(6);
+        entry.Columns.Select(c => c.Name).Should().BeEquivalentTo(
+            "RegionId", "Code", "Description", "Label", "TrackingId", "Tag");
+    }
+
+    // --- Mixed xs:element + xs:attribute columns (issue #52 — comprehensive coverage) ---
+
+    [Fact]
+    public void Parse_MixedColumns_ParsesFourColumns()
+    {
+        var model = XsdParser.Parse(LoadSchema("MixedColumns.xsd"));
+        var item = model.Tables.First(t => string.Equals(t.Name, "Item", StringComparison.Ordinal));
+        // 2 xs:element + 2 xs:attribute = 4 total
+        item.Columns.Should().HaveCount(4);
+    }
+
+    [Fact]
+    public void Parse_MixedColumns_Element_Columns_Present()
+    {
+        var model = XsdParser.Parse(LoadSchema("MixedColumns.xsd"));
+        var item = model.Tables.First(t => string.Equals(t.Name, "Item", StringComparison.Ordinal));
+        item.Columns.Select(c => c.Name).Should().Contain("Id").And.Contain("Name");
+        item.Columns.First(c => string.Equals(c.Name, "Id", StringComparison.Ordinal)).ClrTypeName.Should().Be("System.Int32");
+    }
+
+    [Fact]
+    public void Parse_MixedColumns_Attribute_Columns_Present()
+    {
+        var model = XsdParser.Parse(LoadSchema("MixedColumns.xsd"));
+        var item = model.Tables.First(t => string.Equals(t.Name, "Item", StringComparison.Ordinal));
+        item.Columns.Select(c => c.Name).Should().Contain("Source").And.Contain("Priority");
+    }
+
+    [Fact]
+    public void Parse_MixedColumns_Required_Attribute_Not_Nullable()
+    {
+        var model = XsdParser.Parse(LoadSchema("MixedColumns.xsd"));
+        var item = model.Tables.First(t => string.Equals(t.Name, "Item", StringComparison.Ordinal));
+        var source = item.Columns.First(c => string.Equals(c.Name, "Source", StringComparison.Ordinal));
+        source.AllowDBNull.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_MixedColumns_Optional_Attribute_Nullable()
+    {
+        var model = XsdParser.Parse(LoadSchema("MixedColumns.xsd"));
+        var item = model.Tables.First(t => string.Equals(t.Name, "Item", StringComparison.Ordinal));
+        var priority = item.Columns.First(c => string.Equals(c.Name, "Priority", StringComparison.Ordinal));
+        priority.AllowDBNull.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_MixedColumns_PrimaryKey_From_Element_Field()
+    {
+        var model = XsdParser.Parse(LoadSchema("MixedColumns.xsd"));
+        var item = model.Tables.First(t => string.Equals(t.Name, "Item", StringComparison.Ordinal));
+        // xs:field xpath="mstns:Id" — element reference (no @), namespace prefix stripped
+        item.PrimaryKeyColumnNames.Should().BeEquivalentTo("Id");
+    }
+
+    // --- FK relation where child columns are xs:attributes (issue #52 — FK coverage) ---
+
+    [Fact]
+    public void Parse_AttributeFk_Child_Columns_Parsed()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeFkColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        entry.Columns.Should().HaveCount(2);
+        entry.Columns.Select(c => c.Name).Should().BeEquivalentTo("RegionId", "Code");
+    }
+
+    [Fact]
+    public void Parse_AttributeFk_Relation_ChildColumns_AtPrefixStripped()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeFkColumns.xsd"));
+        model.Relations.Should().HaveCount(1);
+        var rel = model.Relations[0];
+        rel.Name.Should().Be("FK_Region_Entry");
+        rel.ParentTableName.Should().Be("Region");
+        // xs:field xpath="mstns:RegionId" on parent → "RegionId" (namespace stripped)
+        rel.ParentColumnNames.Should().BeEquivalentTo("RegionId");
+        rel.ChildTableName.Should().Be("Entry");
+        // xs:field xpath="@RegionId" on child → "RegionId" (@ stripped)
+        rel.ChildColumnNames.Should().BeEquivalentTo("RegionId");
+    }
+
+    [Fact]
+    public void Parse_AttributeFk_ForeignKeyConstraint_ChildColumns_AtPrefixStripped()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeFkColumns.xsd"));
+        model.ForeignKeyConstraints.Should().HaveCount(1);
+        var fk = model.ForeignKeyConstraints[0];
+        fk.ParentTableName.Should().Be("Region");
+        fk.ParentColumnNames.Should().BeEquivalentTo("RegionId");
+        fk.ChildTableName.Should().Be("Entry");
+        // @ prefix must be stripped from attribute-based FK column reference
+        fk.ChildColumnNames.Should().BeEquivalentTo("RegionId");
+    }
+
+    [Fact]
+    public void Parse_AttributeFk_Entry_CompositePrimaryKey_AtPrefixStripped()
+    {
+        var model = XsdParser.Parse(LoadSchema("AttributeFkColumns.xsd"));
+        var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
+        entry.PrimaryKeyColumnNames.Should().BeEquivalentTo("RegionId", "Code");
+    }
 }

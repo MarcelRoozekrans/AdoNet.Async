@@ -189,7 +189,7 @@ if (!customer.IsEmailNull())
 var found = ds.Customer.FindByCustomerId(1);
 ```
 
-All `codegen:` and `msdata:` XSD annotations are supported: `typedName`, `typedPlural`, `typedParent`, `typedChildren`, `nullValue` (_throw, _null, _empty, replacement), `AutoIncrement`, `DefaultValue`, `ReadOnly`, `Expression`, `DataType`, composite primary keys, and foreign key constraints.
+All `codegen:` and `msdata:` XSD annotations are supported: `typedName`, `typedPlural`, `typedParent`, `typedChildren`, `nullValue` (_throw, _null, _empty, replacement), `AutoIncrement`, `DefaultValue`, `ReadOnly`, `Expression`, `DataType`, composite primary keys, and foreign key constraints. Columns may be declared as `xs:element` (inside `xs:sequence`) or as `xs:attribute` directly in the table's `xs:complexType` — both are fully supported, with `use="required"` marking an attribute column non-nullable. Namespace-prefixed XPath selectors (e.g. `mstns:TableName`) are handled transparently.
 
 ### JSON serialization with Newtonsoft.Json
 

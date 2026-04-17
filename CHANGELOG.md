@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+* parse `xs:attribute` column declarations in XSD parser — tables using attribute-style columns (common in VS Dataset Designer schemas) now generate correct column field declarations, property accessors, `InitClass`, `InitVars`, and `AddRowAsync` parameter lists ([#52](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/52)). `use="required"` marks the column non-nullable; absent `use` or `use="optional"` marks it nullable — consistent with `minOccurs="0"` for `xs:element` columns. Mixed `xs:element` + `xs:attribute` columns in the same table are supported. All `codegen:` and `msdata:` column annotations work identically on both forms.
+* strip leading `@` XPath prefix from `xs:field` references so attribute-column names in composite primary keys and foreign key constraints match the parsed column names
+
 ## [1.1.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.2...v1.1.3) (2026-04-17)
 
 
