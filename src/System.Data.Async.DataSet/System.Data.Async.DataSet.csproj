@@ -15,8 +15,4 @@
     <PackageReference Include="ZeroAlloc.AsyncEvents" Version="1.*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="System.Data.Async.DataSet.Tests" />
-  </ItemGroup>
-
 </Project>

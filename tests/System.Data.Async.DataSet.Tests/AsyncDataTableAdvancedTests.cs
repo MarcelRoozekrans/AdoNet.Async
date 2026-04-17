@@ -232,7 +232,9 @@ public class AsyncDataTableAdvancedTests
 
         var row = t.LoadDataRow([1, "Alice"], fAcceptChanges: false);
 
+        t.Rows.Count.Should().Be(1);
         row.RowState.Should().Be(DataRowState.Added);
+        row["Id"].Should().Be(1);
     }
 
     [Fact]
@@ -249,12 +251,12 @@ public class AsyncDataTableAdvancedTests
     }
 
     [Fact]
-    public void LoadDataRow_OverwriteChanges_Overwrites_Current_And_Original()
+    public async Task LoadDataRow_OverwriteChanges_Overwrites_Current_And_Original()
     {
         using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
         t.PrimaryKey = [t.Columns["Id"]!];
         t.LoadDataRow([1, "Alice"], fAcceptChanges: true);
-        t.Rows[0].InnerDataRow["Name"] = "AliceEdited";  // pending change via inner row
+        await t.Rows[0].SetValueAsync("Name", "AliceEdited");  // pending change
 
         t.LoadDataRow([1, "AliceOverwrite"], LoadOption.OverwriteChanges);
 
@@ -263,12 +265,12 @@ public class AsyncDataTableAdvancedTests
     }
 
     [Fact]
-    public void LoadDataRow_PreserveChanges_Keeps_Current_Updates_Original()
+    public async Task LoadDataRow_PreserveChanges_Keeps_Current_Updates_Original()
     {
         using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
         t.PrimaryKey = [t.Columns["Id"]!];
         t.LoadDataRow([1, "Alice"], fAcceptChanges: true);
-        t.Rows[0].InnerDataRow["Name"] = "AliceEdited";  // pending change via inner row
+        await t.Rows[0].SetValueAsync("Name", "AliceEdited");  // pending change
 
         t.LoadDataRow([1, "AlicePreserved"], LoadOption.PreserveChanges);
 
