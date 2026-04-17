@@ -113,12 +113,12 @@ internal static class XsdParser
             }
         }
 
-        // Build unique constraints list (non-PK)
+        // Build unique constraints list (non-PK), preserving the original constraint name from the XSD
         var updatedTables = tables.Select(t =>
         {
-            var ucs = uniqueKeys.Values
-                .Where(u => string.Equals(u.TableName, t.Name, StringComparison.Ordinal) && !u.IsPrimaryKey)
-                .Select(u => new UniqueConstraintModel(t.Name + "_Unique", t.Name, u.Columns, false))
+            var ucs = uniqueKeys
+                .Where(kv => string.Equals(kv.Value.TableName, t.Name, StringComparison.Ordinal) && !kv.Value.IsPrimaryKey)
+                .Select(kv => new UniqueConstraintModel(kv.Key, t.Name, kv.Value.Columns, false))
                 .ToImmutableArray();
             return t with { UniqueConstraints = ucs };
         }).ToImmutableArray();

@@ -8,7 +8,7 @@ namespace System.Data.Async.Benchmarks;
 public class XmlSerializationBenchmarks : IDisposable
 {
     private AsyncDataTable _table = null!;
-    private string _xml = null!;
+    private byte[] _xmlBytes = null!;
 
     [Params(10, 100)]
     public int RowCount { get; set; }
@@ -28,9 +28,9 @@ public class XmlSerializationBenchmarks : IDisposable
             await _table.Rows.AddAsync(new object?[] { i, $"Product{i}", i % 10 + 1, (decimal)(i * 9.99), baseDate.AddDays(-i) });
         await _table.AcceptChangesAsync();
 
-        using var writer = new System.IO.StringWriter();
-        await _table.WriteXmlAsync(writer);
-        _xml = writer.ToString();
+        using var ms = new System.IO.MemoryStream();
+        await _table.WriteXmlAsync(ms);
+        _xmlBytes = ms.ToArray();
     }
 
     [GlobalCleanup]
@@ -43,36 +43,34 @@ public class XmlSerializationBenchmarks : IDisposable
     }
 
     [Benchmark(Baseline = true)]
-    public async Task<string> WriteXml_Async()
+    public async Task<byte[]> WriteXml_Async()
     {
-        using var writer = new System.IO.StringWriter();
-        await _table.WriteXmlAsync(writer);
-        return writer.ToString();
+        using var ms = new System.IO.MemoryStream();
+        await _table.WriteXmlAsync(ms);
+        return ms.ToArray();
     }
 
     [Benchmark]
-    public string WriteXml_Sync()
+    public byte[] WriteXml_Sync()
     {
-        using var writer = new System.IO.StringWriter();
-        ((System.Data.DataTable)_table).WriteXml(writer);
-        return writer.ToString();
+        using var ms = new System.IO.MemoryStream();
+        ((System.Data.DataTable)_table).WriteXml(ms);
+        return ms.ToArray();
     }
 
     [Benchmark]
-    public async Task<AsyncDataTable> ReadXml_Async()
+    public async Task ReadXml_Async()
     {
-        var table = new AsyncDataTable();
-        using var reader = new System.IO.StringReader(_xml);
-        await table.ReadXmlAsync(reader);
-        return table;
+        using var table = new AsyncDataTable();
+        using var ms = new System.IO.MemoryStream(_xmlBytes);
+        await table.ReadXmlAsync(ms);
     }
 
     [Benchmark]
-    public System.Data.DataTable ReadXml_Sync()
+    public void ReadXml_Sync()
     {
-        var table = new System.Data.DataTable();
-        using var reader = new System.IO.StringReader(_xml);
-        table.ReadXml(reader);
-        return table;
+        using var table = new System.Data.DataTable();
+        using var ms = new System.IO.MemoryStream(_xmlBytes);
+        table.ReadXml(ms);
     }
 }

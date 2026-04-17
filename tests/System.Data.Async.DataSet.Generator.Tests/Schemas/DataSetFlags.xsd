@@ -2,7 +2,7 @@
 <!--
   Exercises DataSet-level flags:
     msdata:Locale="en-US"           — non-null Locale
-    msdata:CaseSensitive="false"    — explicit false (parser default is false, so this tests that we read it)
+    msdata:CaseSensitive="true"     — explicit true (parser default is false, so this tests that we read it)
     msdata:EnforceConstraints="false" — disables constraint checking at runtime
 -->
 <xs:schema id="DataSetFlagsDS"

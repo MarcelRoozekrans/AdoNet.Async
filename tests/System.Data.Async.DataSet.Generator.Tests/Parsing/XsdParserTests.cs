@@ -788,6 +788,15 @@ public class XsdParserTests
         allUcColumns.Should().Contain("Email");
     }
 
+    [Fact]
+    public void Parse_NonPkUnique_UniqueConstraints_NamesPreserved()
+    {
+        var model = XsdParser.Parse(LoadSchema("NonPkUniqueConstraint.xsd"));
+        var names = model.Tables.First().UniqueConstraints.Select(uc => uc.Name).ToList();
+        names.Should().Contain("UQ_Username");
+        names.Should().Contain("UQ_Email");
+    }
+
     // -------------------------------------------------------------------------
     // DataSet-level flags: Locale, CaseSensitive, EnforceConstraints
     // -------------------------------------------------------------------------
