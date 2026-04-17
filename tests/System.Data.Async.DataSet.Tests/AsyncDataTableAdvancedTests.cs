@@ -34,6 +34,7 @@ public class AsyncDataTableAdvancedTests
 
         target.Merge(source);
 
+        // No primary key — DataTable.Merge appends, so the source row is at index 1.
         target.Rows.Count.Should().Be(2);
         target.Rows[1]["Name"].Should().Be("Bob");
     }
@@ -121,5 +122,7 @@ public class AsyncDataTableAdvancedTests
         target.Merge(source);
 
         target.Rows.Count.Should().Be(2);
+        target.Rows[0]["Id"].Should().Be(1);
+        target.Rows[1]["Id"].Should().Be(2);
     }
 }
