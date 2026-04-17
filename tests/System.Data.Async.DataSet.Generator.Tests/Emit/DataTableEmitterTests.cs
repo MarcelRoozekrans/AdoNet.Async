@@ -206,4 +206,19 @@ public class DataTableEmitterTests
         source.Should().Contain("internal AsyncOrdersDSCustomerDataTable(global::System.Data.DataTable table) : base(table)");
         source.Should().Contain("InitVars();");
     }
+
+    // Regression test for issue #57: spurious leading comma when all columns are ReadOnly
+    [Fact]
+    public void Emit_AllReadOnly_AddRowAsync_NoLeadingComma()
+    {
+        var source = DataTableEmitter.Emit(
+            "DS",
+            TestModels.AllReadOnlyTable,
+            ImmutableArray<RelationModel>.Empty,
+            ImmutableArray.Create(TestModels.AllReadOnlyTable));
+
+        // Method signature must start with '(' immediately followed by CancellationToken — no leading comma
+        source.Should().Contain("AddAuditRowAsync(global::System.Threading.CancellationToken ct = default)");
+        source.Should().NotContain("AddAuditRowAsync(,");
+    }
 }

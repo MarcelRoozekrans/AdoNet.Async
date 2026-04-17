@@ -174,8 +174,12 @@ internal static class DataTableEmitter
 
         sb.AppendLine();
         sb.Append($"    public async global::System.Threading.Tasks.ValueTask<{rowClass}> {addRowMethod}(");
-        sb.Append(string.Join(", ", parameters));
-        sb.AppendLine(", global::System.Threading.CancellationToken ct = default)");
+        if (parameters.Count > 0)
+        {
+            sb.Append(string.Join(", ", parameters));
+            sb.Append(", ");
+        }
+        sb.AppendLine("global::System.Threading.CancellationToken ct = default)");
         sb.AppendLine("    {");
         sb.AppendLine($"        var row = (InnerDataTable).NewRow();");
         for (int i = 0; i < assignments.Count; i++)
