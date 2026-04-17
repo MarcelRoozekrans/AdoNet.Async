@@ -108,8 +108,11 @@ internal static class DataTableEmitter
 
         // Build parameter list: exclude AutoIncrement columns and hidden columns
         // For FK columns that have a relation, use the parent row type instead
+        // Required parameters come first; nullable (AllowDBNull=true) columns become optional (T? name = null)
         var parameters = new System.Collections.Generic.List<string>();
         var assignments = new System.Collections.Generic.List<string>();
+        var nullableParameters = new System.Collections.Generic.List<string>();
+        var nullableAssignments = new System.Collections.Generic.List<string>();
 
         // Collect FK child columns for this table
         var fkChildColumns = new System.Collections.Generic.Dictionary<string, RelationModel>(StringComparer.Ordinal);
@@ -151,10 +154,23 @@ internal static class DataTableEmitter
             else if (!fkChildColumns.ContainsKey(col.Name))
             {
                 var keyword = NamingHelper.ClrTypeToKeyword(col.ClrTypeName);
-                parameters.Add($"{keyword} {ToCamelCase(col.Name)}");
-                assignments.Add($"            row[\"{col.Name}\"] = {ToCamelCase(col.Name)};");
+                if (col.AllowDBNull)
+                {
+                    // Optional parameter: nullable type with default null; only assigned when provided
+                    nullableParameters.Add($"{keyword}? {ToCamelCase(col.Name)} = null");
+                    nullableAssignments.Add($"            if ({ToCamelCase(col.Name)} != null) row[\"{col.Name}\"] = {ToCamelCase(col.Name)};");
+                }
+                else
+                {
+                    parameters.Add($"{keyword} {ToCamelCase(col.Name)}");
+                    assignments.Add($"            row[\"{col.Name}\"] = {ToCamelCase(col.Name)};");
+                }
             }
         }
+
+        // Append nullable/optional parameters after all required ones (C# requires optional params last)
+        parameters.AddRange(nullableParameters);
+        assignments.AddRange(nullableAssignments);
 
         sb.AppendLine();
         sb.Append($"    public async global::System.Threading.Tasks.ValueTask<{rowClass}> {addRowMethod}(");

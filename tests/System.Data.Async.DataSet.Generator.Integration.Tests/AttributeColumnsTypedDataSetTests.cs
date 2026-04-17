@@ -89,7 +89,7 @@ public class AttributeColumnsTypedDataSetTests
     public async Task DataType_Override_Guid_Attribute_Column()
     {
         using var ds = new AsyncAttributeColumnsDS();
-        ds.Entry.TrackingIdColumn.DataType.Should().Be(typeof(Guid));
+        ds.Entry.TrackingIdColumn.DataType.Should().Be<Guid>();
         var row = await ds.Entry.AddEntryRowAsync(1, "NL");
         var guid = Guid.NewGuid();
         await row.SetTrackingIdAsync(guid);
