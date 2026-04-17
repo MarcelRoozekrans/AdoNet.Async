@@ -36,7 +36,7 @@ internal static class XsdParser
         {
             foreach (var tableElement in choice.Elements(Xs + "element"))
             {
-                tables.Add(ParseTable(tableElement));
+                tables.Add(ParseTable(tableElement, schema));
             }
         }
 
@@ -151,13 +151,26 @@ internal static class XsdParser
         }
     }
 
-    private static TableModel ParseTable(XElement tableElement)
+    private static TableModel ParseTable(XElement tableElement, XElement schema)
     {
         var tableName = (string)tableElement.Attribute("name")!;
         var typedName = (string?)tableElement.Attribute(Codegen + "typedName");
         var typedPlural = (string?)tableElement.Attribute(Codegen + "typedPlural");
 
+        // Resolve complexType: either inline child or top-level named type (type="mstns:Foo")
         var complexType = tableElement.Element(Xs + "complexType");
+        if (complexType == null)
+        {
+            var typeRef = (string?)tableElement.Attribute("type");
+            if (typeRef != null)
+            {
+                // Strip namespace prefix (e.g. "mstns:Foo" → "Foo")
+                var localTypeName = StripNamespacePrefix(typeRef);
+                complexType = schema.Elements(Xs + "complexType")
+                    .FirstOrDefault(ct => string.Equals((string?)ct.Attribute("name"), localTypeName, StringComparison.Ordinal));
+            }
+        }
+
         var columns = ImmutableArray.CreateBuilder<ColumnModel>();
 
         if (complexType != null)

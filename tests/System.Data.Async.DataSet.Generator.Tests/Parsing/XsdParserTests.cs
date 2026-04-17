@@ -420,4 +420,92 @@ public class XsdParserTests
         var entry = model.Tables.First(t => string.Equals(t.Name, "Entry", StringComparison.Ordinal));
         entry.PrimaryKeyColumnNames.Should().BeEquivalentTo("RegionId", "Code");
     }
+
+    // -------------------------------------------------------------------------
+    // External type reference (issue #55): type="mstns:TypeName" on table element
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Parse_ExternalTypeRef_TwoTablesFound()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        model.Tables.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Order_FourColumnsResolved()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var order = model.Tables.First(t => string.Equals(t.Name, "Order", StringComparison.Ordinal));
+        order.Columns.Should().HaveCount(4);
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Order_ColumnNames()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var order = model.Tables.First(t => string.Equals(t.Name, "Order", StringComparison.Ordinal));
+        order.Columns.Select(c => c.Name).Should().BeEquivalentTo("OrderId", "CustomerId", "Amount", "Note");
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Order_RequiredColumns_AllowDBNull_False()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var order = model.Tables.First(t => string.Equals(t.Name, "Order", StringComparison.Ordinal));
+        order.Columns.Where(c => !string.Equals(c.Name, "Note", StringComparison.Ordinal))
+            .Should().AllSatisfy(c => c.AllowDBNull.Should().BeFalse());
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Order_NoteColumn_AllowDBNull_True()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var order = model.Tables.First(t => string.Equals(t.Name, "Order", StringComparison.Ordinal));
+        order.Columns.First(c => string.Equals(c.Name, "Note", StringComparison.Ordinal))
+            .AllowDBNull.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Order_PrimaryKey()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var order = model.Tables.First(t => string.Equals(t.Name, "Order", StringComparison.Ordinal));
+        order.PrimaryKeyColumnNames.Should().BeEquivalentTo("OrderId");
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Tag_ThreeAttributeColumnsResolved()
+    {
+        // External type reference with xs:attribute columns (not xs:sequence)
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var tag = model.Tables.First(t => string.Equals(t.Name, "Tag", StringComparison.Ordinal));
+        tag.Columns.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Tag_RequiredAttributeColumns_AllowDBNull_False()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var tag = model.Tables.First(t => string.Equals(t.Name, "Tag", StringComparison.Ordinal));
+        tag.Columns.Where(c => !string.Equals(c.Name, "Color", StringComparison.Ordinal))
+            .Should().AllSatisfy(c => c.AllowDBNull.Should().BeFalse());
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Tag_OptionalAttributeColumn_AllowDBNull_True()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var tag = model.Tables.First(t => string.Equals(t.Name, "Tag", StringComparison.Ordinal));
+        tag.Columns.First(c => string.Equals(c.Name, "Color", StringComparison.Ordinal))
+            .AllowDBNull.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_ExternalTypeRef_Tag_PrimaryKey_AtPrefixStripped()
+    {
+        var model = XsdParser.Parse(LoadSchema("ExternalTypeRef.xsd"));
+        var tag = model.Tables.First(t => string.Equals(t.Name, "Tag", StringComparison.Ordinal));
+        tag.PrimaryKeyColumnNames.Should().BeEquivalentTo("TagId");
+    }
 }
