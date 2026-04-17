@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.4](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.3...v1.1.4) (2026-04-17)
+
+
+### Bug Fixes
+
+* make nullable columns optional parameters in AddRowAsync ([fe67561](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/fe6756148dbea08cd84e950ac27eed5a7c9684f4))
+* parse xs:attribute columns in XSD parser (fixes [#52](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/52)) ([b445675](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/b445675b04d2c6fd6ab546a6206ff4239b6d5f8e))
+
 ## [Unreleased]
 
 ### Bug Fixes
