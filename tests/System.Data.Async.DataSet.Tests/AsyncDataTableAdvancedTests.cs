@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Xunit;
 
@@ -124,5 +125,74 @@ public class AsyncDataTableAdvancedTests
         target.Rows.Count.Should().Be(2);
         target.Rows[0]["Id"].Should().Be(1);
         target.Rows[1]["Id"].Should().Be(2);
+    }
+
+    // ------------------------------------------------------------------
+    // Compute
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public async Task Compute_Sum_Returns_Correct_Total()
+    {
+        using var t = MakeTable("T", ("Price", typeof(decimal)));
+        await t.Rows.AddAsync([10m]);
+        await t.Rows.AddAsync([20m]);
+        await t.Rows.AddAsync([30m]);
+        await t.AcceptChangesAsync();
+
+        var result = t.Compute("Sum(Price)", null);
+
+        result.Should().Be(60m);
+    }
+
+    [Fact]
+    public async Task Compute_Count_Returns_Row_Count()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)));
+        await t.Rows.AddAsync([1]);
+        await t.Rows.AddAsync([2]);
+        await t.AcceptChangesAsync();
+
+        var result = t.Compute("Count(Id)", null);
+
+        Convert.ToInt32(result, CultureInfo.InvariantCulture).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Compute_With_Filter_Counts_Matching_Rows()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)), ("Active", typeof(bool)));
+        await t.Rows.AddAsync([1, true]);
+        await t.Rows.AddAsync([2, false]);
+        await t.Rows.AddAsync([3, true]);
+        await t.AcceptChangesAsync();
+
+        var result = t.Compute("Count(Id)", "Active = true");
+
+        Convert.ToInt32(result, CultureInfo.InvariantCulture).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Compute_Min_And_Max()
+    {
+        using var t = MakeTable("T", ("Score", typeof(int)));
+        await t.Rows.AddAsync([5]);
+        await t.Rows.AddAsync([1]);
+        await t.Rows.AddAsync([9]);
+        await t.AcceptChangesAsync();
+
+        t.Compute("Min(Score)", null).Should().Be(1);
+        t.Compute("Max(Score)", null).Should().Be(9);
+    }
+
+    [Fact]
+    public async Task Compute_On_Empty_Table_Returns_DBNull()
+    {
+        using var t = MakeTable("T", ("Price", typeof(decimal)));
+        await t.AcceptChangesAsync();
+
+        var result = t.Compute("Sum(Price)", null);
+
+        result.Should().Be(DBNull.Value);
     }
 }
