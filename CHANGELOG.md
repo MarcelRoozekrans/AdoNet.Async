@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.5...v1.2.0) (2026-04-17)
+
+
+### Features
+
+* fill test and documentation coverage gaps ([#58](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/58)) ([98d1308](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/98d1308855b7b244f14755c91bbf01cf9194fa0e))
+
+
+### Bug Fixes
+
+* **deps:** update docusaurus monorepo to v3.10.0 ([#62](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/62)) ([dad2c20](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/dad2c202b8fada1e195efa43944bc6813b9ff896))
+* pin webpack to 5.105.1 to avoid ProgressPlugin schema regression in 5.106.0 ([#60](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/60)) ([5d05a67](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/5d05a67fa59e7b2f5ada244b14b4125f2722f6fc))
+* remove spurious leading comma in AddRowAsync when all columns are ReadOnly ([#63](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/63)) ([04602ef](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/04602ef95f7642968ed0eb14352f93c9f21f0788))
+
 ## [1.1.5](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.4...v1.1.5) (2026-04-17)
 
 
