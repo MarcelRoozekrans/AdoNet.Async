@@ -178,8 +178,8 @@ await customer.SetEmailAsync("alice@example.com");
 var order = await ds.Order.AddOrderRowAsync(customer, DateTime.Now, 99.99m);
 
 // Typed relation navigation
-AsyncOrderRow[] orders = customer.GetOrderRows();
-AsyncCustomerRow? parent = order.CustomerRow;
+AsyncOrdersDSOrderRow[] orders = customer.GetOrderRows();
+AsyncOrdersDSCustomerRow? parent = order.CustomerRow;
 
 // Typed null handling
 if (!customer.IsEmailNull())

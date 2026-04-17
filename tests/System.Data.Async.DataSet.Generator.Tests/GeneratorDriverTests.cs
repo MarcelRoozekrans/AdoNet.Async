@@ -209,6 +209,193 @@ public class GeneratorDriverTests
         result.Diagnostics.Should().BeEmpty();
     }
 
+    // -------------------------------------------------------------------------
+    // Column metadata emitter tests (ColumnMetadata.xsd)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void ColumnMetadata_AutoIncrement_Column_ExcludedFromAddRowParams()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        tableTree.Should().NotBeNull();
+        var text = tableTree!.GetText().ToString();
+        // ItemId is AutoIncrement — must NOT appear in AddItemRowAsync parameters
+        text.Should().Contain("AddItemRowAsync(");
+        text.Should().NotContain("AddItemRowAsync(int itemId");
+    }
+
+    [Fact]
+    public void ColumnMetadata_ReadOnly_Column_ExcludedFromAddRowParams()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        // CreatedAt is ReadOnly — must NOT appear as a parameter
+        text.Should().NotContain("createdAt");
+    }
+
+    [Fact]
+    public void ColumnMetadata_Expression_Column_ExcludedFromAddRowParams()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        // DisplayName is Expression — must NOT appear as a parameter
+        text.Should().NotContain("displayName");
+    }
+
+    [Fact]
+    public void ColumnMetadata_Hidden_Column_ExcludedFromAddRowParams()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        // InternalCode is hiddenColumn — must NOT appear as a parameter
+        text.Should().NotContain("internalCode");
+    }
+
+    [Fact]
+    public void ColumnMetadata_Caption_EmittedInInitClass()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        text.Should().Contain("columnNotes.Caption = \"Internal Notes\";");
+    }
+
+    [Fact]
+    public void ColumnMetadata_MaxLength_EmittedInInitClass()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        text.Should().Contain("columnNotes.MaxLength = 500;");
+    }
+
+    [Fact]
+    public void ColumnMetadata_DefaultValue_EmittedInInitClass()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        text.Should().Contain("columnStatus.DefaultValue = \"Active\";");
+    }
+
+    [Fact]
+    public void ColumnMetadata_AutoIncrementSeedAndStep_EmittedInInitClass()
+    {
+        var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        text.Should().Contain("columnItemId.AutoIncrementSeed = 10;");
+        text.Should().Contain("columnItemId.AutoIncrementStep = 5;");
+    }
+
+    // -------------------------------------------------------------------------
+    // No primary key: no FindBy method emitted
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void NoPrimaryKey_Xsd_Generates_No_Diagnostics()
+    {
+        var result = RunGenerator(LoadSchema("NoPrimaryKey.xsd"), "NoPrimaryKey.xsd");
+        result.Diagnostics.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void NoPrimaryKey_Table_Has_No_FindBy_Method()
+    {
+        var result = RunGenerator(LoadSchema("NoPrimaryKey.xsd"), "NoPrimaryKey.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Log.AsyncDataTable.g.cs"));
+        tableTree.Should().NotBeNull();
+        var text = tableTree!.GetText().ToString();
+        text.Should().NotContain("FindBy");
+    }
+
+    [Fact]
+    public void NoPrimaryKey_Table_Still_Has_AddRowMethod()
+    {
+        var result = RunGenerator(LoadSchema("NoPrimaryKey.xsd"), "NoPrimaryKey.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Log.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        text.Should().Contain("AddLogRowAsync(");
+        text.Should().Contain("string message");
+        text.Should().Contain("int severity");
+    }
+
+    // -------------------------------------------------------------------------
+    // ConstraintOnly: no parent-row param in AddRowAsync for child table
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void ConstraintOnly_Generates_No_Diagnostics()
+    {
+        var result = RunGenerator(LoadSchema("ConstraintOnlyRelation.xsd"), "ConstraintOnlyRelation.xsd");
+        result.Diagnostics.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ConstraintOnly_Product_AddRow_Has_No_Parent_Row_Param()
+    {
+        var result = RunGenerator(LoadSchema("ConstraintOnlyRelation.xsd"), "ConstraintOnlyRelation.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Product.AsyncDataTable.g.cs"));
+        tableTree.Should().NotBeNull();
+        var text = tableTree!.GetText().ToString();
+        // ConstraintOnly FK means no navigation relation — CategoryId is just a plain column param
+        text.Should().NotContain("parentCategoryRow");
+        text.Should().Contain("int categoryId");
+    }
+
+    // -------------------------------------------------------------------------
+    // External type reference: columns emitted despite type="mstns:Foo" (issue #55)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void ExternalTypeRef_Generates_No_Diagnostics()
+    {
+        var result = RunGenerator(LoadSchema("ExternalTypeRef.xsd"), "ExternalTypeRef.xsd");
+        result.Diagnostics.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExternalTypeRef_Order_ColumnFields_Emitted()
+    {
+        var result = RunGenerator(LoadSchema("ExternalTypeRef.xsd"), "ExternalTypeRef.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Order.AsyncDataTable.g.cs"));
+        tableTree.Should().NotBeNull();
+        var text = tableTree!.GetText().ToString();
+        text.Should().Contain("columnOrderId");
+        text.Should().Contain("columnCustomerId");
+        text.Should().Contain("columnAmount");
+        text.Should().Contain("columnNote");
+    }
+
+    [Fact]
+    public void ExternalTypeRef_Order_AddRowAsync_RequiredParams_Only()
+    {
+        var result = RunGenerator(LoadSchema("ExternalTypeRef.xsd"), "ExternalTypeRef.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Order.AsyncDataTable.g.cs"));
+        var text = tableTree!.GetText().ToString();
+        // OrderId, CustomerId, Amount are required; Note is nullable (optional param)
+        text.Should().Contain("int orderId");
+        text.Should().Contain("int customerId");
+        text.Should().Contain("decimal amount");
+        text.Should().Contain("string? note = null");
+    }
+
+    [Fact]
+    public void ExternalTypeRef_Tag_AttributeColumnFields_Emitted()
+    {
+        var result = RunGenerator(LoadSchema("ExternalTypeRef.xsd"), "ExternalTypeRef.xsd");
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Tag.AsyncDataTable.g.cs"));
+        tableTree.Should().NotBeNull();
+        var text = tableTree!.GetText().ToString();
+        text.Should().Contain("columnTagId");
+        text.Should().Contain("columnLabel");
+        text.Should().Contain("columnColor");
+    }
+
     private sealed class InMemoryAdditionalText : AdditionalText
     {
         private readonly string _text;
