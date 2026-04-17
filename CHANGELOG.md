@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.5](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.4...v1.1.5) (2026-04-17)
+
+
+### Bug Fixes
+
+* apply code review corrections from post-review audit ([41acb42](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/41acb42b3965798b23f75b1d41faa137f856325a))
+* resolve top-level xs:complexType when table uses external type reference (fixes [#55](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/55)) ([3342277](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/33422773caccaac733b2d711f5ad441fe47aeae1))
+
 ## [1.1.4](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.3...v1.1.4) (2026-04-17)
 
 
