@@ -70,6 +70,18 @@ internal static class TestModels
         ImmutableArray.Create("CategoryId"),
         ImmutableArray<UniqueConstraintModel>.Empty);
 
+    // All columns are ReadOnly — AddRowAsync should have no user parameters (only CancellationToken)
+    public static TableModel AllReadOnlyTable => new TableModel(
+        "Audit",
+        null,
+        null,
+        ImmutableArray.Create(
+            Column("AuditId", "System.Int32", readOnly: true),
+            Column("Message", "System.String", readOnly: true)
+        ),
+        ImmutableArray<string>.Empty,
+        ImmutableArray<UniqueConstraintModel>.Empty);
+
     public static RelationModel CustomerOrderRelation => new RelationModel(
         "FK_Customer_Order",
         "Customer",
