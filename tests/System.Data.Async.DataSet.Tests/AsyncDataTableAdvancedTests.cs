@@ -277,4 +277,87 @@ public class AsyncDataTableAdvancedTests
         t.Rows[0]["Name", DataRowVersion.Current].Should().Be("AliceEdited");
         t.Rows[0]["Name", DataRowVersion.Original].Should().Be("AlicePreserved");
     }
+
+    // ------------------------------------------------------------------
+    // BeginInit / EndInit
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void BeginInit_And_EndInit_Do_Not_Throw()
+    {
+        using var t = new AsyncDataTable("T");
+
+        var act = () =>
+        {
+            t.BeginInit();
+            t.Columns.Add("Id", typeof(int));
+            t.EndInit();
+        };
+
+        act.Should().NotThrow();
+        t.Columns.Contains("Id").Should().BeTrue();
+    }
+
+    // ------------------------------------------------------------------
+    // BeginLoadData / EndLoadData
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public async Task BeginLoadData_And_EndLoadData_Do_Not_Throw()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)));
+
+        t.BeginLoadData();
+        await t.Rows.AddAsync([1]);
+        t.EndLoadData();
+
+        t.Rows.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task BeginLoadData_Allows_Bulk_Add_And_EndLoadData_Completes()
+    {
+        // BeginLoadData suspends inner DataTable index maintenance and sync row events.
+        // The async RowChangedAsync event is independent of that suspension, so we
+        // simply verify that rows added during the load window are present after EndLoadData.
+        using var t = MakeTable("T", ("Id", typeof(int)));
+        var rowChangedCount = 0;
+        t.RowChangedAsync += (_, _) => { rowChangedCount++; return ValueTask.CompletedTask; };
+
+        t.BeginLoadData();
+        await t.Rows.AddAsync([1]);
+        await t.Rows.AddAsync([2]);
+        t.EndLoadData();
+
+        t.Rows.Count.Should().Be(2);
+        t.Rows[0]["Id"].Should().Be(1);
+        t.Rows[1]["Id"].Should().Be(2);
+    }
+
+    // ------------------------------------------------------------------
+    // Reset
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public async Task Reset_Clears_Rows_And_Columns()
+    {
+        using var t = MakeTable("T", ("Id", typeof(int)), ("Name", typeof(string)));
+        await t.Rows.AddAsync([1, "Alice"]);
+        await t.AcceptChangesAsync();
+
+        t.Reset();
+
+        t.Rows.Count.Should().Be(0);
+        t.Columns.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public void Reset_On_Empty_Table_Does_Not_Throw()
+    {
+        using var t = new AsyncDataTable("T");
+
+        var act = () => t.Reset();
+
+        act.Should().NotThrow();
+    }
 }
