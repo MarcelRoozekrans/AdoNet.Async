@@ -20,6 +20,9 @@
 
 ```bash
 # Core interfaces and abstract base classes (zero dependencies)
+
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/MarcelRoozekrans?style=flat&logo=githubsponsors&color=ea4aaa&label=Sponsor)](https://github.com/sponsors/MarcelRoozekrans)
+
 dotnet add package AdoNet.Async
 
 # Async DataTable, DataSet, DataAdapter
