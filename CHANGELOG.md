@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.2.0...v1.2.1) (2026-04-30)
+
+
+### Bug Fixes
+
+* **deps:** update docusaurus monorepo to v3.10.1 ([fbe970f](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/fbe970f52ce07000abe103a3c2cfdd3e8276f3ea))
+* **deps:** update docusaurus monorepo to v3.10.1 ([76b7237](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/76b7237aac7a1fe57386dee661a5def487391db2))
+
 ## [1.2.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.1.5...v1.2.0) (2026-04-17)
 
 
