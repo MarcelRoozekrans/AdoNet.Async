@@ -16,5 +16,6 @@
     <Project Path="tests/System.Data.Async.Integration.Tests/System.Data.Async.Integration.Tests.csproj" />
     <Project Path="tests/System.Data.Async.DataSet.Generator.Tests/System.Data.Async.DataSet.Generator.Tests.csproj" />
     <Project Path="tests/System.Data.Async.DataSet.Generator.Integration.Tests/System.Data.Async.DataSet.Generator.Integration.Tests.csproj" />
+    <Project Path="tests/System.Data.Async.AotSmoke/System.Data.Async.AotSmoke.csproj" />
   </Folder>
 </Solution>

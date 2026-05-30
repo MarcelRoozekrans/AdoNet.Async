@@ -4,7 +4,12 @@
     <PackageId>AdoNet.Async.Adapters</PackageId>
     <Title>AdoNet.Async.Adapters</Title>
     <Description>Adapters wrapping existing ADO.NET providers (DbConnection, DbCommand, DbDataReader) into async interfaces. Includes .AsAsync() extension and DI support.</Description>
-    <PackageTags>system.data.async;async;ado.net;adapter;dbconnection;dbcommand;dependency-injection;valuetask</PackageTags>
+    <PackageTags>system.data.async;async;ado.net;adapter;dbconnection;dbcommand;dependency-injection;valuetask;nativeaot;trimming</PackageTags>
+    <!-- Adapter wraps user-supplied DbProviderFactory / DbConnection instances. The
+         wrapper code is reflection-free (factory is passed as an instance, not
+         registered via the reflective DbProviderFactories.GetFactory path). AOT-safe
+         as long as consumers pass the factory instance directly via AddAsyncData(...). -->
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

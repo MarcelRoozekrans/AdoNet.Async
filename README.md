@@ -258,14 +258,29 @@ public class MyRepository(IAsyncDbProviderFactory factory)
 
 ## Packages
 
-| Package | Description | Dependencies |
-|---------|-------------|-------------|
-| **AdoNet.Async** | Core async interfaces (`IAsyncDbConnection`, `IAsyncDbCommand`, `IAsyncDataReader`, etc.) and abstract base classes | None |
-| **AdoNet.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, `AsyncDataRow`, `AsyncDataRowCollection`, `AsyncDataAdapter`, and 9 async events | ZeroAlloc.AsyncEvents |
-| **AdoNet.Async.Serialization.NewtonsoftJson** | `AsyncDataTableConverter`, `AsyncDataSetConverter` for Newtonsoft.Json. Wire-compatible with `Json.Net.DataSetConverters`. | AdoNet.Async.DataSet, Newtonsoft.Json |
-| **AdoNet.Async.Serialization.SystemTextJson** | `AsyncDataTableJsonConverter`, `AsyncDataSetJsonConverter` for System.Text.Json. Same wire format. | AdoNet.Async.DataSet |
-| **AdoNet.Async.Adapters** | Adapter wrappers (`AdapterDbConnection`, etc.), `.AsAsync()` extension, DI registration | Microsoft.Extensions.DependencyInjection.Abstractions |
-| **AdoNet.Async.DataSet.Generator** | Roslyn source generator — produces typed `AsyncDataTable<TRow>`, `AsyncDataRow` subclasses from `.xsd` schema files. Supports all `codegen:` and `msdata:` annotations. | AdoNet.Async.DataSet (at compile time) |
+| Package | Description | Dependencies | NativeAOT |
+|---------|-------------|-------------|---|
+| **AdoNet.Async** | Core async interfaces (`IAsyncDbConnection`, `IAsyncDbCommand`, `IAsyncDataReader`, etc.) and abstract base classes | None | ✅ |
+| **AdoNet.Async.DataSet** | `AsyncDataTable`, `AsyncDataSet`, `AsyncDataRow`, `AsyncDataRowCollection`, `AsyncDataAdapter`, and 9 async events | ZeroAlloc.AsyncEvents | ❌ * |
+| **AdoNet.Async.Serialization.NewtonsoftJson** | `AsyncDataTableConverter`, `AsyncDataSetConverter` for Newtonsoft.Json. Wire-compatible with `Json.Net.DataSetConverters`. | AdoNet.Async.DataSet, Newtonsoft.Json | ❌ |
+| **AdoNet.Async.Serialization.SystemTextJson** | `AsyncDataTableJsonConverter`, `AsyncDataSetJsonConverter` for System.Text.Json. Same wire format. | AdoNet.Async.DataSet | ⚠️ ** |
+| **AdoNet.Async.Adapters** | Adapter wrappers (`AdapterDbConnection`, etc.), `.AsAsync()` extension, DI registration | Microsoft.Extensions.DependencyInjection.Abstractions | ✅ |
+| **AdoNet.Async.DataSet.Generator** | Roslyn source generator — produces typed `AsyncDataTable<TRow>`, `AsyncDataRow` subclasses from `.xsd` schema files. Supports all `codegen:` and `msdata:` annotations. | AdoNet.Async.DataSet (at compile time) | N/A *** |
+
+\* The wrapper code itself is reflection-free, but `AsyncDataTable.WriteXmlAsync` / `ReadXmlAsync` / `LoadAsync` (via `DataColumnCollection.Add(String, Type)`) call BCL members annotated `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`. Marking the package AOT-compatible would require propagating those annotations across ~8 methods + resolving an IL2072 type-flow on `DataColumn.Add` — tracked as a separate workstream.
+\** Uses reflection-based `JsonSerializer` by default; pass a `JsonTypeInfo<T>` / `JsonSerializerContext` to make consumer call sites AOT-clean.
+\*** Build-time-only assembly; never loaded by the user's runtime, so AOT compatibility doesn't apply.
+
+### NativeAOT compatibility
+
+Three of the six packages declare [`<IsAotCompatible>true</IsAotCompatible>`](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/) and are verified end-to-end by the [`aot-smoke`](.github/workflows/aot-smoke.yml) CI job, which publishes `tests/System.Data.Async.AotSmoke` with `PublishAot=true` against an in-memory SQLite database. The smoke test exercises the `AsAsync()` extension path, the DI registration path, and multi-result-set walking via `NextResultAsync` — the same shapes a downstream source-generator data-access library would emit.
+
+Consumer-side requirements for AOT use:
+
+- Pass the `DbProviderFactory` instance directly to `services.AddAsyncData(NpgsqlFactory.Instance)` — do not rely on `DbProviderFactories.GetFactory(invariantName)` (the reflective registration path is not AOT-safe).
+- Use an AOT-compatible provider — Microsoft.Data.Sqlite is verified; Npgsql 8.0+ supports AOT as a raw driver.
+- If you reference `AdoNet.Async.DataSet`, avoid the `DataTable.WriteXmlSchema` / `ReadXml` entry points (BCL-internal reflection).
+- If you reference `AdoNet.Async.Serialization.SystemTextJson`, supply a `JsonSerializerContext` so System.Text.Json's source generator owns the type metadata.
 
 ## Validation & Benchmarks
 
