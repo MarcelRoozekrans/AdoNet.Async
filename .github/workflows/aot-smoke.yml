@@ -1,0 +1,59 @@
+name: AOT Smoke
+
+# Publishes tests/System.Data.Async.AotSmoke with PublishAot=true and runs the
+# resulting binary against an in-memory SQLite. Fails if any trim/AOT warning is
+# emitted (Directory.Build.props sets TreatWarningsAsErrors=true repo-wide, so
+# IL2026/IL2046/IL3050 from the trim+AOT analyzers become errors).
+#
+# This is the consumer-side verification of <IsAotCompatible>true</IsAotCompatible>
+# declared in the AdoNet.Async and AdoNet.Async.Adapters csprojs. A downstream source-gen ORM (e.g. ZeroAlloc.ORM) needs this gate green
+# before it can credibly claim AOT compatibility itself.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  aot-publish-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore smoke test
+        run: dotnet restore tests/System.Data.Async.AotSmoke/System.Data.Async.AotSmoke.csproj
+
+      # Publish with PublishAot=true and the linux-x64 RID matching the runner.
+      # The csproj sets TrimmerSingleWarn=false so individual IL2xxx/IL3xxx warnings
+      # surface; TreatWarningsAsErrors=true (from Directory.Build.props) turns them
+      # into a build failure rather than a silent regression. WarningLevel and the
+      # AOT-specific analyzer levels are set by IsAotCompatible=true implicitly.
+      - name: Publish AOT smoke test (linux-x64)
+        run: |
+          dotnet publish tests/System.Data.Async.AotSmoke/System.Data.Async.AotSmoke.csproj \
+            -c Release \
+            -r linux-x64 \
+            --self-contained true \
+            -p:PublishAot=true \
+            -o ./aot-smoke-out
+
+      - name: Run AOT-published smoke test
+        run: |
+          chmod +x ./aot-smoke-out/System.Data.Async.AotSmoke
+          ./aot-smoke-out/System.Data.Async.AotSmoke
+
+      - name: Report binary size
+        if: always()
+        run: |
+          if [ -f ./aot-smoke-out/System.Data.Async.AotSmoke ]; then
+            ls -lh ./aot-smoke-out/System.Data.Async.AotSmoke
+            file ./aot-smoke-out/System.Data.Async.AotSmoke
+          fi

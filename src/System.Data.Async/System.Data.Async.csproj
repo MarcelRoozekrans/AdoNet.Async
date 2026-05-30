@@ -4,6 +4,12 @@
     <PackageId>AdoNet.Async</PackageId>
     <Title>AdoNet.Async</Title>
     <Description>Async-first interfaces and base classes for ADO.NET (System.Data). Drop-in replacement with modern async/await, IAsyncEnumerable, and ValueTask support.</Description>
-    <PackageTags>system.data.async;async;ado.net;database;valuetask;iasyncenumerable;dbconnection;dbcommand;datareader</PackageTags>
+    <PackageTags>system.data.async;async;ado.net;database;valuetask;iasyncenumerable;dbconnection;dbcommand;datareader;nativeaot;trimming</PackageTags>
+    <!-- Pure interface + base-class library, zero runtime reflection. Safe to declare
+         AOT- and trim-compatible. Implicitly enables <IsTrimmable>true</IsTrimmable> +
+         the IL2026/IL2046/IL3050 analyzers, so any future reflection use surfaces as
+         a build-time warning. The aot-smoke CI job exercises this from the consumer
+         side end-to-end. -->
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 </Project>

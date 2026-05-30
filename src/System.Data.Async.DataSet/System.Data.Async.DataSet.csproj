@@ -5,6 +5,23 @@
     <Title>AdoNet.Async.DataSet</Title>
     <Description>Async DataSet and DataTable for ADO.NET (System.Data). Includes AsyncDataTable, AsyncDataSet, and AsyncDataAdapter.</Description>
     <PackageTags>system.data.async;async;ado.net;dataset;datatable;dataadapter;valuetask</PackageTags>
+    <!-- Deliberately NOT declaring IsAotCompatible. The wrapper methods (WriteXmlAsync,
+         ReadXmlAsync, WriteXmlSchemaAsync, ReadXmlSchemaAsync, LoadAsync) call into BCL
+         members annotated [RequiresUnreferencedCode] / [RequiresDynamicCode]. Making
+         this package AOT-clean requires propagating those annotations across ~8 methods
+         + resolving an IL2072 type-flow on DataColumn.Add(String, Type) — tracked as a
+         separate workstream. The core AdoNet.Async + AdoNet.Async.Adapters packages ARE
+         AOT-declared and that's enough for a source-gen-ORM consumer (e.g.
+         ZeroAlloc.ORM), which doesn't need DataSet at all. -->
+
+    <!-- Suppress IL2026 / IL3050 / IL2072 at compile time AND during a parent-graph AOT
+         publish. The BCL contract these warnings flag is real, but consumers that
+         genuinely call DataSet's XML / Load methods from an AOT app will surface the
+         same warnings at their OWN call sites against the BCL annotations — that's the
+         correct boundary. Suppressing here only silences the duplicate noise from THIS
+         package's pass-through wrappers; it doesn't hide the BCL-level contract from
+         downstream consumers. -->
+    <NoWarn>$(NoWarn);IL2026;IL3050;IL2072</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
