@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.2.1...v1.3.0) (2026-05-30)
+
+
+### Features
+
+* **aot:** declare AdoNet.Async + Adapters AOT-compatible ([#101](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/101)) ([aa350a0](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/aa350a0f8e997baf84c41334bfbff8f46ff2521c))
+* **batch:** add IAsyncDbBatch / IAsyncDbBatchCommand ([#102](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/102)) ([9d61ec2](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/9d61ec2fd440d3476cd909cbbc63830a3ec6acd6))
+
 ## [1.2.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.2.0...v1.2.1) (2026-04-30)
 
 
