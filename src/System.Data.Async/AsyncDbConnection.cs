@@ -15,6 +15,20 @@ public abstract class AsyncDbConnection : IAsyncDbConnection
     protected abstract ValueTask ChangeDatabaseCoreAsync(string databaseName, CancellationToken cancellationToken);
     protected abstract IAsyncDbCommand CreateDbCommand();
 
+    /// <summary>
+    /// Default to <c>false</c> — providers that support batches override this to forward
+    /// <see cref="System.Data.Common.DbConnection.CanCreateBatch"/>.
+    /// </summary>
+    public virtual bool CanCreateBatch => false;
+
+    /// <summary>
+    /// Default implementation throws <see cref="NotSupportedException"/>. Providers that
+    /// support batches override to construct a concrete <see cref="IAsyncDbBatch"/>.
+    /// </summary>
+    public virtual IAsyncDbBatch CreateBatch()
+        => throw new NotSupportedException(
+            "This provider does not support batches. Check IAsyncDbConnection.CanCreateBatch before calling CreateBatch.");
+
     // Sync -> async bridge (throws on WASM)
     public IAsyncDbTransaction BeginTransaction() { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(IsolationLevel.Unspecified, CancellationToken.None).GetAwaiter().GetResult(); }
     public IAsyncDbTransaction BeginTransaction(IsolationLevel il) { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(il, CancellationToken.None).GetAwaiter().GetResult(); }

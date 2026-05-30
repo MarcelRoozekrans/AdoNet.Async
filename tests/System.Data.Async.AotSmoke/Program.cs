@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 await ExerciseDirectAdapterPathAsync().ConfigureAwait(false);
 await ExerciseDiPathAsync().ConfigureAwait(false);
 await ExerciseMultiResultSetAsync().ConfigureAwait(false);
+await ExerciseBatchAsync().ConfigureAwait(false);
 
 Console.WriteLine("AOT smoke test passed.");
 return 0;
@@ -168,5 +169,80 @@ static async ValueTask ExerciseMultiResultSetAsync()
         !string.Equals(skus[1], "SKU-B", StringComparison.Ordinal))
     {
         throw new InvalidOperationException($"Unexpected lines: [{string.Join(", ", skus)}].");
+    }
+}
+
+static async ValueTask ExerciseBatchAsync()
+{
+    // IAsyncDbBatch is the alternative to ;-joined SQL for the head + lines pattern:
+    // each statement carries its own parameter set, sent in a single provider exchange.
+    // Microsoft.Data.Sqlite 9+ supports DbBatch.
+    using var raw = new SqliteConnection("Data Source=:memory:");
+    IAsyncDbConnection connection = raw.AsAsync();
+    await connection.OpenAsync().ConfigureAwait(false);
+
+    if (!connection.CanCreateBatch)
+    {
+        // Older provider — skip rather than fail; CanCreateBatch IS the documented
+        // capability check and downstream consumers should branch on it.
+        return;
+    }
+
+    await using (var setup = connection.CreateCommand())
+    {
+        setup.CommandText =
+            "CREATE TABLE Heads (Id INTEGER PRIMARY KEY, Total NUMERIC NOT NULL);" +
+            "CREATE TABLE Lines (Id INTEGER PRIMARY KEY, HeadId INTEGER NOT NULL, Sku TEXT NOT NULL);" +
+            "INSERT INTO Heads (Id, Total) VALUES (7, 123.45);" +
+            "INSERT INTO Lines (HeadId, Sku) VALUES (7, 'BATCH-A'), (7, 'BATCH-B');";
+        await setup.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
+
+    await using var batch = connection.CreateBatch();
+
+    var head = batch.CreateBatchCommand();
+    head.CommandText = "SELECT Id, Total FROM Heads WHERE Id = @id;";
+    var pIdHead = head.CreateParameter();
+    pIdHead.ParameterName = "@id";
+    pIdHead.Value = 7L;
+    head.Parameters.Add(pIdHead);
+    batch.BatchCommands.Add(head);
+
+    var lines = batch.CreateBatchCommand();
+    lines.CommandText = "SELECT Sku FROM Lines WHERE HeadId = @id;";
+    var pIdLines = lines.CreateParameter();
+    pIdLines.ParameterName = "@id";
+    pIdLines.Value = 7L;
+    lines.Parameters.Add(pIdLines);
+    batch.BatchCommands.Add(lines);
+
+    await using var reader = await batch.ExecuteReaderAsync().ConfigureAwait(false);
+
+    if (!await reader.ReadAsync().ConfigureAwait(false))
+    {
+        throw new InvalidOperationException("Missing batch head row.");
+    }
+    var headId = reader.GetInt32(0);
+    var total = reader.GetDecimal(1);
+    if (headId != 7 || total != 123.45m)
+    {
+        throw new InvalidOperationException($"Unexpected batch head row: ({headId}, {total}).");
+    }
+
+    if (!await reader.NextResultAsync().ConfigureAwait(false))
+    {
+        throw new InvalidOperationException("Batch second result set not present.");
+    }
+
+    var skus = new List<string>();
+    while (await reader.ReadAsync().ConfigureAwait(false))
+    {
+        skus.Add(reader.GetString(0));
+    }
+    if (skus.Count != 2 ||
+        !string.Equals(skus[0], "BATCH-A", StringComparison.Ordinal) ||
+        !string.Equals(skus[1], "BATCH-B", StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException($"Unexpected batch lines: [{string.Join(", ", skus)}].");
     }
 }

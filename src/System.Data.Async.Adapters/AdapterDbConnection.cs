@@ -39,6 +39,11 @@ public sealed class AdapterDbConnection : AsyncDbConnection
     protected override IAsyncDbCommand CreateDbCommand()
         => new AdapterDbCommand(_inner.CreateCommand(), this);
 
+    public override bool CanCreateBatch => _inner.CanCreateBatch;
+
+    public override IAsyncDbBatch CreateBatch()
+        => new AdapterDbBatch(_inner.CreateBatch(), this);
+
     // Sync methods using native _inner (hide base class sync-over-async bridge)
     public new void Open() => _inner.Open();
     public new void Close() => _inner.Close();
