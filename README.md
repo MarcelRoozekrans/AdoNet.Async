@@ -76,6 +76,45 @@ await using (reader)
 }
 ```
 
+### Send multiple statements as a single batch
+
+`IAsyncDbBatch` mirrors `System.Data.Common.DbBatch` — each statement carries its own
+parameters and the whole batch ships to the server in one round-trip. Useful for
+"head + detail" reads or grouped INSERTs:
+
+```csharp
+if (!connection.CanCreateBatch)
+{
+    // Provider does not support batches. Fall back to ;-joined SQL on a single command.
+    return;
+}
+
+await using var batch = connection.CreateBatch();
+
+var head = batch.CreateBatchCommand();
+head.CommandText = "SELECT Id, Total FROM Orders WHERE Id = @id;";
+var pHead = head.CreateParameter();
+pHead.ParameterName = "@id";
+pHead.Value = orderId;
+head.Parameters.Add(pHead);
+batch.BatchCommands.Add(head);
+
+var lines = batch.CreateBatchCommand();
+lines.CommandText = "SELECT Sku, Quantity FROM OrderLines WHERE OrderId = @id;";
+var pLines = lines.CreateParameter();
+pLines.ParameterName = "@id";
+pLines.Value = orderId;
+lines.Parameters.Add(pLines);
+batch.BatchCommands.Add(lines);
+
+await using var reader = await batch.ExecuteReaderAsync();
+// reader.ReadAsync(), reader.NextResultAsync(), reader.ReadAsync(), ...
+```
+
+Always branch on `IAsyncDbConnection.CanCreateBatch` first — Npgsql 6+,
+Microsoft.Data.Sqlite 9+, and SqlClient support batches; older providers throw
+`NotSupportedException` from `CreateBatch()`.
+
 ### Fill an AsyncDataTable
 
 Use `FillAsync` with the `AdapterDbDataAdapter` to populate tables asynchronously:
