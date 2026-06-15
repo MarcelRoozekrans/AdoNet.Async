@@ -46,7 +46,7 @@ public class GeneratorDriverTests
     public void Simple_Xsd_DataSet_File_Contains_Class()
     {
         var result = RunGenerator(LoadSchema("Simple.xsd"), "Simple.xsd");
-        var dsTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("AsyncDataSet.g.cs"));
+        var dsTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("AsyncDataSet.g.cs", StringComparison.Ordinal));
         dsTree.Should().NotBeNull();
         var text = dsTree!.GetText().ToString();
         text.Should().Contain("class AsyncOrdersDS");
@@ -56,7 +56,7 @@ public class GeneratorDriverTests
     public void Simple_Xsd_Generates_Customer_Table()
     {
         var result = RunGenerator(LoadSchema("Simple.xsd"), "Simple.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Customer.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Customer.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("class AsyncOrdersDSCustomerDataTable");
@@ -66,7 +66,7 @@ public class GeneratorDriverTests
     public void Simple_Xsd_Generates_Customer_Row()
     {
         var result = RunGenerator(LoadSchema("Simple.xsd"), "Simple.xsd");
-        var rowTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Customer.AsyncDataRow.g.cs"));
+        var rowTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Customer.AsyncDataRow.g.cs", StringComparison.Ordinal));
         rowTree.Should().NotBeNull();
         var text = rowTree!.GetText().ToString();
         text.Should().Contain("class AsyncOrdersDSCustomerRow");
@@ -91,7 +91,7 @@ public class GeneratorDriverTests
     public void NamespacePrefixed_Xsd_DataSet_Contains_No_Namespace_Prefix()
     {
         var result = RunGenerator(LoadSchema("NamespacePrefixed.xsd"), "NamespacePrefixed.xsd");
-        var dsTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("AsyncDataSet.g.cs"));
+        var dsTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("AsyncDataSet.g.cs", StringComparison.Ordinal));
         dsTree.Should().NotBeNull();
         var text = dsTree!.GetText().ToString();
         text.Should().NotContain("mstns:");
@@ -112,7 +112,7 @@ public class GeneratorDriverTests
     public void AttributeColumns_Xsd_DataTable_Contains_Column_Fields()
     {
         var result = RunGenerator(LoadSchema("AttributeColumns.xsd"), "AttributeColumns.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         // All three xs:attribute columns must be declared
@@ -125,7 +125,7 @@ public class GeneratorDriverTests
     public void AttributeColumns_Xsd_AddRowAsync_Has_Required_Parameters()
     {
         var result = RunGenerator(LoadSchema("AttributeColumns.xsd"), "AttributeColumns.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         // AddEntryRowAsync must NOT have a leading comma — must have typed params for required cols
@@ -139,7 +139,7 @@ public class GeneratorDriverTests
     public void AttributeColumns_Xsd_Composite_FindBy_Generated()
     {
         var result = RunGenerator(LoadSchema("AttributeColumns.xsd"), "AttributeColumns.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("FindByRegionIdCode(");
@@ -158,7 +158,7 @@ public class GeneratorDriverTests
     public void MixedColumns_Xsd_DataTable_Contains_All_Four_Column_Fields()
     {
         var result = RunGenerator(LoadSchema("MixedColumns.xsd"), "MixedColumns.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         // 2 xs:element + 2 xs:attribute
@@ -172,7 +172,7 @@ public class GeneratorDriverTests
     public void AttributeColumns_Xsd_Guid_Attribute_Generated_With_Correct_Type()
     {
         var result = RunGenerator(LoadSchema("AttributeColumns.xsd"), "AttributeColumns.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         // msdata:DataType="System.Guid" attribute column
@@ -183,7 +183,7 @@ public class GeneratorDriverTests
     public void AttributeColumns_Xsd_NullValue_Replacement_In_Row()
     {
         var result = RunGenerator(LoadSchema("AttributeColumns.xsd"), "AttributeColumns.xsd");
-        var rowTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataRow.g.cs"));
+        var rowTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Entry.AsyncDataRow.g.cs", StringComparison.Ordinal));
         rowTree.Should().NotBeNull();
         var text = rowTree!.GetText().ToString();
         // codegen:nullValue="N/A" on Tag attribute
@@ -217,7 +217,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_AutoIncrement_Column_ExcludedFromAddRowParams()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         // ItemId is AutoIncrement — must NOT appear in AddItemRowAsync parameters
@@ -229,7 +229,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_ReadOnly_Column_ExcludedFromAddRowParams()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         // CreatedAt is ReadOnly — must NOT appear as a parameter
         text.Should().NotContain("createdAt");
@@ -239,7 +239,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_Expression_Column_ExcludedFromAddRowParams()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         // DisplayName is Expression — must NOT appear as a parameter
         text.Should().NotContain("displayName");
@@ -249,7 +249,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_Hidden_Column_ExcludedFromAddRowParams()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         // InternalCode is hiddenColumn — must NOT appear as a parameter
         text.Should().NotContain("internalCode");
@@ -259,7 +259,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_Caption_EmittedInInitClass()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("columnNotes.Caption = \"Internal Notes\";");
     }
@@ -268,7 +268,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_MaxLength_EmittedInInitClass()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("columnNotes.MaxLength = 500;");
     }
@@ -277,7 +277,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_DefaultValue_EmittedInInitClass()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("columnStatus.DefaultValue = \"Active\";");
     }
@@ -286,7 +286,7 @@ public class GeneratorDriverTests
     public void ColumnMetadata_AutoIncrementSeedAndStep_EmittedInInitClass()
     {
         var result = RunGenerator(LoadSchema("ColumnMetadata.xsd"), "ColumnMetadata.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Item.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("columnItemId.AutoIncrementSeed = 10;");
         text.Should().Contain("columnItemId.AutoIncrementStep = 5;");
@@ -307,7 +307,7 @@ public class GeneratorDriverTests
     public void NoPrimaryKey_Table_Has_No_FindBy_Method()
     {
         var result = RunGenerator(LoadSchema("NoPrimaryKey.xsd"), "NoPrimaryKey.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Log.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Log.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         text.Should().NotContain("FindBy");
@@ -317,7 +317,7 @@ public class GeneratorDriverTests
     public void NoPrimaryKey_Table_Still_Has_AddRowMethod()
     {
         var result = RunGenerator(LoadSchema("NoPrimaryKey.xsd"), "NoPrimaryKey.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Log.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Log.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("AddLogRowAsync(");
         text.Should().Contain("string message");
@@ -339,7 +339,7 @@ public class GeneratorDriverTests
     public void ConstraintOnly_Product_AddRow_Has_No_Parent_Row_Param()
     {
         var result = RunGenerator(LoadSchema("ConstraintOnlyRelation.xsd"), "ConstraintOnlyRelation.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Product.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Product.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         // ConstraintOnly FK means no navigation relation — CategoryId is just a plain column param
@@ -362,7 +362,7 @@ public class GeneratorDriverTests
     public void ExternalTypeRef_Order_ColumnFields_Emitted()
     {
         var result = RunGenerator(LoadSchema("ExternalTypeRef.xsd"), "ExternalTypeRef.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Order.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Order.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("columnOrderId");
@@ -375,7 +375,7 @@ public class GeneratorDriverTests
     public void ExternalTypeRef_Order_AddRowAsync_RequiredParams_Only()
     {
         var result = RunGenerator(LoadSchema("ExternalTypeRef.xsd"), "ExternalTypeRef.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Order.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Order.AsyncDataTable.g.cs", StringComparison.Ordinal));
         var text = tableTree!.GetText().ToString();
         // OrderId, CustomerId, Amount are required; Note is nullable (optional param)
         text.Should().Contain("int orderId");
@@ -388,7 +388,7 @@ public class GeneratorDriverTests
     public void ExternalTypeRef_Tag_AttributeColumnFields_Emitted()
     {
         var result = RunGenerator(LoadSchema("ExternalTypeRef.xsd"), "ExternalTypeRef.xsd");
-        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Tag.AsyncDataTable.g.cs"));
+        var tableTree = result.GeneratedTrees.FirstOrDefault(t => t.FilePath.Contains("Tag.AsyncDataTable.g.cs", StringComparison.Ordinal));
         tableTree.Should().NotBeNull();
         var text = tableTree!.GetText().ToString();
         text.Should().Contain("columnTagId");
