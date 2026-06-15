@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.0...v1.3.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **tests:** pass StringComparison.Ordinal to FilePath.Contains ([#115](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/115)) ([dfee516](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/dfee516c2345879dac6b36b25f4daa1deff82b64))
+
 ## [1.3.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.2.1...v1.3.0) (2026-05-30)
 
 
