@@ -44,3 +44,5 @@ dotnet_diagnostic.MA0051.severity = suggestion
 dotnet_diagnostic.CA1707.severity = none
 # Suppress ConfigureAwait in tests (conflicts with xUnit1030)
 dotnet_diagnostic.MA0004.severity = none
+# Tests assert on known-ASCII generator output; culture-aware Contains is noise here
+dotnet_diagnostic.MA0074.severity = none
