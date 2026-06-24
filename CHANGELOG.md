@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.1...v1.3.2) (2026-06-24)
+
+
+### Bug Fixes
+
+* **deps:** pin SQLitePCLRaw.lib.e_sqlite3 to 3.50.3 (CVE-2025-6965) ([#122](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/122)) ([d5e31f5](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/d5e31f512906d9d6fdf758f9d830b73d2469dea6))
+
 ## [1.3.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.0...v1.3.1) (2026-06-15)
 
 
