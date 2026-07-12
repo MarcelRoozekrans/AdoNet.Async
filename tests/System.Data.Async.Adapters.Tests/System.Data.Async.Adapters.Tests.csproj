@@ -14,7 +14,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="xunit" Version="2.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.*" />
-    <PackageReference Include="NSubstitute" Version="5.*" />
+    <PackageReference Include="NSubstitute" Version="6.*" />
     <PackageReference Include="FluentAssertions" Version="8.1*" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.*" />
     <!-- CVE-2025-6965 / GHSA-2m69-gcr7-jv3q: override the vulnerable native SQLite
