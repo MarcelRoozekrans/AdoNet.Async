@@ -7,6 +7,13 @@
 
 * **deps:** update docusaurus monorepo to v3.10.2 ([#136](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/136)) ([59d03c3](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/59d03c3e51ba2501296b46e9af557432cd7ba790))
 
+## [1.3.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.2...v1.3.3) (2026-07-13)
+
+
+### Bug Fixes
+
+* **deps:** update docusaurus monorepo to v3.10.2 ([#136](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/136)) ([59d03c3](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/59d03c3e51ba2501296b46e9af557432cd7ba790))
+
 ## [1.3.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.1...v1.3.2) (2026-06-24)
 
 
