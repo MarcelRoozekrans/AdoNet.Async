@@ -69,6 +69,11 @@ public sealed class AdapterDbDataReader : AsyncDbDataReader
     public override async ValueTask<T> GetFieldValueAsync<T>(int i, CancellationToken cancellationToken = default)
         => await _inner.GetFieldValueAsync<T>(i, cancellationToken).ConfigureAwait(false);
 
+    // Straight to the provider rather than the base class's cast over GetValue:
+    // providers convert here (Microsoft.Data.Sqlite hands back a string for a
+    // TEXT-declared DateTimeOffset column, which a cast cannot survive).
+    public override T GetFieldValue<T>(int i) => _inner.GetFieldValue<T>(i);
+
     // Sync methods using native _inner (hide base class sync-over-async bridge)
     public new bool Read() => _inner.Read();
     public new bool NextResult() => _inner.NextResult();
