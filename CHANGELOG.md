@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.4.0...v1.4.1) (2026-09-20)
+
+
+### Bug Fixes
+
+* prefer a PAT for release-please, falling back to GITHUB_TOKEN ([#271](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/271)) ([563103f](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/563103f571f5b0f915aa91d198e92c5358d68db6))
+
 ## [1.4.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.3...v1.4.0) (2026-09-20)
 
 
