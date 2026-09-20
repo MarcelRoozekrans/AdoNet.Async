@@ -117,6 +117,52 @@ public class AdapterDbDataReaderTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetFieldValue_Works()
+    {
+        await using var cmd = _connection.CreateCommand();
+        cmd.CommandText = "SELECT Name FROM TestTable WHERE Id = 1";
+        await using var innerReader = await cmd.ExecuteReaderAsync();
+        var reader = new AdapterDbDataReader(innerReader);
+
+        (await reader.ReadAsync()).Should().BeTrue();
+        reader.GetFieldValue<string>(0).Should().Be("Alice");
+    }
+
+    [Fact]
+    public async Task GetFieldValue_Reads_Blob_As_ByteArray()
+    {
+        // BLOB has no typed getter on IDataRecord, so byte[] columns had no
+        // synchronous typed read at all before GetFieldValue<T>.
+        await using var cmd = _connection.CreateCommand();
+        cmd.CommandText = "SELECT CAST('abc' AS BLOB)";
+        await using var innerReader = await cmd.ExecuteReaderAsync();
+        var reader = new AdapterDbDataReader(innerReader);
+
+        (await reader.ReadAsync()).Should().BeTrue();
+        reader.GetFieldValue<byte[]>(0).Should().Equal((byte)'a', (byte)'b', (byte)'c');
+    }
+
+    [Fact]
+    public async Task GetFieldValue_Converts_Through_The_Provider()
+    {
+        // The whole reason AdapterDbDataReader overrides GetFieldValue<T>
+        // instead of inheriting the base cast over GetValue: Sqlite stores a
+        // DateTimeOffset in a TEXT column and hands GetValue back a string, so
+        // `(DateTimeOffset)reader.GetValue(0)` throws. Delegating to the
+        // provider converts instead. If the override is ever dropped, this
+        // fails with InvalidCastException.
+        await using var cmd = _connection.CreateCommand();
+        cmd.CommandText = "SELECT '2026-09-20 12:34:56+00:00'";
+        await using var innerReader = await cmd.ExecuteReaderAsync();
+        var reader = new AdapterDbDataReader(innerReader);
+
+        (await reader.ReadAsync()).Should().BeTrue();
+        reader.GetValue(0).Should().BeOfType<string>();
+        reader.GetFieldValue<DateTimeOffset>(0)
+            .Should().Be(new DateTimeOffset(2026, 9, 20, 12, 34, 56, TimeSpan.Zero));
+    }
+
+    [Fact]
     public async Task InnerReader_Returns_Wrapped_Reader()
     {
         await using var cmd = _connection.CreateCommand();

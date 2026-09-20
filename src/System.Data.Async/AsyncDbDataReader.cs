@@ -53,6 +53,10 @@ public abstract class AsyncDbDataReader : IAsyncDataReader
     public virtual ValueTask<T> GetFieldValueAsync<T>(int i, CancellationToken cancellationToken = default)
         => new((T)GetValue(i));
 
+    // Synchronous counterpart. Virtual for the same reason the async one is:
+    // a reader sitting on a provider that can convert should say so.
+    public virtual T GetFieldValue<T>(int i) => (T)GetValue(i);
+
     public virtual ValueTask<DataTable> GetSchemaTableAsync(CancellationToken cancellationToken = default)
         => new(GetSchemaTable());
 

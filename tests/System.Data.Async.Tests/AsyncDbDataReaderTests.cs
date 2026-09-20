@@ -202,6 +202,28 @@ public class AsyncDbDataReaderTests
     }
 
     [Fact]
+    public async Task GetFieldValue_Returns_Typed_Value()
+    {
+        var reader = new TestDbDataReader(CreateTestRows());
+        await reader.ReadAsync();
+
+        reader.GetFieldValue<int>(0).Should().Be(1);
+    }
+
+    [Fact]
+    public void GetFieldValue_Default_Is_Available_Without_Overriding()
+    {
+        // The interface ships GetFieldValue<T> as a default interface method so
+        // adding it broke no existing implementer. TestDbDataReader never
+        // declares it, which is exactly the point: reaching it through the
+        // interface must still bind.
+        IAsyncDataRecord record = new TestDbDataReader(CreateTestRows());
+        ((IAsyncDataReader)record).Read();
+
+        record.GetFieldValue<int>(0).Should().Be(1);
+    }
+
+    [Fact]
     public void Implements_IAsyncDataReader()
     {
         typeof(IAsyncDataReader).IsAssignableFrom(typeof(AsyncDbDataReader)).Should().BeTrue();
