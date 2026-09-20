@@ -21,7 +21,19 @@ jobs:
         id: release
         with:
           release-type: simple
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Prefer a PAT, fall back to GITHUB_TOKEN when none is configured.
+          #
+          # A release PR opened with GITHUB_TOKEN does not get its checks run
+          # normally: they land in action_required and wait for a human. This
+          # repository requires build-test to merge, so the release PR became
+          # permanently unmergeable and 1.4.0 sat unreleased until the runs were
+          # approved by hand. Every ZeroAlloc repository uses a PAT for this reason.
+          #
+          # The fallback keeps this safe to merge before the secret exists: an
+          # undefined secret is an empty string, so this resolves to GITHUB_TOKEN
+          # and behaves exactly as it does today. Adding RELEASE_PLEASE_TOKEN
+          # switches it over with no further change.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
   publish:
     needs: release-please
