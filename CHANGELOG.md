@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.3...v1.4.0) (2026-09-20)
+
+
+### Features
+
+* add synchronous GetFieldValue&lt;T&gt; to IAsyncDataRecord ([#267](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/267)) ([8e26a97](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/8e26a9742a0e8d47b4c11e09276a948b7f3cb7dc))
+
 ## [1.3.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.3.2...v1.3.3) (2026-07-13)
 
 
