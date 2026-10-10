@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.4.1...v1.5.0) (2026-10-10)
+
+
+### Features
+
+* mark the DataSet and JSON converter packages AOT-compatible with annotated entry points ([#307](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/307)) ([37c7611](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/37c7611c800bc7fec4193912f91246ce0e73970c))
+
 ## [1.4.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.4.0...v1.4.1) (2026-09-20)
 
 
