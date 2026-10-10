@@ -1,0 +1,30 @@
+name: Unlist prerelease packages
+
+# One-off cleanup for #310. CI used to publish every push to main as an -alpha prerelease, so
+# nuget.org holds hundreds of them per package. This unlists them; nuget.org cannot delete
+# versions. Run it once with dry_run=true to see the list, then with dry_run=false. Remove this
+# workflow and scripts/unlist-prereleases.py once the cleanup is done.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: List the versions without unlisting them
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  unlist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Unlist prereleases
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: python3 scripts/unlist-prereleases.py ${{ !inputs.dry_run && '--apply' || '' }}
