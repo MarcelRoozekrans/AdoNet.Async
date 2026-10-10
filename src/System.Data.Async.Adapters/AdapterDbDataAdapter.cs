@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Data.Async.DataSet;
 using System.Globalization;
 
@@ -8,6 +9,7 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
     public AdapterDbDataAdapter() { }
     public AdapterDbDataAdapter(IAsyncDbCommand selectCommand) => SelectCommand = selectCommand;
 
+    [RequiresUnreferencedCode("Filling a table creates columns from the data reader's runtime column types by reflection, which trimming can break. Declare the columns up front with statically known types instead.")]
     public override async ValueTask<int> FillAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default)
     {
         var selectCommand = SelectCommand ?? throw new InvalidOperationException("SelectCommand is not set.");
@@ -43,6 +45,7 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
         }
     }
 
+    [RequiresUnreferencedCode("Filling a table creates columns from the data reader's runtime column types by reflection, which trimming can break. Declare the columns up front with statically known types instead.")]
     public override async ValueTask<int> FillAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default)
     {
         var selectCommand = SelectCommand ?? throw new InvalidOperationException("SelectCommand is not set.");

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 #pragma warning disable CA2012 // Use ValueTasks correctly -- guarded sync-to-async bridge
 
 namespace System.Data.Async.DataSet;
@@ -13,13 +14,17 @@ public abstract class AsyncDataAdapter
     public bool AcceptChangesDuringFill { get; set; } = true;
     public bool AcceptChangesDuringUpdate { get; set; } = true;
 
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public abstract ValueTask<int> FillAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default);
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public abstract ValueTask<int> FillAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default);
     public abstract ValueTask<int> UpdateAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default);
     public abstract ValueTask<int> UpdateAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default);
 
     // Sync -> async bridge (throws on WASM)
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public int Fill(AsyncDataSet dataSet) { ThrowIfBrowser(nameof(FillAsync)); return FillAsync(dataSet).GetAwaiter().GetResult(); }
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public int Fill(AsyncDataTable dataTable) { ThrowIfBrowser(nameof(FillAsync)); return FillAsync(dataTable).GetAwaiter().GetResult(); }
     public int Update(AsyncDataSet dataSet) { ThrowIfBrowser(nameof(UpdateAsync)); return UpdateAsync(dataSet).GetAwaiter().GetResult(); }
     public int Update(AsyncDataTable dataTable) { ThrowIfBrowser(nameof(UpdateAsync)); return UpdateAsync(dataTable).GetAwaiter().GetResult(); }

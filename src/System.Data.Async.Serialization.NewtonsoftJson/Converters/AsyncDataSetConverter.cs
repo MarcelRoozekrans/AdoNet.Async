@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Collections;
 using System.Data.Async.DataSet;
 using System.Globalization;
@@ -11,7 +12,23 @@ namespace System.Data.Async.Converters;
 /// </summary>
 public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
 {
+    private readonly Func<JsonReader, AsyncDataSet?> _read;
+
+    /// <summary>
+    /// Creates the converter. Reading restores column expressions and column types by reflection,
+    /// which trimming can break, so constructing the converter carries the trimming requirement.
+    /// </summary>
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    public AsyncDataSetConverter()
+    {
+        _read = ReadDataSet;
+    }
+
     public override AsyncDataSet? ReadJson(JsonReader reader, Type objectType, AsyncDataSet? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        => _read(reader);
+
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    private static AsyncDataSet? ReadDataSet(JsonReader reader)
     {
         if (reader.TokenType == JsonToken.Null)
         {
@@ -215,6 +232,7 @@ public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
         writer.WriteEndObject();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadTables(JsonReader reader, System.Data.DataSet dataSet)
     {
         reader.Read(); // Move to StartObject
@@ -229,6 +247,7 @@ public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
         }
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadRelations(JsonReader reader, System.Data.DataSet dataSet)
     {
         reader.Read(); // Move to StartObject
@@ -242,6 +261,7 @@ public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
         }
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadRelation(JsonReader reader, System.Data.DataSet dataSet)
     {
         string relationName = string.Empty;
@@ -357,6 +377,7 @@ public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
         return [.. list];
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static ForeignKeyConstraintInfo ReadForeignKeyConstraintInfo(JsonReader reader)
     {
         var info = new ForeignKeyConstraintInfo();
@@ -424,6 +445,7 @@ public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
         writer.WriteEndArray();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadExtendedProperties(JsonReader reader, PropertyCollection properties)
     {
         reader.Read(); // Move to StartArray
@@ -471,11 +493,13 @@ public sealed class AsyncDataSetConverter : JsonConverter<AsyncDataSet>
         }
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadExtendedPropertiesInto(JsonReader reader, PropertyCollection properties)
     {
         ReadExtendedProperties(reader, properties);
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static object ConvertExtendedPropertyValue(string value, string typeName)
     {
         var type = Type.GetType(typeName);

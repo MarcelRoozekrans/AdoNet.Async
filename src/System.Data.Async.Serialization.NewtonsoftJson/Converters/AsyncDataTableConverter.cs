@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Collections;
 using System.Data.Async.DataSet;
 using System.Globalization;
@@ -12,7 +13,23 @@ namespace System.Data.Async.Converters;
 /// </summary>
 public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
 {
+    private readonly Func<JsonReader, AsyncDataTable?> _read;
+
+    /// <summary>
+    /// Creates the converter. Reading restores column expressions and column types by reflection,
+    /// which trimming can break, so constructing the converter carries the trimming requirement.
+    /// </summary>
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    public AsyncDataTableConverter()
+    {
+        _read = ReadTable;
+    }
+
     public override AsyncDataTable? ReadJson(JsonReader reader, Type objectType, AsyncDataTable? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        => _read(reader);
+
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    private static AsyncDataTable? ReadTable(JsonReader reader)
     {
         if (reader.TokenType == JsonToken.Null)
         {
@@ -153,6 +170,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
         writer.WriteEndObject();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     internal static DataTable ReadDataTable(JsonReader reader)
     {
         var table = new DataTable();
@@ -273,6 +291,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
         writer.WriteEndArray();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadColumns(JsonReader reader, DataTable table)
     {
         reader.Read(); // Move to StartArray
@@ -393,6 +412,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
         writer.WriteEndArray();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadConstraints(JsonReader reader, DataTable table)
     {
         reader.Read(); // Move to StartArray
@@ -721,6 +741,7 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
         writer.WriteEndArray();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadExtendedProperties(JsonReader reader, PropertyCollection properties)
     {
         reader.Read(); // Move to StartArray
@@ -768,11 +789,13 @@ public sealed class AsyncDataTableConverter : JsonConverter<AsyncDataTable>
         }
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadExtendedPropertiesInto(JsonReader reader, PropertyCollection properties)
     {
         ReadExtendedProperties(reader, properties);
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static object ConvertExtendedPropertyValue(string value, string typeName)
     {
         var type = Type.GetType(typeName);

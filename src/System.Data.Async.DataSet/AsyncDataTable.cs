@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -63,7 +64,7 @@ public class AsyncDataTable : IDisposable
     public string Prefix { get => _inner.Prefix; set => _inner.Prefix = value; }
     public bool CaseSensitive { get => _inner.CaseSensitive; set => _inner.CaseSensitive = value; }
     public CultureInfo Locale { get => _inner.Locale; set => _inner.Locale = value; }
-    public string DisplayExpression { get => _inner.DisplayExpression; set => _inner.DisplayExpression = value; }
+    public string DisplayExpression { get => _inner.DisplayExpression; [RequiresUnreferencedCode(TrimmingMessages.Expressions)] set => _inner.DisplayExpression = value; }
     public bool HasErrors => _inner.HasErrors;
     public int MinimumCapacity { get => _inner.MinimumCapacity; set => _inner.MinimumCapacity = value; }
     public SerializationFormat RemotingFormat { get => _inner.RemotingFormat; set => _inner.RemotingFormat = value; }
@@ -112,10 +113,13 @@ public class AsyncDataTable : IDisposable
 
     public AsyncDataRow[] Select()
         => _inner.Select().Select(GetOrCreateRow).ToArray();
+    [RequiresUnreferencedCode(TrimmingMessages.Expressions)]
     public AsyncDataRow[] Select(string? filterExpression)
         => _inner.Select(filterExpression).Select(GetOrCreateRow).ToArray();
+    [RequiresUnreferencedCode(TrimmingMessages.Expressions)]
     public AsyncDataRow[] Select(string? filterExpression, string? sort)
         => _inner.Select(filterExpression, sort).Select(GetOrCreateRow).ToArray();
+    [RequiresUnreferencedCode(TrimmingMessages.Expressions)]
     public AsyncDataRow[] Select(string? filterExpression, string? sort, DataViewRowState recordStates)
         => _inner.Select(filterExpression, sort, recordStates).Select(GetOrCreateRow).ToArray();
 
@@ -123,6 +127,7 @@ public class AsyncDataTable : IDisposable
         => GetOrCreateRow(_inner.LoadDataRow(values, fAcceptChanges));
     public AsyncDataRow LoadDataRow(object?[] values, LoadOption loadOption)
         => GetOrCreateRow(_inner.LoadDataRow(values, loadOption));
+    [RequiresUnreferencedCode(TrimmingMessages.Expressions)]
     public object Compute(string? expression, string? filter) => _inner.Compute(expression, filter);
     public void BeginInit() => _inner.BeginInit();
     public void EndInit() => _inner.EndInit();
@@ -157,15 +162,29 @@ public class AsyncDataTable : IDisposable
     }
 
     // Sync I/O
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public void Load(IDataReader reader) => _inner.Load(reader);
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public void Load(IDataReader reader, LoadOption loadOption) => _inner.Load(reader, loadOption);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public XmlReadMode ReadXml(Stream stream) => _inner.ReadXml(stream);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void ReadXmlSchema(Stream stream) => _inner.ReadXmlSchema(stream);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void WriteXml(Stream stream) => _inner.WriteXml(stream);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void WriteXml(Stream stream, XmlWriteMode mode) => _inner.WriteXml(stream, mode);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void WriteXmlSchema(Stream stream) => _inner.WriteXmlSchema(stream);
 
     // Async XML I/O
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -174,6 +193,8 @@ public class AsyncDataTable : IDisposable
         return default;
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public async ValueTask WriteXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
@@ -184,6 +205,8 @@ public class AsyncDataTable : IDisposable
         }
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -192,6 +215,8 @@ public class AsyncDataTable : IDisposable
         return default;
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public async ValueTask WriteXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
@@ -203,11 +228,13 @@ public class AsyncDataTable : IDisposable
     }
 
     // Async loading from IAsyncDataReader
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public async ValueTask<int> LoadAsync(IAsyncDataReader reader, CancellationToken cancellationToken = default)
     {
         return await LoadAsync(reader, LoadOption.OverwriteChanges, cancellationToken).ConfigureAwait(false);
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Load)]
     public async ValueTask<int> LoadAsync(IAsyncDataReader reader, LoadOption loadOption, CancellationToken cancellationToken = default)
     {
         if (_inner.Columns.Count == 0)
