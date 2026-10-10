@@ -4,9 +4,9 @@ nuget.org cannot delete a package version, only unlist it. An unlisted version i
 search and from the package's version list, but a restore that pins it exactly still works.
 
 Versions nuget.org already reports as unlisted are skipped, so a re-run only spends requests on
-what is left. nuget.org limits how many unlists a key may do; when it starts refusing, the run
-stops after a few consecutive refusals instead of spending the rest of the list on them, and a
-later re-run picks up where this one stopped.
+what is left. nuget.org caps a key's call volume and answers 403 "Quota Exceeded" with the time
+until the quota is replenished; the run sleeps that long and carries on. Any other refusal stops
+the run after a few in a row, and a later re-run picks up where it stopped.
 
 Usage: NUGET_API_KEY=... python scripts/unlist-prereleases.py [--apply]
 Without --apply it only prints what it would unlist.
@@ -14,6 +14,7 @@ Without --apply it only prints what it would unlist.
 
 import gzip
 import json
+import re
 import os
 import sys
 import time
@@ -33,6 +34,11 @@ USER_AGENT = "AdoNet.Async-unlist-prereleases"
 
 # Consecutive refusals after which the run stops: nuget.org is no longer accepting unlists.
 MAX_CONSECUTIVE_REFUSALS = 5
+
+# How many times one version may wait for the quota to be replenished before it counts as refused.
+MAX_QUOTA_WAITS = 3
+
+QUOTA_RESET = re.compile(r"replenished in (\d+):(\d+):(\d+)")
 
 
 def get_json(url):
@@ -60,21 +66,31 @@ def listed_prereleases(package_id):
 def unlist(package_id, version, api_key):
     """Returns the HTTP status and, for a failure, the response body."""
     url = f"https://www.nuget.org/api/v2/package/{package_id}/{version}"
-    for attempt in range(6):
+    retries = 0
+    quota_waits = 0
+    while True:
         request = urllib.request.Request(
             url, method="DELETE", headers={"X-NuGet-ApiKey": api_key, "User-Agent": USER_AGENT})
         try:
             with urllib.request.urlopen(request) as response:
                 return response.status, ""
         except urllib.error.HTTPError as error:
-            if error.code == 429 or error.code >= 500:
-                delay = int(error.headers.get("Retry-After") or 0) or 2 ** (attempt + 1)
+            body = error.read().decode("utf-8", "replace").strip()
+            if (error.code == 429 or error.code >= 500) and retries < 5:
+                retries += 1
+                delay = int(error.headers.get("Retry-After") or 0) or 2 ** retries
                 print(f"  {error.code}, retrying in {delay}s", flush=True)
                 time.sleep(delay)
                 continue
-            body = error.read().decode("utf-8", "replace").strip()
+            reset = QUOTA_RESET.search(body) if error.code == 403 else None
+            if reset and quota_waits < MAX_QUOTA_WAITS:
+                quota_waits += 1
+                hours, minutes, seconds = (int(part) for part in reset.groups())
+                delay = hours * 3600 + minutes * 60 + seconds + 30
+                print(f"  quota exceeded, waiting {delay}s for it to be replenished", flush=True)
+                time.sleep(delay)
+                continue
             return error.code, f"{error.reason} {body}"[:500]
-    return 429, "still rate limited after retries"
 
 
 def main():
