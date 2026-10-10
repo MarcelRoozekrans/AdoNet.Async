@@ -6,10 +6,15 @@ namespace System.Data.Async.Adapters;
 
 public sealed class AdapterDbDataAdapter : AsyncDataAdapter
 {
+    private const string TrimmingMessage =
+        "Filling a table creates columns from the data reader's runtime column types, using reflection "
+        + "over those types, which trimming can break. Declaring the columns up front with statically known "
+        + "types avoids that reflection at run time, but this call still carries the annotation.";
+
     public AdapterDbDataAdapter() { }
     public AdapterDbDataAdapter(IAsyncDbCommand selectCommand) => SelectCommand = selectCommand;
 
-    [RequiresUnreferencedCode("Filling a table creates columns from the data reader's runtime column types by reflection, which trimming can break. Declare the columns up front with statically known types instead.")]
+    [RequiresUnreferencedCode(TrimmingMessage)]
     public override async ValueTask<int> FillAsync(AsyncDataTable dataTable, CancellationToken cancellationToken = default)
     {
         var selectCommand = SelectCommand ?? throw new InvalidOperationException("SelectCommand is not set.");
@@ -45,7 +50,7 @@ public sealed class AdapterDbDataAdapter : AsyncDataAdapter
         }
     }
 
-    [RequiresUnreferencedCode("Filling a table creates columns from the data reader's runtime column types by reflection, which trimming can break. Declare the columns up front with statically known types instead.")]
+    [RequiresUnreferencedCode(TrimmingMessage)]
     public override async ValueTask<int> FillAsync(AsyncDataSet dataSet, CancellationToken cancellationToken = default)
     {
         var selectCommand = SelectCommand ?? throw new InvalidOperationException("SelectCommand is not set.");
