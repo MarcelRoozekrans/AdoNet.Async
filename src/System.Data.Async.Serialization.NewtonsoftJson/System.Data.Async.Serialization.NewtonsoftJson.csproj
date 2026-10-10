@@ -5,6 +5,7 @@
     <Title>AdoNet.Async.Serialization.NewtonsoftJson</Title>
     <Description>Newtonsoft.Json converters for AsyncDataTable and AsyncDataSet, wire-compatible with Json.Net.DataSetConverters.</Description>
     <PackageTags>system.data.async;async;ado.net;dataset;datatable;json;newtonsoft</PackageTags>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

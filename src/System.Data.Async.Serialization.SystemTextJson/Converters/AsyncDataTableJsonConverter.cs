@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Collections;
 using System.Data.Async.DataSet;
 using System.Globalization;
@@ -9,7 +10,25 @@ namespace System.Data.Async.Converters.SystemTextJson;
 
 public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
 {
+    private delegate AsyncDataTable? ReadDelegate(ref Utf8JsonReader reader, JsonSerializerOptions options);
+
+    private readonly ReadDelegate _read;
+
+    /// <summary>
+    /// Creates the converter. Reading restores column expressions and column types by reflection,
+    /// which trimming can break, so constructing the converter carries the trimming requirement.
+    /// </summary>
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    public AsyncDataTableJsonConverter()
+    {
+        _read = ReadTable;
+    }
+
     public override AsyncDataTable? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        => _read(ref reader, options);
+
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    private static AsyncDataTable? ReadTable(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null)
             return null;
@@ -128,6 +147,7 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
         writer.WriteEndArray();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadColumns(ref Utf8JsonReader reader, DataTable table)
     {
         // reader is at StartArray
@@ -197,6 +217,7 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
         writer.WriteEndArray();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadConstraints(ref Utf8JsonReader reader, DataTable table)
     {
         reader.Read(); // StartArray → first StartObject or EndArray
@@ -497,6 +518,7 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
         writer.WriteEndArray();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     internal static void ReadExtendedProperties(ref Utf8JsonReader reader, PropertyCollection properties)
     {
         reader.Read(); // past StartArray, to first StartObject or EndArray
@@ -526,6 +548,7 @@ public sealed class AsyncDataTableJsonConverter : JsonConverter<AsyncDataTable>
         }
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static object ConvertExtendedPropertyValue(string value, string typeName)
     {
         var type = Type.GetType(typeName);

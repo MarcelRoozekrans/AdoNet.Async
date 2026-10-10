@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Collections;
 using System.Data.Async.DataSet;
 using System.Globalization;
@@ -8,7 +9,25 @@ namespace System.Data.Async.Converters.SystemTextJson;
 
 public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
 {
+    private delegate AsyncDataSet? ReadDelegate(ref Utf8JsonReader reader, JsonSerializerOptions options);
+
+    private readonly ReadDelegate _read;
+
+    /// <summary>
+    /// Creates the converter. Reading restores column expressions and column types by reflection,
+    /// which trimming can break, so constructing the converter carries the trimming requirement.
+    /// </summary>
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    public AsyncDataSetJsonConverter()
+    {
+        _read = ReadDataSet;
+    }
+
     public override AsyncDataSet? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        => _read(ref reader, options);
+
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
+    private static AsyncDataSet? ReadDataSet(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null)
             return null;
@@ -79,6 +98,7 @@ public sealed class AsyncDataSetJsonConverter : JsonConverter<AsyncDataSet>
         writer.WriteEndObject();
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Reflection)]
     private static void ReadTables(ref Utf8JsonReader reader, System.Data.DataSet ds, JsonSerializerOptions options)
     {
         // reader is at StartObject (tables keyed by name)

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -102,6 +103,8 @@ public class AsyncDataSet : IDisposable
     public void EndInit() => _inner.EndInit();
 
     // Async XML I/O
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -112,6 +115,8 @@ public class AsyncDataSet : IDisposable
         return default;
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public async ValueTask WriteXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
@@ -122,6 +127,8 @@ public class AsyncDataSet : IDisposable
         }
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -132,6 +139,8 @@ public class AsyncDataSet : IDisposable
         return default;
     }
 
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public async ValueTask WriteXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
@@ -144,13 +153,27 @@ public class AsyncDataSet : IDisposable
 
     // Sync I/O
 #pragma warning disable CA5366 // Delegating to inner DataSet; callers control the stream
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public XmlReadMode ReadXml(Stream stream) => _inner.ReadXml(stream);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void ReadXmlSchema(Stream stream) => _inner.ReadXmlSchema(stream);
 #pragma warning restore CA5366
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void WriteXml(Stream stream) => _inner.WriteXml(stream);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void WriteXml(Stream stream, XmlWriteMode mode) => _inner.WriteXml(stream, mode);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public void WriteXmlSchema(Stream stream) => _inner.WriteXmlSchema(stream);
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public string GetXml() => _inner.GetXml();
+    [RequiresUnreferencedCode(TrimmingMessages.Xml)]
+    [RequiresDynamicCode(TrimmingMessages.Xml)]
     public string GetXmlSchema() => _inner.GetXmlSchema();
 
     public void Dispose()
