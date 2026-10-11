@@ -1,0 +1,73 @@
+name: Benchmarks
+
+# The benchmark project compiles as part of the solution build, so CI already catches a benchmark
+# that stops compiling. What it never caught is a benchmark that stops *running*: a broken
+# [GlobalSetup], a benchmark that throws, a filter that matches nothing. Four XML benchmarks had
+# been throwing unnoticed for exactly that reason. This workflow covers that gap.
+#
+#   smoke (automatic)  one operation per benchmark, no statistics. Proves every benchmark still
+#                      executes. Takes about a minute; the numbers it prints are meaningless.
+#   full  (manual)     real measurements, via "Run workflow". Uploads BenchmarkDotNet.Artifacts.
+#
+# The smoke job runs the ZeroAlloc org's shared gate. BenchmarkDotNet exits 0 when a filter matches
+# nothing and counts a crashed benchmark as executed, so the gate checks that every benchmark
+# reported a result instead. See ZeroAlloc-Net/.github .github/workflows/benchmark-smoke.yml.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: 'Benchmark filter, matched against namespace.type.method'
+        default: '*'
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  smoke:
+    name: smoke
+    if: github.event_name != 'workflow_dispatch'
+    uses: ZeroAlloc-Net/.github/.github/workflows/benchmark-smoke.yml@main
+    with:
+      project: tests/System.Data.Async.Benchmarks
+      timeout-minutes: 20
+
+  full:
+    name: full
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build tests/System.Data.Async.Benchmarks -c Release
+
+      - name: Run benchmarks
+        env:
+          FILTER: ${{ inputs.filter }}
+        run: |
+          dotnet run --project tests/System.Data.Async.Benchmarks -c Release --no-build -- \
+            --filter "$FILTER"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: benchmarks
+          path: '**/BenchmarkDotNet.Artifacts/**'
+          if-no-files-found: warn

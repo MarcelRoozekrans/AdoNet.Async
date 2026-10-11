@@ -24,14 +24,42 @@ public sealed class AdapterDbConnection : AsyncDbConnection
     public override ConnectionState State => _inner.State;
     public override int ConnectionTimeout => _inner.ConnectionTimeout;
 
-    protected override async ValueTask OpenCoreAsync(CancellationToken cancellationToken)
-        => await _inner.OpenAsync(cancellationToken).ConfigureAwait(false);
+    // Pure forwarders hand the provider's task straight to the caller; see AdapterDbDataReader.
+    protected override ValueTask OpenCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask(_inner.OpenAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown(ex);
+        }
+    }
 
-    protected override async ValueTask CloseCoreAsync()
-        => await _inner.CloseAsync().ConfigureAwait(false);
+    protected override ValueTask CloseCoreAsync()
+    {
+        try
+        {
+            return new ValueTask(_inner.CloseAsync());
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown(ex);
+        }
+    }
 
-    protected override async ValueTask ChangeDatabaseCoreAsync(string databaseName, CancellationToken cancellationToken)
-        => await _inner.ChangeDatabaseAsync(databaseName, cancellationToken).ConfigureAwait(false);
+    protected override ValueTask ChangeDatabaseCoreAsync(string databaseName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask(_inner.ChangeDatabaseAsync(databaseName, cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown(ex);
+        }
+    }
 
     protected override async ValueTask<IAsyncDbTransaction> BeginDbTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken)
         => new AdapterDbTransaction(await _inner.BeginTransactionAsync(isolationLevel, cancellationToken).ConfigureAwait(false), this);

@@ -52,22 +52,69 @@ public sealed class AdapterDbDataReader : AsyncDbDataReader
     public override bool IsDBNull(int i) => _inner.IsDBNull(i);
     public override DataTable GetSchemaTable() => _inner.GetSchemaTable()!;
 
-    // Async core methods
-    protected override async ValueTask<bool> ReadCoreAsync(CancellationToken cancellationToken)
-        => await _inner.ReadAsync(cancellationToken).ConfigureAwait(false);
+    // Async core methods. Each hands the provider's task straight to the caller: awaiting it
+    // here would allocate a state machine whenever the provider completes asynchronously.
+    // ProviderTask keeps a synchronous provider throw surfacing on await.
+    protected override ValueTask<bool> ReadCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask<bool>(_inner.ReadAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown<bool>(ex);
+        }
+    }
 
-    protected override async ValueTask<bool> NextResultCoreAsync(CancellationToken cancellationToken)
-        => await _inner.NextResultAsync(cancellationToken).ConfigureAwait(false);
+    protected override ValueTask<bool> NextResultCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask<bool>(_inner.NextResultAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown<bool>(ex);
+        }
+    }
 
-    protected override async ValueTask CloseCoreAsync()
-        => await _inner.CloseAsync().ConfigureAwait(false);
+    protected override ValueTask CloseCoreAsync()
+    {
+        try
+        {
+            return new ValueTask(_inner.CloseAsync());
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown(ex);
+        }
+    }
 
     // Optimized async overrides
-    public override async ValueTask<bool> IsDBNullAsync(int i, CancellationToken cancellationToken = default)
-        => await _inner.IsDBNullAsync(i, cancellationToken).ConfigureAwait(false);
+    public override ValueTask<bool> IsDBNullAsync(int i, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return new ValueTask<bool>(_inner.IsDBNullAsync(i, cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown<bool>(ex);
+        }
+    }
 
-    public override async ValueTask<T> GetFieldValueAsync<T>(int i, CancellationToken cancellationToken = default)
-        => await _inner.GetFieldValueAsync<T>(i, cancellationToken).ConfigureAwait(false);
+    public override ValueTask<T> GetFieldValueAsync<T>(int i, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return new ValueTask<T>(_inner.GetFieldValueAsync<T>(i, cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown<T>(ex);
+        }
+    }
 
     // Straight to the provider rather than the base class's cast over GetValue:
     // providers convert here (Microsoft.Data.Sqlite hands back a string for a
