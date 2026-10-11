@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.0...v1.5.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **ci:** stamp the generator assembly with the release version ([#315](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/315)) ([afc3c03](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/afc3c03d8cf2b099e9b7ef0fb59d684dd4a393e5)), closes [#284](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/284)
+
 ## [1.5.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.4.1...v1.5.0) (2026-10-10)
 
 
