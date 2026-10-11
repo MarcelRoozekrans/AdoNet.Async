@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ZeroAlloc.AsyncEvents" Version="1.1.7" />
+    <PackageReference Include="ZeroAlloc.AsyncEvents" Version="1.1.8" />
   </ItemGroup>
 
 </Project>
