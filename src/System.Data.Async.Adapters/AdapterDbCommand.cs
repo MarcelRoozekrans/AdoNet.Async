@@ -73,14 +73,42 @@ public sealed class AdapterDbCommand : AsyncDbCommand
     protected override async ValueTask<IAsyncDataReader> ExecuteDbReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
         => new AdapterDbDataReader(await _inner.ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false));
 
-    protected override async ValueTask<int> ExecuteNonQueryCoreAsync(CancellationToken cancellationToken)
-        => await _inner.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+    // Pure forwarders hand the provider's task straight to the caller; see AdapterDbDataReader.
+    protected override ValueTask<int> ExecuteNonQueryCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask<int>(_inner.ExecuteNonQueryAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown<int>(ex);
+        }
+    }
 
-    protected override async ValueTask<object?> ExecuteScalarCoreAsync(CancellationToken cancellationToken)
-        => await _inner.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+    protected override ValueTask<object?> ExecuteScalarCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask<object?>(_inner.ExecuteScalarAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown<object?>(ex);
+        }
+    }
 
-    protected override async ValueTask PrepareCoreAsync(CancellationToken cancellationToken)
-        => await _inner.PrepareAsync(cancellationToken).ConfigureAwait(false);
+    protected override ValueTask PrepareCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask(_inner.PrepareAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown(ex);
+        }
+    }
 
     // Sync methods using native _inner (hide base class sync-over-async bridge)
     public new IAsyncDataReader ExecuteReader() => new AdapterDbDataReader(_inner.ExecuteReader());

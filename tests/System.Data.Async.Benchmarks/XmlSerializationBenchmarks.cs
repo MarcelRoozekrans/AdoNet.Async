@@ -28,8 +28,10 @@ public class XmlSerializationBenchmarks : IDisposable
             await _table.Rows.AddAsync(new object?[] { i, $"Product{i}", i % 10 + 1, (decimal)(i * 9.99), baseDate.AddDays(-i) });
         await _table.AcceptChangesAsync();
 
+        // The read benchmarks load into an empty table, which cannot infer a schema from bare
+        // XML, so the input carries its schema inline.
         using var ms = new System.IO.MemoryStream();
-        await _table.WriteXmlAsync(ms);
+        ((System.Data.DataTable)_table).WriteXml(ms, XmlWriteMode.WriteSchema);
         _xmlBytes = ms.ToArray();
     }
 

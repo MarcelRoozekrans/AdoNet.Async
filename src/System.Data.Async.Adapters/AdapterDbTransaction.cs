@@ -19,11 +19,30 @@ public sealed class AdapterDbTransaction : AsyncDbTransaction
     public override IAsyncDbConnection Connection => _connection;
     public override IsolationLevel IsolationLevel => _inner.IsolationLevel;
 
-    protected override async ValueTask CommitCoreAsync(CancellationToken cancellationToken)
-        => await _inner.CommitAsync(cancellationToken).ConfigureAwait(false);
+    // Pure forwarders hand the provider's task straight to the caller; see AdapterDbDataReader.
+    protected override ValueTask CommitCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask(_inner.CommitAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown(ex);
+        }
+    }
 
-    protected override async ValueTask RollbackCoreAsync(CancellationToken cancellationToken)
-        => await _inner.RollbackAsync(cancellationToken).ConfigureAwait(false);
+    protected override ValueTask RollbackCoreAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return new ValueTask(_inner.RollbackAsync(cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            return ProviderTask.FromThrown(ex);
+        }
+    }
 
     protected override async ValueTask DisposeAsyncCore()
     {
