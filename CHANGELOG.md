@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.1...v1.5.2) (2026-10-11)
+
+
+### Performance Improvements
+
+* forward provider tasks without an async state machine ([#320](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/320)) ([97df06b](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/97df06b400bc5a89eed71c7adaa6fa5555373e9a)), closes [#318](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/318)
+
 ## [1.5.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.0...v1.5.1) (2026-10-11)
 
 
