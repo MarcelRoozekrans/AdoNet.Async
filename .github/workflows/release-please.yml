@@ -34,18 +34,14 @@ jobs:
         id: release
         with:
           release-type: simple
-          # Prefer a PAT, fall back to GITHUB_TOKEN when none is configured.
+          # The release bot App token from the step above, not GITHUB_TOKEN.
           #
           # A release PR opened with GITHUB_TOKEN does not get its checks run
           # normally: they land in action_required and wait for a human. This
           # repository requires build-test to merge, so the release PR became
           # permanently unmergeable and 1.4.0 sat unreleased until the runs were
-          # approved by hand. Every ZeroAlloc repository uses a PAT for this reason.
-          #
-          # The fallback keeps this safe to merge before the secret exists: an
-          # undefined secret is an empty string, so this resolves to GITHUB_TOKEN
-          # and behaves exactly as it does today. Adding RELEASE_PLEASE_TOKEN
-          # switches it over with no further change.
+          # approved by hand. The App token replaces the RELEASE_PLEASE_TOKEN PAT
+          # used before: it does not expire and does not act as a person.
           token: ${{ steps.app-token.outputs.token }}
 
   publish:
