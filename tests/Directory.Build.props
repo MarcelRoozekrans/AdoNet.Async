@@ -6,4 +6,13 @@
     <!-- EPS06: ErrorProne.NET false positives with FluentAssertions .Should() and NSubstitute .Returns() on value types -->
     <NoWarn>$(NoWarn);EPS06</NoWarn>
   </PropertyGroup>
+
+  <!-- Code coverage for CI: dotnet test with coverage.runsettings writes a Cobertura report
+       that goes to Codecov. -->
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="10.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>
