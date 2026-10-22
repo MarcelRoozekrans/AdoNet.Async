@@ -18,7 +18,7 @@ public class CommandExecutionBenchmarks : BenchmarkBase
     [Benchmark]
     public async Task<object> Async_ExecuteScalar()
     {
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM Users";
         return (await cmd.ExecuteScalarAsync())!;
     }
@@ -34,7 +34,7 @@ public class CommandExecutionBenchmarks : BenchmarkBase
     [Benchmark]
     public async Task<int> Async_ExecuteNonQuery()
     {
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.CommandText = "UPDATE Users SET Name = Name WHERE Id = 1";
         return await cmd.ExecuteNonQueryAsync();
     }
@@ -53,7 +53,7 @@ public class CommandExecutionBenchmarks : BenchmarkBase
     [Benchmark]
     public async Task<int> Async_ExecuteReader_Iterate()
     {
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.CommandText = "SELECT Id, Name, Email FROM Users";
         await using var reader = await cmd.ExecuteReaderAsync();
         int count = 0;

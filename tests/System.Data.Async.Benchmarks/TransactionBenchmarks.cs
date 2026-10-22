@@ -22,7 +22,7 @@ public class TransactionBenchmarks : BenchmarkBase
     public async Task Async_BeginCommit()
     {
         await using var tx = await AsyncConnection.BeginTransactionAsync();
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.Transaction = tx;
         cmd.CommandText = "UPDATE Users SET Name = Name WHERE Id = 1";
         await cmd.ExecuteNonQueryAsync();
@@ -44,7 +44,7 @@ public class TransactionBenchmarks : BenchmarkBase
     public async Task Async_BeginRollback()
     {
         await using var tx = await AsyncConnection.BeginTransactionAsync();
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.Transaction = tx;
         cmd.CommandText = "UPDATE Users SET Name = Name WHERE Id = 1";
         await cmd.ExecuteNonQueryAsync();
