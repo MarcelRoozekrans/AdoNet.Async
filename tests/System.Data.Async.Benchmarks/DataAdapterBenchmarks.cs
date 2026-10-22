@@ -26,7 +26,7 @@ public class DataAdapterBenchmarks : BenchmarkBase
     [Benchmark]
     public async Task<AsyncDataTable> Async_Fill()
     {
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.CommandText = $"SELECT * FROM Orders LIMIT {RowLimit}";
         var adapter = new AdapterDbDataAdapter(cmd);
         var table = new AsyncDataTable("Orders");
