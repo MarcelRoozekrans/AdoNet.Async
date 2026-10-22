@@ -7,91 +7,94 @@ title: Performance
 
 AdoNet.Async is designed for minimal overhead. This page presents benchmark results, explains what each benchmark measures, and discusses the design decisions that enable strong performance.
 
-All benchmarks were measured on Intel Core i9-12900HK, .NET 10.0.4, Windows 11, BenchmarkDotNet v0.15.8 (ShortRun, Release mode).
+```
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26300.9711)
+12th Gen Intel Core i9-12900HK 2.50GHz, 1 CPU, 20 logical and 14 physical cores
+.NET SDK 10.0.402
+  [Host] : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v3
+```
 
-## Command Execution
+> Allocations are exact. Speed is shown as same-run ratios; absolute timings are not published.
 
-Measures the overhead of wrapping `DbCommand.ExecuteScalarAsync`, `ExecuteNonQueryAsync`, and `ExecuteReaderAsync` through the adapter layer.
+Measured 2026-10-22 on an otherwise idle machine, out of process, in three launches pinned to two performance cores. Each ratio compares two benchmarks from the same run, with the lowest and highest of the three launches in brackets. The database is in-memory SQLite through Microsoft.Data.Sqlite.
 
-| Method | Mean | Ratio | Allocated | Alloc Ratio |
-|---|---|---|---|---|
-| Raw_ExecuteScalar | 6.581 us | 1.00 | 720 B | 1.00 |
-| Async_ExecuteScalar | 12.069 us | 1.83 | 912 B | 1.27 |
-| Raw_ExecuteNonQuery | 9.355 us | 1.42 | 480 B | 0.67 |
-| Async_ExecuteNonQuery | 16.063 us | 2.44 | 528 B | 0.73 |
-| Raw_ExecuteReader_Iterate | 10.087 us | 1.53 | 704 B | 0.98 |
-| Async_ExecuteReader_Iterate | 16.023 us | 2.44 | 992 B | 1.38 |
+## Adapter overhead
 
-**What this tells us:** The adapter wrapper adds approximately 6-7 microseconds of overhead per command execution. Memory overhead is 48-288 bytes per operation, primarily from the adapter wrapper objects and async state machines. In real applications where commands take milliseconds (network I/O), this overhead is negligible.
+Each row runs the same operation through the adapter and straight on `SqliteConnection`. The ratio is the adapter's time relative to the raw call.
 
-## Connection Open/Close
+| Operation | Async vs raw, time | Raw allocated | Async allocated |
+|---|---:|---:|---:|
+| `ExecuteScalar` | 1.04 (1.04–1.06) | 720 B | 912 B |
+| `ExecuteNonQuery` | 1.02 (1.00–1.04) | 480 B | 528 B |
+| `ExecuteReader`, iterate 50 rows | 1.10 (1.09–1.11) | 704 B | 992 B |
+| Open and close a connection | 1.02 (0.95–1.04) | 384 B | 408 B |
+| Read 50 rows, `ReadAsync` loop | 1.04 (1.03–1.05) | 3,784 B | 4,072 B |
+| Read 50 rows, `await foreach` | 1.09 (1.08–1.10) | 3,784 B | 4,184 B |
+| Begin, update, commit | 1.04 (1.03–1.05) | 1,680 B | 1,832 B |
+| Begin, update, roll back | 1.03 (1.01–1.04) | 1,688 B | 1,776 B |
 
-Measures the cost of opening and closing a connection through the adapter.
+**What this tells us:** the adapter costs 2–10% over the provider it wraps, and 24–400 B per operation, for its wrapper objects and async state machines. The manual `ReadAsync` loop is a little faster than `await foreach`, which allocates its enumerator. In real applications, where a command waits milliseconds on the network, the overhead is negligible.
 
-| Method | Mean | Ratio | Allocated | Alloc Ratio |
-|---|---|---|---|---|
-| Raw_OpenClose | 15.54 us | 1.00 | 384 B | 1.00 |
-| Async_OpenClose | 14.35 us | 0.92 | 408 B | 1.06 |
+:::note
+Earlier versions of this page reported async transactions at 40 times the raw time, and blamed SQLite's write serialization. The cause was the benchmark: the async variants never disposed their commands, and Microsoft.Data.Sqlite keeps every live command on its connection and walks the list on each transaction, so each operation ran slower than the one before. With the commands disposed, async and raw transactions cost the same within 4%.
+:::
 
-**What this tells us:** The async adapter is actually slightly faster for open/close operations. Memory overhead is minimal (24 bytes).
+## Asynchronous completion
 
-## Data Reader Iteration (50 rows)
+In-memory SQLite completes its async calls synchronously, so the benchmarks above never see what a network provider does: a task that completes later. `AsyncCompletionBenchmarks` uses a provider whose tasks always complete asynchronously, and measures each adapter call against the same call made straight on that provider.
 
-Measures the cost of iterating 50 rows through a `DbDataReader` vs. the async adapter, including `await foreach`.
+| Call | Adapter vs provider, time |
+|---|---:|
+| `ReadAsync` | 0.98 (0.93–1.01) |
+| `ExecuteNonQueryAsync` | 1.07 (1.00–1.13) |
 
-| Method | Mean | Ratio | Allocated | Alloc Ratio |
-|---|---|---|---|---|
-| Raw_ReadAll_Fields | 20.99 us | 1.00 | 3.7 KB | 1.00 |
-| Async_ReadAll_ManualLoop | 33.13 us | 1.58 | 3.98 KB | 1.08 |
-| Async_ReadAll_AwaitForeach | 30.74 us | 1.46 | 4.09 KB | 1.11 |
-
-**What this tells us:** The `await foreach` approach is slightly faster than a manual `ReadAsync` loop due to optimizations in the async enumerator. Memory overhead is about 8-11% over raw iteration -- roughly 300-400 bytes total regardless of row count.
+The adapter hands the provider's task straight to the caller, so it allocates nothing beyond the provider's own task; `AsyncForwarderTests` asserts 0 B of adapter overhead on a pending call. The pending task completes on a thread-pool thread, where BenchmarkDotNet's allocation column cannot attribute it exactly, so the table gives no byte count.
 
 ## DataAdapter Fill
 
-Measures `FillAsync` vs. raw `SqlDataAdapter.Fill` for 10 and 100 rows.
+`FillAsync` against `DataTable.Load` over a raw `DbDataReader`, for 10 and 100 rows.
 
-| Method | RowLimit | Mean | Ratio | Allocated | Alloc Ratio |
-|---|---|---|---|---|---|
-| Raw_Fill | 10 | 595.5 us | 1.00 | 94.42 KB | 1.00 |
-| Async_Fill | 10 | 872.3 us | 1.46 | 78.88 KB | 0.84 |
-| Raw_Fill | 100 | 1,293.8 us | 1.00 | 160.21 KB | 1.00 |
-| Async_Fill | 100 | 1,173.8 us | 0.92 | 117.40 KB | 0.73 |
+| Rows | Async vs raw, time | Raw allocated | Async allocated |
+|---|---:|---:|---:|
+| 10 | 0.93 (0.93–0.94) | 96,680 B | 86,787 B |
+| 100 | 0.74 (0.74–0.75) | 164,032 B | 126,237 B |
 
-**What this tells us:** At 100 rows, `FillAsync` is actually faster and allocates 27% less memory than `SqlDataAdapter.Fill`. The async adapter's `FillAsync` uses `LoadAsync` which avoids some of the internal overhead of `SqlDataAdapter`. At smaller row counts the async overhead is more visible, but at realistic data sizes the async path wins.
+**What this tells us:** `FillAsync` is faster than loading a `DataTable` from a raw reader and allocates less: 10% less at 10 rows and 23% less at 100.
 
 ## Serialization (AsyncDataTable)
 
-Measures JSON serialization and deserialization of `AsyncDataTable` with both Newtonsoft.Json and System.Text.Json.
+JSON serialization and deserialization of an `AsyncDataTable` with System.Text.Json and Newtonsoft.Json. Ratio is relative to `Newtonsoft_Serialize` with the same row count.
 
-| Method | RowCount | Mean | Ratio | Allocated | Alloc Ratio |
-|---|---|---|---|---|---|
-| Newtonsoft_Serialize | 10 | 12.30 us | 1.00 | 29.36 KB | 1.00 |
-| STJ_Serialize | 10 | 10.05 us | 0.84 | 11.74 KB | 0.40 |
-| Newtonsoft_Deserialize | 10 | 60.52 us | 5.04 | 34.38 KB | 1.17 |
-| STJ_Deserialize | 10 | 54.70 us | 4.55 | 32.73 KB | 1.12 |
-| Newtonsoft_Serialize | 100 | 70.08 us | 1.00 | 114.63 KB | 1.00 |
-| STJ_Serialize | 100 | 39.28 us | 0.57 | 65.62 KB | 0.57 |
-| Newtonsoft_Deserialize | 100 | 165.16 us | 2.41 | 101.45 KB | 0.88 |
-| STJ_Deserialize | 100 | 143.26 us | 2.09 | 98.68 KB | 0.86 |
+| Method | Rows | Ratio | Launch range | Allocated |
+|---|---|---:|---:|---:|
+| Newtonsoft_Serialize | 10 | 1.00 | | 30,061 B |
+| STJ_Serialize | 10 | 0.71 | 0.71–0.72 | 12,018 B |
+| Newtonsoft_Deserialize | 10 | 3.67 | 3.65–3.70 | 35,552 B |
+| STJ_Deserialize | 10 | 3.13 | 3.06–3.21 | 33,856 B |
+| Newtonsoft_Serialize | 100 | 1.00 | | 117,379 B |
+| STJ_Serialize | 100 | 0.77 | 0.77–0.77 | 67,187 B |
+| Newtonsoft_Deserialize | 100 | 3.08 | 3.02–3.15 | 104,224 B |
+| STJ_Deserialize | 100 | 2.57 | 2.55–2.59 | 101,376 B |
 
-> Ratio is relative to `Newtonsoft_Serialize` per row count.
+**What this tells us:** System.Text.Json is faster in both directions. Serializing 100 rows, it takes 0.77 of Newtonsoft's time and allocates 43% less. Deserialization costs more than serialization in both libraries, because it builds `DataTable`, `DataColumn` and `DataRow` objects; there System.Text.Json takes 0.84 of Newtonsoft's time and allocates about the same.
 
-**What this tells us:** System.Text.Json is consistently faster and allocates less memory. At 100 rows, STJ serialization is 44% faster and uses 43% less memory. Deserialization is more expensive than serialization in both libraries because it requires constructing `DataTable`, `DataColumn`, and `DataRow` objects, but STJ still edges ahead.
+## XML serialization
 
-## Transactions
+`WriteXmlAsync` and `ReadXmlAsync` against `DataTable.WriteXml` and `ReadXml`. Ratio is relative to `WriteXml_Async` with the same row count.
 
-Measures beginning and committing/rolling back a transaction.
-
-| Method | Mean | Ratio | Allocated | Alloc Ratio |
-|---|---|---|---|---|
-| Raw_BeginCommit | 5.948 us | 1.00 | 1.64 KB | 1.00 |
-| Async_BeginCommit | 240.697 us | 40.47 | 1.79 KB | 1.09 |
-| Raw_BeginRollback | 6.040 us | 1.00 | 1.65 KB | 1.00 |
-| Async_BeginRollback | 233.939 us | 39.33 | 1.73 KB | 1.06 |
+| Method | Rows | Ratio | Launch range | Allocated |
+|---|---|---:|---:|---:|
+| WriteXml_Async | 10 | 1.00 | | 77,664 B |
+| WriteXml_Sync | 10 | 0.82 | 0.72–0.88 | 18,840 B |
+| ReadXml_Async | 10 | 5.75 | 5.08–6.12 | 204,692 B |
+| ReadXml_Sync | 10 | 4.96 | 4.36–5.33 | 112,306 B |
+| WriteXml_Async | 100 | 1.00 | | 169,576 B |
+| WriteXml_Sync | 100 | 1.17 | 1.16–1.18 | 161,648 B |
+| ReadXml_Async | 100 | 2.65 | 2.62–2.68 | 270,053 B |
+| ReadXml_Sync | 100 | 2.31 | 2.28–2.33 | 164,258 B |
 
 :::warning
-The high transaction overhead is a microbenchmark artifact. SQLite (used in benchmarks) serializes write transactions, so `BeginTransactionAsync` must wait for the previous transaction to complete. With network-bound databases (SQL Server, PostgreSQL, MySQL), the async overhead is negligible compared to network I/O latency. Note that memory allocation overhead is minimal -- only ~150 bytes per operation.
+The async XML methods run the synchronous `DataTable` serializer over an async-enabled `XmlReader` or `XmlWriter`; only the final flush of a write is awaited. They allocate more than the synchronous methods and, on a network or file stream, block while reading. [#348](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/348) tracks making them asynchronous.
 :::
 
 ## Design Decisions
@@ -110,7 +113,7 @@ public ValueTask<int> ExecuteNonQueryAsync(CancellationToken ct = default)
 
 Async events on `AsyncDataTable` use `ZeroAlloc.AsyncEvents` with `InvokeMode.Sequential`. This has two key properties:
 
-1. **Zero allocations when no subscribers** -- If no handler is registered, `InvokeAsync` completes synchronously with zero allocations. This means tables without event subscriptions pay no cost.
+1. **No dispatch cost without subscribers** -- If no handler is registered, `InvokeAsync` completes synchronously and allocates nothing. The row operations still create their event args before that check, tracked in [#350](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/350).
 2. **Sequential dispatch** -- Handlers execute one after another, which is the correct semantic for validation (Validator 1 must complete before Validator 2 runs).
 
 ```csharp
@@ -136,29 +139,38 @@ This means synchronous callers get the same performance as calling the underlyin
 
 ## Typed vs Untyped Overhead
 
-Typed DataSets (generated from `.xsd`) add a thin layer over `AsyncDataTable<TRow>`:
+Typed DataSets (generated from `.xsd`) add a thin layer over `AsyncDataTable<TRow>`. Each ratio is the typed call's time relative to the same untyped call on the inner `DataTable`, in the same run:
 
-- **Row creation**: Typed rows are created via `WrapRow(DataRow)` -- a single allocation per row, cached in a `ConditionalWeakTable`.
-- **Property access**: Typed property getters (e.g., `customer.Name`) call `this["Name"]` on the inner `DataRow` -- no additional allocation.
-- **Typed add methods**: `AddCustomerRowAsync(...)` creates the row and calls `AddAsync` -- one extra `DataRow.NewRow()` call compared to untyped.
+| Operation | Rows | Typed vs untyped, time | Untyped allocated | Typed allocated |
+|---|---|---:|---:|---:|
+| Read `Name` from every row | 10 | 1.26 (1.26–1.26) | 0 B | 400 B |
+| Read `Name` from every row | 100 | 1.10 (1.08–1.15) | 0 B | 4,000 B |
+| Find by primary key | 10 | 1.32 (1.29–1.35) | 128 B | 232 B |
+| Find by primary key | 100 | 1.16 (1.15–1.18) | 128 B | 232 B |
+| Add and remove a row | 10 | 1.33 (1.32–1.34) | 528 B | 904 B |
+| Add and remove a row | 100 | 1.24 (1.21–1.27) | 528 B | 904 B |
 
-The overhead of typed access is negligible in practice. The `ConditionalWeakTable` cache ensures that the same `DataRow` always maps to the same typed row instance without preventing garbage collection.
+- **Row access**: the generated typed indexer, `ds.Customer[i]`, creates a new 40 B typed row wrapper on every call. The untyped `Rows[i]` of an `AsyncDataTable` caches one wrapper per row in a `ConditionalWeakTable`; the typed indexer does not use that cache, tracked in [#349](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/349).
+- **Property access**: typed property getters, such as `customer.Name`, call `this["Name"]` on the inner `DataRow` and allocate nothing of their own.
+- **Typed add methods**: `AddCustomerRowAsync(...)` creates the row and calls `AddAsync`, one extra `DataRow.NewRow()` call compared to untyped.
 
 ## Memory Allocation Patterns
 
 | Operation | Extra allocations vs raw |
 |---|---|
-| Open/Close connection | ~24 bytes (adapter wrapper) |
-| Execute command | 48-288 bytes (adapter + async state machine) |
-| Read 50 rows | ~300-400 bytes total (adapter + enumerator) |
-| Fill 100 rows | 27% *less* than raw `SqlDataAdapter` |
-| Event with no subscribers | 0 bytes |
-| Event with subscribers | Same as subscriber's allocations |
+| Open/Close connection | 24 B, the adapter wrapper |
+| Execute command | 48–288 B, the adapter and async state machine |
+| Read 50 rows | 288–400 B in total, the adapter and enumerator |
+| Async completion of a pending provider task | 0 B beyond the provider's task |
+| Fill 100 rows | 23% *less* than `DataTable.Load` |
+| Typed row access | 40 B per `ds.Table[i]` call, see [#349](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/349) |
+| Event with no subscribers | the event args, created before the subscriber check, see [#350](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/350); the dispatch itself adds nothing |
+| Event with subscribers | the event args plus the subscribers' own allocations |
 | Serialization (STJ, 100 rows) | 43% less than Newtonsoft |
 
 ## Tips for Optimal Performance
 
-1. **Use `await foreach` for reader iteration** -- It is marginally faster than a manual `while (await reader.ReadAsync())` loop.
+1. **Use a `ReadAsync` loop on hot paths** -- A manual `while (await reader.ReadAsync())` loop is about 5% faster than `await foreach` and does not allocate the enumerator. `await foreach` reads better and costs little.
 
 2. **Use System.Text.Json for serialization** -- It is faster and allocates less memory than Newtonsoft.Json for the same wire format.
 

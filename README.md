@@ -338,68 +338,49 @@ dotnet run --project tests/System.Data.Async.Benchmarks -c Release
 
 ### Benchmark Results
 
-Measured on Intel Core i9-12900HK, .NET 10.0.4, BenchmarkDotNet v0.15.8 (ShortRun).
+```
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26300.9711)
+12th Gen Intel Core i9-12900HK 2.50GHz, 1 CPU, 20 logical and 14 physical cores
+.NET SDK 10.0.402
+  [Host] : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v3
+```
 
-#### Command Execution
+> Allocations are exact. Speed is shown as same-run ratios; absolute timings are not published.
 
-| Method                      | Mean      | Ratio | Allocated | Alloc Ratio |
-|---------------------------- |----------:|------:|----------:|------------:|
-| Raw_ExecuteScalar           |  6.581 us |  1.00 |     720 B |        1.00 |
-| Async_ExecuteScalar         | 12.069 us |  1.83 |     912 B |        1.27 |
-| Raw_ExecuteNonQuery         |  9.355 us |  1.42 |     480 B |        0.67 |
-| Async_ExecuteNonQuery       | 16.063 us |  2.44 |     528 B |        0.73 |
-| Raw_ExecuteReader_Iterate   | 10.087 us |  1.53 |     704 B |        0.98 |
-| Async_ExecuteReader_Iterate | 16.023 us |  2.44 |     992 B |        1.38 |
+Measured 2026-10-22 on an otherwise idle machine, out of process, in three launches pinned to two performance cores. Each ratio compares two benchmarks from the same run, with the lowest and highest of the three launches in brackets. The database is in-memory SQLite through Microsoft.Data.Sqlite.
 
-#### Connection Open/Close
+**The adapter against the provider it wraps.** Each row runs the same operation through `AdoNet.Async.Adapters` and straight on `SqliteConnection`:
 
-| Method          | Mean     | Ratio | Allocated | Alloc Ratio |
-|---------------- |---------:|------:|----------:|------------:|
-| Raw_OpenClose   | 15.54 us |  1.00 |     384 B |        1.00 |
-| Async_OpenClose | 14.35 us |  0.92 |     408 B |        1.06 |
+| Operation | Async vs raw, time | Raw allocated | Async allocated |
+|---|---:|---:|---:|
+| `ExecuteScalar` | 1.04 (1.04–1.06) | 720 B | 912 B |
+| `ExecuteNonQuery` | 1.02 (1.00–1.04) | 480 B | 528 B |
+| `ExecuteReader`, iterate 50 rows | 1.10 (1.09–1.11) | 704 B | 992 B |
+| Open and close a connection | 1.02 (0.95–1.04) | 384 B | 408 B |
+| Read 50 rows, `ReadAsync` loop | 1.04 (1.03–1.05) | 3,784 B | 4,072 B |
+| Read 50 rows, `await foreach` | 1.09 (1.08–1.10) | 3,784 B | 4,184 B |
+| Begin, update, commit | 1.04 (1.03–1.05) | 1,680 B | 1,832 B |
+| Begin, update, roll back | 1.03 (1.01–1.04) | 1,688 B | 1,776 B |
 
-#### Data Reader Iteration (50 rows)
+In-memory SQLite completes its async calls synchronously. `AsyncCompletionBenchmarks` measures a provider whose tasks complete later, as a network round trip's would: the adapter's `ReadAsync` and `ExecuteNonQueryAsync` take 0.98 (0.93–1.01) and 1.07 (1.00–1.13) of the provider's own time and allocate nothing beyond the provider's task, which `AsyncForwarderTests` asserts.
 
-| Method                     | Mean     | Ratio | Allocated | Alloc Ratio |
-|--------------------------- |---------:|------:|----------:|------------:|
-| Raw_ReadAll_Fields         | 20.99 us |  1.00 |    3.7 KB |        1.00 |
-| Async_ReadAll_ManualLoop   | 33.13 us |  1.58 |   3.98 KB |        1.08 |
-| Async_ReadAll_AwaitForeach | 30.74 us |  1.46 |   4.09 KB |        1.11 |
+**`FillAsync`** against `DataTable.Load` over a raw reader:
 
-#### DataAdapter Fill
+| Rows | Async vs raw, time | Raw allocated | Async allocated |
+|---|---:|---:|---:|
+| 10 | 0.93 (0.93–0.94) | 96,680 B | 86,787 B |
+| 100 | 0.74 (0.74–0.75) | 164,032 B | 126,237 B |
 
-| Method     | RowLimit | Mean       | Ratio | Allocated  | Alloc Ratio |
-|----------- |--------- |-----------:|------:|-----------:|------------:|
-| Raw_Fill   | 10       |   595.5 us |  1.00 |  94.42 KB  |        1.00 |
-| Async_Fill | 10       |   872.3 us |  1.46 |  78.88 KB  |        0.84 |
-| Raw_Fill   | 100      | 1,293.8 us |  1.00 | 160.21 KB  |        1.00 |
-| Async_Fill | 100      | 1,173.8 us |  0.92 | 117.40 KB  |        0.73 |
+**JSON serialization of an `AsyncDataTable`,** System.Text.Json against Newtonsoft.Json:
 
-#### Serialization (AsyncDataTable, 10 / 100 rows)
+| Rows | Serialize, STJ vs Newtonsoft | Allocated, Newtonsoft → STJ | Deserialize, STJ vs Newtonsoft | Allocated, Newtonsoft → STJ |
+|---|---:|---:|---:|---:|
+| 10 | 0.71 (0.71–0.72) | 30,061 → 12,018 B | 0.85 (0.84–0.87) | 35,552 → 33,856 B |
+| 100 | 0.77 (0.77–0.77) | 117,379 → 67,187 B | 0.84 (0.82–0.85) | 104,224 → 101,376 B |
 
-| Method | RowCount | Mean | Ratio | Allocated | Alloc Ratio |
-|---|---|---|---|---|---|
-| Newtonsoft_Serialize | 10 | 12.30 µs | 1.00 | 29.36 KB | 1.00 |
-| STJ_Serialize | 10 | 10.05 µs | 0.84 | 11.74 KB | 0.40 |
-| Newtonsoft_Deserialize | 10 | 60.52 µs | 5.04 | 34.38 KB | 1.17 |
-| STJ_Deserialize | 10 | 54.70 µs | 4.55 | 32.73 KB | 1.12 |
-| Newtonsoft_Serialize | 100 | 70.08 µs | 1.00 | 114.63 KB | 1.00 |
-| STJ_Serialize | 100 | 39.28 µs | 0.57 | 65.62 KB | 0.57 |
-| Newtonsoft_Deserialize | 100 | 165.16 µs | 2.41 | 101.45 KB | 0.88 |
-| STJ_Deserialize | 100 | 143.26 µs | 2.09 | 98.68 KB | 0.86 |
+Typed DataSets and XML serialization are measured too; see the [performance page](https://github.com/MarcelRoozekrans/AdoNet.Async/blob/main/website/docs/performance/performance.md) for those tables.
 
-> Measured on .NET 10, Release mode, Windows 11. Ratio is relative to `Newtonsoft_Serialize` per row count.
-
-#### Transactions
-
-| Method              | Mean       | Ratio | Allocated | Alloc Ratio |
-|-------------------- |-----------:|------:|----------:|------------:|
-| Raw_BeginCommit     |   5.948 us |  1.00 |   1.64 KB |        1.00 |
-| Async_BeginCommit   | 240.697 us | 40.47 |   1.79 KB |        1.09 |
-| Raw_BeginRollback   |   6.040 us |  1.00 |   1.65 KB |        1.00 |
-| Async_BeginRollback | 233.939 us | 39.33 |   1.73 KB |        1.06 |
-
-> **Note:** Transaction overhead is high in this microbenchmark because SQLite serializes write transactions. In real-world usage with network-bound databases (SQL Server, PostgreSQL), the async overhead is negligible compared to I/O latency. Memory allocation overhead is consistently minimal (< 200 bytes per operation).
+Earlier versions of this section reported async transactions at 40 times the raw time and every async command at 1.5 to 2.4 times. The async benchmarks never disposed their commands, and Microsoft.Data.Sqlite keeps every live command on its connection, so each operation ran slower than the one before. With the commands disposed, as the raw benchmarks always did, the adapter costs 2–10% over the raw provider.
 
 ### Validation Coverage
 

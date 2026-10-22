@@ -25,7 +25,7 @@ public class ReaderBenchmarks : BenchmarkBase
     public async Task<IList<string>> Async_ReadAll_ManualLoop()
     {
         var results = new List<string>();
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.CommandText = "SELECT Id, Name, Email, Age, Balance FROM Users";
         await using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -39,7 +39,7 @@ public class ReaderBenchmarks : BenchmarkBase
     public async Task<IList<string>> Async_ReadAll_AwaitForeach()
     {
         var results = new List<string>();
-        var cmd = AsyncConnection.CreateCommand();
+        await using var cmd = AsyncConnection.CreateCommand();
         cmd.CommandText = "SELECT Id, Name, Email, Age, Balance FROM Users";
         await using var reader = await cmd.ExecuteReaderAsync();
         await foreach (var record in reader)
