@@ -93,6 +93,12 @@ public sealed class AdapterDbBatch : AsyncDbBatch
         }
     }
 
+    // Sync members call the provider's own instead of the base class's sync-over-async bridge.
+    protected override IAsyncDataReader ExecuteDbReader() => new AdapterDbDataReader(_inner.ExecuteReader());
+    protected override int ExecuteNonQueryCore() => _inner.ExecuteNonQuery();
+    protected override object? ExecuteScalarCore() => _inner.ExecuteScalar();
+    protected override void PrepareCore() => _inner.Prepare();
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)

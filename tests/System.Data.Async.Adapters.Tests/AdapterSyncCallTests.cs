@@ -144,4 +144,78 @@ public class AdapterSyncCallTests
         inner.ExecuteScalarCalls.Should().Be(1);
         inner.PrepareCalls.Should().Be(1);
     }
+
+    [Theory]
+    [MemberData(nameof(Views))]
+    public void Connection_transaction_and_database_members_call_the_provider_sync_members(string view)
+    {
+        var inner = new SyncRecordingDbConnection();
+        var adapter = new AdapterDbConnection(inner);
+        IAsyncDbTransaction first;
+        IAsyncDbTransaction second;
+
+        switch (view)
+        {
+            case "adapter":
+                first = adapter.BeginTransaction();
+                second = adapter.BeginTransaction(IsolationLevel.Serializable);
+                adapter.ChangeDatabase("other");
+                break;
+            case "base class":
+                var connection = (AsyncDbConnection)adapter;
+                first = connection.BeginTransaction();
+                second = connection.BeginTransaction(IsolationLevel.Serializable);
+                connection.ChangeDatabase("other");
+                break;
+            default:
+                first = ((IAsyncDbConnection)adapter).BeginTransaction();
+                second = ((IAsyncDbConnection)adapter).BeginTransaction(IsolationLevel.Serializable);
+                ((IAsyncDbConnection)adapter).ChangeDatabase("other");
+                break;
+        }
+
+        first.Should().BeOfType<AdapterDbTransaction>().Which.Connection.Should().BeSameAs(adapter);
+        second.Should().BeOfType<AdapterDbTransaction>();
+        inner.BeginTransactionCalls.Should().Be(2);
+        inner.LastIsolationLevel.Should().Be(IsolationLevel.Serializable);
+        inner.LastDatabase.Should().Be("other");
+    }
+
+    [Theory]
+    [MemberData(nameof(Views))]
+    public void Batch_sync_members_call_the_provider_sync_members(string view)
+    {
+        var inner = new SyncRecordingDbBatch();
+        var adapter = new AdapterDbBatch(inner, connection: null);
+        IAsyncDataReader reader;
+
+        switch (view)
+        {
+            case "adapter":
+                reader = adapter.ExecuteReader();
+                adapter.ExecuteNonQuery().Should().Be(7);
+                adapter.ExecuteScalar().Should().Be("scalar");
+                adapter.Prepare();
+                break;
+            case "base class":
+                var batch = (AsyncDbBatch)adapter;
+                reader = batch.ExecuteReader();
+                batch.ExecuteNonQuery().Should().Be(7);
+                batch.ExecuteScalar().Should().Be("scalar");
+                batch.Prepare();
+                break;
+            default:
+                reader = ((IAsyncDbBatch)adapter).ExecuteReader();
+                ((IAsyncDbBatch)adapter).ExecuteNonQuery().Should().Be(7);
+                ((IAsyncDbBatch)adapter).ExecuteScalar().Should().Be("scalar");
+                ((IAsyncDbBatch)adapter).Prepare();
+                break;
+        }
+
+        reader.Should().BeOfType<AdapterDbDataReader>();
+        inner.ExecuteReaderCalls.Should().Be(1);
+        inner.ExecuteNonQueryCalls.Should().Be(1);
+        inner.ExecuteScalarCalls.Should().Be(1);
+        inner.PrepareCalls.Should().Be(1);
+    }
 }

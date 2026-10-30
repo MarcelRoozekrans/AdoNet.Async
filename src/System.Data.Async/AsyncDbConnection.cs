@@ -30,15 +30,17 @@ public abstract class AsyncDbConnection : IAsyncDbConnection
             "This provider does not support batches. Check IAsyncDbConnection.CanCreateBatch before calling CreateBatch.");
 
     // Sync -> async bridge (throws on WASM)
-    public IAsyncDbTransaction BeginTransaction() { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(IsolationLevel.Unspecified, CancellationToken.None).GetAwaiter().GetResult(); }
-    public IAsyncDbTransaction BeginTransaction(IsolationLevel il) { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(il, CancellationToken.None).GetAwaiter().GetResult(); }
-    public void ChangeDatabase(string databaseName) { SyncBridge.ThrowIfBrowser(nameof(ChangeDatabaseAsync)); ChangeDatabaseCoreAsync(databaseName, CancellationToken.None).GetAwaiter().GetResult(); }
+    public IAsyncDbTransaction BeginTransaction() => BeginDbTransaction(IsolationLevel.Unspecified);
+    public IAsyncDbTransaction BeginTransaction(IsolationLevel il) => BeginDbTransaction(il);
+    public void ChangeDatabase(string databaseName) => ChangeDatabaseCore(databaseName);
     public IAsyncDbCommand CreateCommand() => CreateDbCommand();
     public void Open() => OpenCore();
     public void Close() => CloseCore();
 
-    // Open and Close delegate to a virtual core. The defaults bridge to the async core and throw
-    // on WASM; a connection over a provider with native sync members overrides them to call those.
+    // Sync members delegate to a virtual core. The defaults bridge to the async core and throw on
+    // WASM; a connection over a provider with native sync members overrides them to call those.
+    protected virtual IAsyncDbTransaction BeginDbTransaction(IsolationLevel isolationLevel) { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(isolationLevel, CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual void ChangeDatabaseCore(string databaseName) { SyncBridge.ThrowIfBrowser(nameof(ChangeDatabaseAsync)); ChangeDatabaseCoreAsync(databaseName, CancellationToken.None).GetAwaiter().GetResult(); }
     protected virtual void OpenCore() { SyncBridge.ThrowIfBrowser(nameof(OpenAsync)); OpenCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
     protected virtual void CloseCore() { SyncBridge.ThrowIfBrowser(nameof(CloseAsync)); CloseCoreAsync().GetAwaiter().GetResult(); }
 

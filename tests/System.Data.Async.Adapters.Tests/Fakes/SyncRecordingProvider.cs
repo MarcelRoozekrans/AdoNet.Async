@@ -110,8 +110,25 @@ internal sealed class SyncRecordingDbConnection : DbConnection
     public override Task OpenAsync(CancellationToken cancellationToken) => throw SyncOnly.AsyncCalled(nameof(OpenAsync));
     public override Task CloseAsync() => throw SyncOnly.AsyncCalled(nameof(CloseAsync));
 
-    public override void ChangeDatabase(string databaseName) => throw new NotSupportedException();
-    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotSupportedException();
+    public int BeginTransactionCalls { get; private set; }
+    public IsolationLevel LastIsolationLevel { get; private set; }
+    public string? LastDatabase { get; private set; }
+
+    public override void ChangeDatabase(string databaseName) => LastDatabase = databaseName;
+
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+    {
+        BeginTransactionCalls++;
+        LastIsolationLevel = isolationLevel;
+        return new SyncRecordingDbTransaction(this);
+    }
+
+    protected override ValueTask<DbTransaction> BeginDbTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken)
+        => throw SyncOnly.AsyncCalled(nameof(BeginTransactionAsync));
+
+    public override Task ChangeDatabaseAsync(string databaseName, CancellationToken cancellationToken = default)
+        => throw SyncOnly.AsyncCalled(nameof(ChangeDatabaseAsync));
+
     protected override DbCommand CreateDbCommand() => throw new NotSupportedException();
 }
 
@@ -175,6 +192,51 @@ internal sealed class SyncRecordingDbCommand : DbCommand
 
     public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken) => throw SyncOnly.AsyncCalled(nameof(ExecuteNonQueryAsync));
     public override Task<object?> ExecuteScalarAsync(CancellationToken cancellationToken) => throw SyncOnly.AsyncCalled(nameof(ExecuteScalarAsync));
+    public override Task PrepareAsync(CancellationToken cancellationToken = default) => throw SyncOnly.AsyncCalled(nameof(PrepareAsync));
+    protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+        => throw SyncOnly.AsyncCalled(nameof(ExecuteReaderAsync));
+}
+
+internal sealed class SyncRecordingDbBatch : DbBatch
+{
+    private readonly ListDbBatchCommandCollection _commands = new();
+
+    public int ExecuteReaderCalls { get; private set; }
+    public int ExecuteNonQueryCalls { get; private set; }
+    public int ExecuteScalarCalls { get; private set; }
+    public int PrepareCalls { get; private set; }
+
+    public override int Timeout { get; set; }
+    protected override DbBatchCommandCollection DbBatchCommands => _commands;
+    protected override DbConnection? DbConnection { get; set; }
+    protected override DbTransaction? DbTransaction { get; set; }
+
+    public override void Cancel() { }
+
+    public override int ExecuteNonQuery()
+    {
+        ExecuteNonQueryCalls++;
+        return 7;
+    }
+
+    public override object? ExecuteScalar()
+    {
+        ExecuteScalarCalls++;
+        return "scalar";
+    }
+
+    public override void Prepare() => PrepareCalls++;
+
+    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
+    {
+        ExecuteReaderCalls++;
+        return new SyncRecordingDbDataReader();
+    }
+
+    protected override DbBatchCommand CreateDbBatchCommand() => new PendingDbBatchCommand();
+
+    public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken = default) => throw SyncOnly.AsyncCalled(nameof(ExecuteNonQueryAsync));
+    public override Task<object?> ExecuteScalarAsync(CancellationToken cancellationToken = default) => throw SyncOnly.AsyncCalled(nameof(ExecuteScalarAsync));
     public override Task PrepareAsync(CancellationToken cancellationToken = default) => throw SyncOnly.AsyncCalled(nameof(PrepareAsync));
     protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
         => throw SyncOnly.AsyncCalled(nameof(ExecuteReaderAsync));
