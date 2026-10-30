@@ -401,7 +401,7 @@ Earlier versions of this section reported async transactions at 40 times the raw
 
 ## Design Decisions
 
-- **`ValueTask` everywhere** -- All async methods return `ValueTask` or `ValueTask<T>` for zero-allocation on synchronous completion paths.
+- **`ValueTask` everywhere** -- All async methods return `ValueTask` or `ValueTask<T>` for zero-allocation on synchronous completion paths. The adapters' `ExecuteReaderAsync` and `BeginTransactionAsync` use a pooling builder, so a call that yields allocates only the adapter object. Await their tasks once, and never block on them before they complete.
 - **Dual sync/async** -- Every interface exposes both synchronous and asynchronous members, enabling gradual migration without breaking existing code.
 - **`IAsyncEnumerable<IAsyncDataRecord>`** -- `IAsyncDataReader` implements `IAsyncEnumerable`, enabling `await foreach` iteration over result sets.
 - **Adapter pattern** -- Existing `DbConnection`/`DbCommand`/`DbDataReader` instances are wrapped, not replaced. No provider-specific code needed.

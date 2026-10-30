@@ -31,7 +31,17 @@ public interface IAsyncDbConnection : IAsyncDisposable, IDisposable
     void Open();
     void Close();
 
+    /// <remarks>
+    /// The returned <see cref="ValueTask{TResult}"/> may be backed by a pooled source. Await it once,
+    /// and do not block on it with <c>GetAwaiter().GetResult()</c> or <c>Result</c> before it completes;
+    /// call <see cref="BeginTransaction()"/> to execute synchronously.
+    /// </remarks>
     ValueTask<IAsyncDbTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+    /// <remarks>
+    /// The returned <see cref="ValueTask{TResult}"/> may be backed by a pooled source. Await it once,
+    /// and do not block on it with <c>GetAwaiter().GetResult()</c> or <c>Result</c> before it completes;
+    /// call <see cref="BeginTransaction(IsolationLevel)"/> to execute synchronously.
+    /// </remarks>
     ValueTask<IAsyncDbTransaction> BeginTransactionAsync(IsolationLevel il, CancellationToken cancellationToken = default);
     ValueTask ChangeDatabaseAsync(string databaseName, CancellationToken cancellationToken = default);
     ValueTask OpenAsync(CancellationToken cancellationToken = default);
