@@ -75,6 +75,10 @@ public sealed class AdapterDbConnection : AsyncDbConnection
     // Sync members call the provider's own instead of the base class's sync-over-async bridge.
     protected override void OpenCore() => _inner.Open();
     protected override void CloseCore() => _inner.Close();
+    protected override void ChangeDatabaseCore(string databaseName) => _inner.ChangeDatabase(databaseName);
+
+    protected override IAsyncDbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+        => new AdapterDbTransaction(_inner.BeginTransaction(isolationLevel), this);
 
     // Dispose the provider's connection, not just close it. The base call that follows finds the
     // connection closed and does nothing more.
