@@ -24,15 +24,18 @@ public abstract class AsyncDbTransaction : IAsyncDbTransaction
 
     private bool _disposed;
 
-    public async ValueTask DisposeAsync()
+    // The core's task goes straight to the caller: awaiting it here would allocate a state
+    // machine whenever the core completes asynchronously.
+    public ValueTask DisposeAsync()
     {
-        if (!_disposed)
+        GC.SuppressFinalize(this);
+        if (_disposed)
         {
-            _disposed = true;
-            await DisposeAsyncCore().ConfigureAwait(false);
+            return default;
         }
 
-        GC.SuppressFinalize(this);
+        _disposed = true;
+        return DisposeAsyncCore();
     }
 
     protected virtual ValueTask DisposeAsyncCore() => default;
