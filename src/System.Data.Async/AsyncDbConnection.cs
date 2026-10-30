@@ -50,23 +50,40 @@ public abstract class AsyncDbConnection : IAsyncDbConnection
     public ValueTask OpenAsync(CancellationToken cancellationToken = default) => OpenCoreAsync(cancellationToken);
     public ValueTask CloseAsync() => CloseCoreAsync();
 
-    public async ValueTask DisposeAsync()
+    // A derived class that owns a resource overrides DisposeAsyncCore and Dispose(bool), so the
+    // resource is released whichever static type the caller disposes through. The core's task
+    // goes straight to the caller: awaiting it here would allocate a state machine whenever the
+    // core completes asynchronously. There is no finalizer, so the async path has no
+    // Dispose(false) step to run afterwards.
+    public ValueTask DisposeAsync()
     {
-        if (State != ConnectionState.Closed)
-        {
-            await CloseCoreAsync().ConfigureAwait(false);
-        }
-
         GC.SuppressFinalize(this);
+        return DisposeAsyncCore();
     }
+
+    /// <summary>
+    /// Releases the connection asynchronously. The default closes it if it is not closed. A
+    /// derived class that wraps another connection overrides this to dispose that connection.
+    /// </summary>
+    protected virtual ValueTask DisposeAsyncCore()
+        => State == ConnectionState.Closed ? default : CloseCoreAsync();
 
     public void Dispose()
     {
-        if (State != ConnectionState.Closed)
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases the connection. When <paramref name="disposing"/> is <see langword="true"/> the
+    /// default closes it if it is not closed. A derived class that wraps another connection
+    /// overrides this to dispose that connection.
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing && State != ConnectionState.Closed)
         {
             Close();
         }
-
-        GC.SuppressFinalize(this);
     }
 }
