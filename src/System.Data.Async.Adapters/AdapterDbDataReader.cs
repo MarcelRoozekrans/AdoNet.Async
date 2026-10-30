@@ -126,13 +126,15 @@ public sealed class AdapterDbDataReader : AsyncDbDataReader
     protected override bool NextResultCore() => _inner.NextResult();
     protected override void CloseCore() => _inner.Close();
 
-    // Dispose the provider's reader, not just close it. The base call that follows finds the
-    // reader closed and does nothing more.
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        await _inner.DisposeAsync().ConfigureAwait(false);
-        await base.DisposeAsyncCore().ConfigureAwait(false);
-    }
+    // Dispose the provider's reader, not just close it. When that completes synchronously the
+    // base call runs and finds the reader closed, since IsClosed reads the provider's reader.
+    // When it yields, the provider's task goes straight to the caller and the base call is
+    // skipped: all it could do is close the provider's reader, which disposing already closes.
+    // Awaiting the dispose and then the base call would box a state machine on every yield.
+    protected override ValueTask DisposeAsyncCore()
+        => ProviderTask.TryDisposeSynchronously(_inner, out var pending)
+            ? base.DisposeAsyncCore()
+            : pending;
 
     protected override void Dispose(bool disposing)
     {
