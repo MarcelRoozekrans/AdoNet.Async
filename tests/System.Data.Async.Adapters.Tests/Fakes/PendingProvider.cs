@@ -49,6 +49,7 @@ internal sealed class PendingDbConnection(PendingSlot slot) : DbConnection
     public override Task OpenAsync(CancellationToken cancellationToken) => slot.Take<Task>();
     public override Task CloseAsync() => slot.Take<Task>();
     public override Task ChangeDatabaseAsync(string databaseName, CancellationToken cancellationToken = default) => slot.Take<Task>();
+    protected override ValueTask<DbTransaction> BeginDbTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken) => new(slot.Take<Task<DbTransaction>>());
 }
 
 internal sealed class PendingDbTransaction(PendingSlot slot, DbConnection connection) : DbTransaction
@@ -82,6 +83,7 @@ internal sealed class PendingDbCommand(PendingSlot slot) : DbCommand
     protected override DbParameter CreateDbParameter() => throw new NotSupportedException();
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => throw new NotSupportedException();
 
+    protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) => slot.Take<Task<DbDataReader>>();
     public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken) => slot.Take<Task<int>>();
     public override Task<object?> ExecuteScalarAsync(CancellationToken cancellationToken) => slot.Take<Task<object?>>();
     public override Task PrepareAsync(CancellationToken cancellationToken = default) => slot.Take<Task>();

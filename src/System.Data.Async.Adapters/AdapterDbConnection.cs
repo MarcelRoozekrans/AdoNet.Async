@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 namespace System.Data.Async.Adapters;
 
@@ -61,6 +62,10 @@ public sealed class AdapterDbConnection : AsyncDbConnection
         }
     }
 
+    // Wrapping the provider's result needs an await. The pooling builder reuses the state machine
+    // box, so a yielding call allocates only the adapter object. Its ValueTask must be awaited once
+    // and never blocked on before it completes; the sync members call the provider directly.
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     protected override async ValueTask<IAsyncDbTransaction> BeginDbTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken)
         => new AdapterDbTransaction(await _inner.BeginTransactionAsync(isolationLevel, cancellationToken).ConfigureAwait(false), this);
 

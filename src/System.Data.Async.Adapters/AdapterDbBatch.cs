@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 namespace System.Data.Async.Adapters;
 
@@ -53,6 +54,10 @@ public sealed class AdapterDbBatch : AsyncDbBatch
 
     public override void Cancel() => _inner.Cancel();
 
+    // Wrapping the provider's result needs an await. The pooling builder reuses the state machine
+    // box, so a yielding call allocates only the adapter object. Its ValueTask must be awaited once
+    // and never blocked on before it completes; the sync members call the provider directly.
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     protected override async ValueTask<IAsyncDataReader> ExecuteDbReaderAsync(CancellationToken cancellationToken)
         => new AdapterDbDataReader(await _inner.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false));
 
