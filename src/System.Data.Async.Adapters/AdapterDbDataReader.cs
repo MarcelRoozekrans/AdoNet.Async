@@ -121,10 +121,10 @@ public sealed class AdapterDbDataReader : AsyncDbDataReader
     // TEXT-declared DateTimeOffset column, which a cast cannot survive).
     public override T GetFieldValue<T>(int i) => _inner.GetFieldValue<T>(i);
 
-    // Sync methods using native _inner (hide base class sync-over-async bridge)
-    public new bool Read() => _inner.Read();
-    public new bool NextResult() => _inner.NextResult();
-    public new void Close() => _inner.Close();
+    // Sync members call the provider's own instead of the base class's sync-over-async bridge.
+    protected override bool ReadCore() => _inner.Read();
+    protected override bool NextResultCore() => _inner.NextResult();
+    protected override void CloseCore() => _inner.Close();
 
     // Dispose the provider's reader, not just close it. The base call that follows finds the
     // reader closed and does nothing more.

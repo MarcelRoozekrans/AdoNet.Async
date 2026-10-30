@@ -34,8 +34,13 @@ public abstract class AsyncDbConnection : IAsyncDbConnection
     public IAsyncDbTransaction BeginTransaction(IsolationLevel il) { SyncBridge.ThrowIfBrowser(nameof(BeginTransactionAsync)); return BeginDbTransactionAsync(il, CancellationToken.None).GetAwaiter().GetResult(); }
     public void ChangeDatabase(string databaseName) { SyncBridge.ThrowIfBrowser(nameof(ChangeDatabaseAsync)); ChangeDatabaseCoreAsync(databaseName, CancellationToken.None).GetAwaiter().GetResult(); }
     public IAsyncDbCommand CreateCommand() => CreateDbCommand();
-    public void Open() { SyncBridge.ThrowIfBrowser(nameof(OpenAsync)); OpenCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
-    public void Close() { SyncBridge.ThrowIfBrowser(nameof(CloseAsync)); CloseCoreAsync().GetAwaiter().GetResult(); }
+    public void Open() => OpenCore();
+    public void Close() => CloseCore();
+
+    // Open and Close delegate to a virtual core. The defaults bridge to the async core and throw
+    // on WASM; a connection over a provider with native sync members overrides them to call those.
+    protected virtual void OpenCore() { SyncBridge.ThrowIfBrowser(nameof(OpenAsync)); OpenCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual void CloseCore() { SyncBridge.ThrowIfBrowser(nameof(CloseAsync)); CloseCoreAsync().GetAwaiter().GetResult(); }
 
     // Async delegates to core
     public ValueTask<IAsyncDbTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)

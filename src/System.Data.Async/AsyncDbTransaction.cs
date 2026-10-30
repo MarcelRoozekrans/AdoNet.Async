@@ -10,9 +10,13 @@ public abstract class AsyncDbTransaction : IAsyncDbTransaction
     protected abstract ValueTask CommitCoreAsync(CancellationToken cancellationToken);
     protected abstract ValueTask RollbackCoreAsync(CancellationToken cancellationToken);
 
-    // Sync -> async bridge (throws on WASM)
-    public void Commit() { SyncBridge.ThrowIfBrowser(nameof(CommitAsync)); CommitCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
-    public void Rollback() { SyncBridge.ThrowIfBrowser(nameof(RollbackAsync)); RollbackCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    // Sync members delegate to a virtual core. The defaults bridge to the async core and throw on
+    // WASM; a transaction over a provider with native sync members overrides them to call those.
+    public void Commit() => CommitCore();
+    public void Rollback() => RollbackCore();
+
+    protected virtual void CommitCore() { SyncBridge.ThrowIfBrowser(nameof(CommitAsync)); CommitCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual void RollbackCore() { SyncBridge.ThrowIfBrowser(nameof(RollbackAsync)); RollbackCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
 
     // Async delegates to core
     public ValueTask CommitAsync(CancellationToken cancellationToken = default) => CommitCoreAsync(cancellationToken);

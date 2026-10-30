@@ -72,9 +72,9 @@ public sealed class AdapterDbConnection : AsyncDbConnection
     public override IAsyncDbBatch CreateBatch()
         => new AdapterDbBatch(_inner.CreateBatch(), this);
 
-    // Sync methods using native _inner (hide base class sync-over-async bridge)
-    public new void Open() => _inner.Open();
-    public new void Close() => _inner.Close();
+    // Sync members call the provider's own instead of the base class's sync-over-async bridge.
+    protected override void OpenCore() => _inner.Open();
+    protected override void CloseCore() => _inner.Close();
 
     // Dispose the provider's connection, not just close it. The base call that follows finds the
     // connection closed and does nothing more.
