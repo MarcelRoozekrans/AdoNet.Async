@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.6](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.5...v1.5.6) (2026-10-30)
+
+
+### Performance Improvements
+
+* **adapters:** pool the state machines of the reader and transaction wrappers ([#375](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/375)) ([b94b454](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/b94b454ddc0446c86d566b094168a6a8f04de9c8)), closes [#368](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/368)
+
 ## [1.5.5](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.4...v1.5.5) (2026-10-30)
 
 
