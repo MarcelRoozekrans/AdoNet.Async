@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.3...v1.5.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* **adapters:** forward the provider's dispose without a state machine ([#371](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/371)) ([4e2ca69](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/4e2ca69e5fd0a56fc0f93741bd3dfaf7ce5351bb))
+
 ## [1.5.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.2...v1.5.3) (2026-10-30)
 
 
