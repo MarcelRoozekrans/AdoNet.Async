@@ -112,26 +112,28 @@ public sealed class AdapterDbBatch : AsyncDbBatch
     /// <summary>
     /// Pass-through wrapper around <see cref="DbBatch.BatchCommands"/>. The BCL surface
     /// is <c>DbBatchCommandCollection</c> (which is itself <c>IList&lt;DbBatchCommand&gt;</c>);
-    /// we only re-shape it as <c>IList&lt;IAsyncDbBatchCommand&gt;</c>. Each entry is wrapped in an
-    /// <see cref="AdapterDbBatchCommand"/> once and the wrapper is kept alongside its position, so
-    /// reading an entry hands back the same instance every time, including the instance that was
-    /// added, without allocating. Add/Insert accept any <see cref="IAsyncDbBatchCommand"/> and
-    /// unwrap to the underlying <c>DbBatchCommand</c>.
+    /// we only re-shape it as <c>IList&lt;IAsyncDbBatchCommand&gt;</c>. Add/Insert accept any
+    /// <see cref="IAsyncDbBatchCommand"/> and unwrap to the underlying <c>DbBatchCommand</c>,
+    /// storing nothing of their own, so building a batch costs only what the provider allocates.
+    /// The first read wraps each entry in an <see cref="AdapterDbBatchCommand"/> and keeps the
+    /// wrapper alongside its position, so every later read hands back that same instance without
+    /// allocating. IndexOf, Contains and Remove compare the underlying provider commands, so they
+    /// accept the instance that was added as well as the one a read returned.
     /// </summary>
     private sealed class BatchCommandList : IList<IAsyncDbBatchCommand>
     {
-        private readonly DbBatch _batch;
-
-        // Wrappers by position, mirroring _batch.BatchCommands. Every mutation made through this
-        // list keeps it aligned. A change made straight on the provider's collection can shift
-        // entries, so a read checks that the cached wrapper still wraps the command at that
-        // position and re-wraps it when it does not.
-        private readonly List<AdapterDbBatchCommand?> _wrappers = [];
+        // The provider's batch until the first read, then a WrapperCache over it. One field keeps
+        // this list as small as it is without a cache, so a batch that is built, run and disposed
+        // without being read back allocates nothing here beyond the list itself.
+        private object _state;
 
         public BatchCommandList(DbBatch batch)
         {
-            _batch = batch;
+            _state = batch;
         }
+
+        private DbBatchCommandCollection Commands
+            => (_state is WrapperCache cache ? cache.Batch : (DbBatch)_state).BatchCommands;
 
         public IAsyncDbBatchCommand this[int index]
         {
@@ -139,50 +141,63 @@ public sealed class AdapterDbBatch : AsyncDbBatch
             set
             {
                 var wrapped = Cast(value);
-                _batch.BatchCommands[index] = wrapped.InnerCommand;
-                Store(index, wrapped);
+                Commands[index] = wrapped.InnerCommand;
+                if (_state is WrapperCache cache)
+                {
+                    cache.Store(index, wrapped);
+                }
             }
         }
 
-        public int Count => _batch.BatchCommands.Count;
-        public bool IsReadOnly => _batch.BatchCommands.IsReadOnly;
+        public int Count => Commands.Count;
+        public bool IsReadOnly => Commands.IsReadOnly;
 
         public void Add(IAsyncDbBatchCommand item)
         {
             var wrapped = Cast(item);
-            _batch.BatchCommands.Add(wrapped.InnerCommand);
-            Store(_batch.BatchCommands.Count - 1, wrapped);
+            var commands = Commands;
+            commands.Add(wrapped.InnerCommand);
+            if (_state is WrapperCache cache)
+            {
+                cache.Store(commands.Count - 1, wrapped);
+            }
         }
 
         public void Clear()
         {
-            _batch.BatchCommands.Clear();
-            _wrappers.Clear();
+            Commands.Clear();
+            if (_state is WrapperCache cache)
+            {
+                cache.Wrappers.Clear();
+            }
         }
 
-        public bool Contains(IAsyncDbBatchCommand item) => _batch.BatchCommands.Contains(Cast(item).InnerCommand);
+        public bool Contains(IAsyncDbBatchCommand item) => Commands.Contains(Cast(item).InnerCommand);
 
         public void CopyTo(IAsyncDbBatchCommand[] array, int arrayIndex)
         {
             ArgumentNullException.ThrowIfNull(array);
-            for (var i = 0; i < _batch.BatchCommands.Count; i++)
+            for (var i = 0; i < Commands.Count; i++)
             {
                 array[arrayIndex + i] = Wrap(i);
             }
         }
 
-        public int IndexOf(IAsyncDbBatchCommand item) => _batch.BatchCommands.IndexOf(Cast(item).InnerCommand);
+        public int IndexOf(IAsyncDbBatchCommand item) => Commands.IndexOf(Cast(item).InnerCommand);
 
         public void Insert(int index, IAsyncDbBatchCommand item)
         {
             var wrapped = Cast(item);
-            _batch.BatchCommands.Insert(index, wrapped.InnerCommand);
-            while (_wrappers.Count < index)
+            Commands.Insert(index, wrapped.InnerCommand);
+            if (_state is WrapperCache cache)
             {
-                _wrappers.Add(null);
-            }
+                while (cache.Wrappers.Count < index)
+                {
+                    cache.Wrappers.Add(null);
+                }
 
-            _wrappers.Insert(index, wrapped);
+                cache.Wrappers.Insert(index, wrapped);
+            }
         }
 
         public bool Remove(IAsyncDbBatchCommand item)
@@ -199,10 +214,10 @@ public sealed class AdapterDbBatch : AsyncDbBatch
 
         public void RemoveAt(int index)
         {
-            _batch.BatchCommands.RemoveAt(index);
-            if (index < _wrappers.Count)
+            Commands.RemoveAt(index);
+            if (_state is WrapperCache cache && index < cache.Wrappers.Count)
             {
-                _wrappers.RemoveAt(index);
+                cache.Wrappers.RemoveAt(index);
             }
         }
 
@@ -212,7 +227,7 @@ public sealed class AdapterDbBatch : AsyncDbBatch
 #pragma warning disable HLQ006
         public IEnumerator<IAsyncDbBatchCommand> GetEnumerator()
         {
-            for (var i = 0; i < _batch.BatchCommands.Count; i++)
+            for (var i = 0; i < Commands.Count; i++)
             {
                 yield return Wrap(i);
             }
@@ -223,23 +238,66 @@ public sealed class AdapterDbBatch : AsyncDbBatch
 
         private AdapterDbBatchCommand Wrap(int index)
         {
-            var raw = _batch.BatchCommands[index];
-            if (index < _wrappers.Count && _wrappers[index] is { } cached && ReferenceEquals(cached.InnerCommand, raw))
+            if (_state is not WrapperCache cache)
+            {
+                cache = new WrapperCache((DbBatch)_state);
+                _state = cache;
+            }
+
+            var raw = cache.Batch.BatchCommands[index];
+            var wrappers = cache.Wrappers;
+            if (index < wrappers.Count && wrappers[index] is { } cached && ReferenceEquals(cached.InnerCommand, raw))
             {
                 return cached;
             }
 
-            Resync();
-            return _wrappers[index]!;
+            cache.Resync();
+            return wrappers[index]!;
         }
 
-        // Rebuilds the mirror after the provider's collection changed behind this list, reusing
-        // the wrapper already handed out for each command so identities stay stable.
-        private void Resync()
+        private static AdapterDbBatchCommand Cast(IAsyncDbBatchCommand item)
         {
-            var previous = _wrappers.ToArray();
-            var commands = _batch.BatchCommands;
-            _wrappers.Clear();
+            ArgumentNullException.ThrowIfNull(item);
+            return item as AdapterDbBatchCommand
+                ?? throw new ArgumentException(
+                    "Only AdapterDbBatchCommand instances are accepted by AdapterDbBatch.BatchCommands. " +
+                    "Use IAsyncDbBatch.CreateBatchCommand() to construct commands compatible with this batch.",
+                    nameof(item));
+        }
+    }
+
+    // The wrappers handed out by reads, by position, mirroring the provider's BatchCommands. Every
+    // mutation made through BatchCommandList keeps it aligned. A change made straight on the
+    // provider's collection can shift entries, so a read checks that the cached wrapper still
+    // wraps the command at that position and resyncs when it does not.
+    private sealed class WrapperCache
+    {
+        public WrapperCache(DbBatch batch)
+        {
+            Batch = batch;
+        }
+
+        public DbBatch Batch { get; }
+
+        public List<AdapterDbBatchCommand?> Wrappers { get; } = [];
+
+        public void Store(int index, AdapterDbBatchCommand wrapped)
+        {
+            while (Wrappers.Count <= index)
+            {
+                Wrappers.Add(null);
+            }
+
+            Wrappers[index] = wrapped;
+        }
+
+        // Rebuilds the mirror after the provider's collection changed, reusing the wrapper
+        // already handed out for each command so identities stay stable.
+        public void Resync()
+        {
+            var previous = Wrappers.ToArray();
+            var commands = Batch.BatchCommands;
+            Wrappers.Clear();
             for (var i = 0; i < commands.Count; i++)
             {
                 var raw = commands[i];
@@ -253,28 +311,8 @@ public sealed class AdapterDbBatch : AsyncDbBatch
                     }
                 }
 
-                _wrappers.Add(existing ?? new AdapterDbBatchCommand(raw));
+                Wrappers.Add(existing ?? new AdapterDbBatchCommand(raw));
             }
-        }
-
-        private void Store(int index, AdapterDbBatchCommand wrapped)
-        {
-            while (_wrappers.Count <= index)
-            {
-                _wrappers.Add(null);
-            }
-
-            _wrappers[index] = wrapped;
-        }
-
-        private static AdapterDbBatchCommand Cast(IAsyncDbBatchCommand item)
-        {
-            ArgumentNullException.ThrowIfNull(item);
-            return item as AdapterDbBatchCommand
-                ?? throw new ArgumentException(
-                    "Only AdapterDbBatchCommand instances are accepted by AdapterDbBatch.BatchCommands. " +
-                    "Use IAsyncDbBatch.CreateBatchCommand() to construct commands compatible with this batch.",
-                    nameof(item));
         }
     }
 }
