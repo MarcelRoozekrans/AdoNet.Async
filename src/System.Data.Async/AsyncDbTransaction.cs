@@ -46,7 +46,19 @@ public abstract class AsyncDbTransaction : IAsyncDbTransaction
         {
             _disposed = true;
             SyncBridge.ThrowIfBrowser(nameof(DisposeAsync));
-            DisposeAsyncCore().GetAwaiter().GetResult();
+
+            // A ValueTask may only be read once it has completed, unless a Task backs it. A
+            // derived core can hand back a provider's own ValueTask, so block on a pending one
+            // through AsTask.
+            var disposing = DisposeAsyncCore();
+            if (disposing.IsCompleted)
+            {
+                disposing.GetAwaiter().GetResult();
+            }
+            else
+            {
+                disposing.AsTask().GetAwaiter().GetResult();
+            }
         }
 
         GC.SuppressFinalize(this);

@@ -44,11 +44,13 @@ public sealed class AdapterDbTransaction : AsyncDbTransaction
         }
     }
 
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        await _inner.DisposeAsync().ConfigureAwait(false);
-        await base.DisposeAsyncCore().ConfigureAwait(false);
-    }
+    // Dispose the provider's transaction. When that yields, the provider's task goes straight to
+    // the caller and the base call is skipped: the base core does nothing. Awaiting the dispose
+    // and then the base call would box a state machine on every yield.
+    protected override ValueTask DisposeAsyncCore()
+        => ProviderTask.TryDisposeSynchronously(_inner, out var pending)
+            ? base.DisposeAsyncCore()
+            : pending;
 
     // Sync members call the provider's own instead of the base class's sync-over-async bridge.
     protected override void CommitCore() => _inner.Commit();

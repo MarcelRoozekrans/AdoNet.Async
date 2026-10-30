@@ -19,4 +19,36 @@ internal static class ProviderTask
 
     public static async ValueTask FromThrown(Exception exception)
         => await Task.FromException(exception).ConfigureAwait(false);
+
+    /// <summary>
+    /// Starts disposing a provider object. Returns <see langword="true"/> when the dispose
+    /// completed successfully and synchronously; its result is then already observed. Otherwise
+    /// <paramref name="pending"/> holds the dispose for the caller to await: still running, faulted
+    /// or canceled, or a synchronous throw delivered the way <see cref="FromThrown(Exception)"/> does.
+    /// </summary>
+    /// <remarks>
+    /// An adapter's DisposeAsyncCore hands <paramref name="pending"/> straight to its caller instead
+    /// of awaiting it, which would allocate a state machine whenever the provider's dispose yields.
+    /// </remarks>
+    public static bool TryDisposeSynchronously(IAsyncDisposable provider, out ValueTask pending)
+    {
+        try
+        {
+            pending = provider.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            pending = FromThrown(ex);
+            return false;
+        }
+
+        if (!pending.IsCompletedSuccessfully)
+        {
+            return false;
+        }
+
+        pending.GetAwaiter().GetResult();
+        pending = default;
+        return true;
+    }
 }

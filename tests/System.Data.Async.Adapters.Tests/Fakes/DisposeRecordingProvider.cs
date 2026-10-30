@@ -5,14 +5,25 @@
 using System.Collections;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks.Sources;
 
 namespace System.Data.Async.Adapters.Tests.Fakes;
+
+/// <summary>
+/// What a test can set on any of the dispose-recording fakes to choose how its DisposeAsync ends.
+/// </summary>
+internal interface IDisposeRecordingProvider
+{
+    Task? PendingDispose { get; set; }
+
+    Exception? ThrowOnDisposeAsync { get; set; }
+}
 
 /// <summary>
 /// A provider reader that counts how it was disposed, so a test can tell whether disposing the
 /// adapter reached the provider object or only closed it.
 /// </summary>
-internal sealed class DisposeRecordingDbDataReader : DbDataReader
+internal sealed class DisposeRecordingDbDataReader : DbDataReader, IDisposeRecordingProvider
 {
     private bool _closed;
 
@@ -52,11 +63,25 @@ internal sealed class DisposeRecordingDbDataReader : DbDataReader
         base.Dispose(disposing);
     }
 
+    /// <summary>
+    /// When set, DisposeAsync hands back this task instead of completing synchronously, the way
+    /// a network provider's dispose waits on the server.
+    /// </summary>
+    public Task? PendingDispose { get; set; }
+
+    /// <summary>When set, DisposeAsync throws this synchronously instead of returning a task.</summary>
+    public Exception? ThrowOnDisposeAsync { get; set; }
+
     public override ValueTask DisposeAsync()
     {
         DisposeAsyncCalls++;
+        if (ThrowOnDisposeAsync is { } thrown)
+        {
+            throw thrown;
+        }
+
         _closed = true;
-        return base.DisposeAsync();
+        return PendingDispose is { } pending ? new ValueTask(pending) : base.DisposeAsync();
     }
 
     public override bool GetBoolean(int ordinal) => throw new NotSupportedException();
@@ -89,7 +114,7 @@ internal sealed class DisposeRecordingDbDataReader : DbDataReader
 /// A provider connection that counts how it was disposed. It starts open, so the base class's
 /// close-on-dispose path is the one a hidden dispose would fall back to.
 /// </summary>
-internal sealed class DisposeRecordingDbConnection : DbConnection
+internal sealed class DisposeRecordingDbConnection : DbConnection, IDisposeRecordingProvider
 {
     private ConnectionState _state = ConnectionState.Open;
 
@@ -128,15 +153,104 @@ internal sealed class DisposeRecordingDbConnection : DbConnection
         base.Dispose(disposing);
     }
 
+    /// <summary>
+    /// When set, DisposeAsync hands back this task instead of completing synchronously, the way
+    /// a network provider's dispose waits on the server.
+    /// </summary>
+    public Task? PendingDispose { get; set; }
+
+    /// <summary>When set, DisposeAsync throws this synchronously instead of returning a task.</summary>
+    public Exception? ThrowOnDisposeAsync { get; set; }
+
     public override ValueTask DisposeAsync()
     {
         DisposeAsyncCalls++;
+        if (ThrowOnDisposeAsync is { } thrown)
+        {
+            throw thrown;
+        }
+
         _state = ConnectionState.Closed;
-        return base.DisposeAsync();
+        return PendingDispose is { } pending ? new ValueTask(pending) : base.DisposeAsync();
     }
 
     public override void ChangeDatabase(string databaseName) => throw new NotSupportedException();
     public override void Open() => throw new NotSupportedException();
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotSupportedException();
     protected override DbCommand CreateDbCommand() => throw new NotSupportedException();
+}
+
+/// <summary>
+/// A provider transaction that counts how it was disposed.
+/// </summary>
+internal sealed class DisposeRecordingDbTransaction(DbConnection connection) : DbTransaction, IDisposeRecordingProvider
+{
+    /// <summary>Calls of Dispose, including the one the base DisposeAsync makes.</summary>
+    public int DisposeCalls { get; private set; }
+    public int DisposeAsyncCalls { get; private set; }
+
+    /// <summary>
+    /// When set, DisposeAsync hands back this task instead of completing synchronously, the way
+    /// a network provider's dispose waits on the server.
+    /// </summary>
+    public Task? PendingDispose { get; set; }
+
+    /// <summary>When set, DisposeAsync throws this synchronously instead of returning a task.</summary>
+    public Exception? ThrowOnDisposeAsync { get; set; }
+
+    public override IsolationLevel IsolationLevel => IsolationLevel.ReadCommitted;
+    protected override DbConnection DbConnection => connection;
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            DisposeCalls++;
+        }
+
+        base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// When set, DisposeAsync hands back a ValueTask over this source rather than over a Task,
+    /// as a provider with pooled dispose operations does.
+    /// </summary>
+    public IValueTaskSource? PendingDisposeSource { get; set; }
+
+    public override ValueTask DisposeAsync()
+    {
+        DisposeAsyncCalls++;
+        if (ThrowOnDisposeAsync is { } thrown)
+        {
+            throw thrown;
+        }
+
+        if (PendingDisposeSource is { } source)
+        {
+            return new ValueTask(source, 0);
+        }
+
+        return PendingDispose is { } pending ? new ValueTask(pending) : base.DisposeAsync();
+    }
+
+    public override void Commit() => throw new NotSupportedException();
+    public override void Rollback() => throw new NotSupportedException();
+}
+
+/// <summary>
+/// A single-use IValueTaskSource a test completes by hand, so a ValueTask over it is pending
+/// until then and is not backed by a Task.
+/// </summary>
+internal sealed class ManualValueTaskSource : IValueTaskSource
+{
+    private ManualResetValueTaskSourceCore<bool> _core;
+
+    public void SetResult() => _core.SetResult(true);
+
+    public void GetResult(short token) => _core.GetResult(token);
+
+    public ValueTaskSourceStatus GetStatus(short token) => _core.GetStatus(token);
+
+    public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
+        => _core.OnCompleted(continuation, state, token, flags);
 }
