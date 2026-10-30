@@ -110,12 +110,11 @@ public sealed class AdapterDbCommand : AsyncDbCommand
         }
     }
 
-    // Sync methods using native _inner (hide base class sync-over-async bridge)
-    public new IAsyncDataReader ExecuteReader() => new AdapterDbDataReader(_inner.ExecuteReader());
-    public new IAsyncDataReader ExecuteReader(CommandBehavior behavior) => new AdapterDbDataReader(_inner.ExecuteReader(behavior));
-    public new int ExecuteNonQuery() => _inner.ExecuteNonQuery();
-    public new object? ExecuteScalar() => _inner.ExecuteScalar();
-    public new void Prepare() => _inner.Prepare();
+    // Sync members call the provider's own instead of the base class's sync-over-async bridge.
+    protected override IAsyncDataReader ExecuteDbReader(CommandBehavior behavior) => new AdapterDbDataReader(_inner.ExecuteReader(behavior));
+    protected override int ExecuteNonQueryCore() => _inner.ExecuteNonQuery();
+    protected override object? ExecuteScalarCore() => _inner.ExecuteScalar();
+    protected override void PrepareCore() => _inner.Prepare();
 
     protected override void Dispose(bool disposing)
     {

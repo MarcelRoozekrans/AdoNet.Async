@@ -60,10 +60,15 @@ public abstract class AsyncDbDataReader : IAsyncDataReader
     public virtual ValueTask<DataTable> GetSchemaTableAsync(CancellationToken cancellationToken = default)
         => new(GetSchemaTable());
 
-    // Sync -> async bridge (throws on WASM)
-    public bool Read() { SyncBridge.ThrowIfBrowser(nameof(ReadAsync)); return ReadCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
-    public bool NextResult() { SyncBridge.ThrowIfBrowser(nameof(NextResultAsync)); return NextResultCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
-    public void Close() { SyncBridge.ThrowIfBrowser(nameof(CloseAsync)); CloseCoreAsync().GetAwaiter().GetResult(); }
+    // Sync members delegate to a virtual core. The defaults bridge to the async core and throw on
+    // WASM; a reader over a provider with native sync members overrides them to call those.
+    public bool Read() => ReadCore();
+    public bool NextResult() => NextResultCore();
+    public void Close() => CloseCore();
+
+    protected virtual bool ReadCore() { SyncBridge.ThrowIfBrowser(nameof(ReadAsync)); return ReadCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual bool NextResultCore() { SyncBridge.ThrowIfBrowser(nameof(NextResultAsync)); return NextResultCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual void CloseCore() { SyncBridge.ThrowIfBrowser(nameof(CloseAsync)); CloseCoreAsync().GetAwaiter().GetResult(); }
 
     // Template methods -- async delegates to core
     public ValueTask<bool> ReadAsync(CancellationToken cancellationToken = default) => ReadCoreAsync(cancellationToken);
@@ -79,25 +84,40 @@ public abstract class AsyncDbDataReader : IAsyncDataReader
         }
     }
 
-    // IAsyncDisposable
-    public async ValueTask DisposeAsync()
+    // IAsyncDisposable. A derived class that owns a resource overrides DisposeAsyncCore and
+    // Dispose(bool), so the resource is released whichever static type the caller disposes
+    // through. The core's task goes straight to the caller: awaiting it here would allocate a
+    // state machine whenever the core completes asynchronously. There is no finalizer, so the
+    // async path has no Dispose(false) step to run afterwards.
+    public ValueTask DisposeAsync()
     {
-        if (!IsClosed)
-        {
-            await CloseCoreAsync().ConfigureAwait(false);
-        }
-
         GC.SuppressFinalize(this);
+        return DisposeAsyncCore();
     }
+
+    /// <summary>
+    /// Releases the reader asynchronously. The default closes it if it is still open. A derived
+    /// class that wraps another reader overrides this to dispose that reader.
+    /// </summary>
+    protected virtual ValueTask DisposeAsyncCore() => IsClosed ? default : CloseCoreAsync();
 
     // IDisposable
     public void Dispose()
     {
-        if (!IsClosed)
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases the reader. When <paramref name="disposing"/> is <see langword="true"/> the
+    /// default closes it if it is still open. A derived class that wraps another reader
+    /// overrides this to dispose that reader.
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing && !IsClosed)
         {
             Close();
         }
-
-        GC.SuppressFinalize(this);
     }
 }

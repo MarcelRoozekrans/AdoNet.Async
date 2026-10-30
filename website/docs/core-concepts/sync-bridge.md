@@ -9,18 +9,20 @@ Every async interface in AdoNet.Async also exposes synchronous methods. This dua
 
 ## How sync methods work
 
-The abstract base classes (`AsyncDbConnection`, `AsyncDbDataReader`, `AsyncDbCommand`, `AsyncDbTransaction`, `AsyncDataAdapter`) implement sync methods by calling the async core method and blocking on the result:
+The abstract base classes (`AsyncDbConnection`, `AsyncDbDataReader`, `AsyncDbCommand`, `AsyncDbTransaction`, `AsyncDataAdapter`) implement sync methods by calling the async core method and blocking on the result. In the connection, reader, command and transaction base classes, each public sync method delegates to a protected virtual sync core whose default is that bridge:
 
 ```csharp
 // Inside AsyncDbConnection
-public void Open()
+public void Open() => OpenCore();
+
+protected virtual void OpenCore()
 {
     SyncBridge.ThrowIfBrowser(nameof(OpenAsync));
     OpenCoreAsync(CancellationToken.None).GetAwaiter().GetResult();
 }
 ```
 
-The pattern is the same everywhere:
+The default bridge follows the same pattern everywhere:
 
 1. Check if running on WASM browser -- if so, throw `PlatformNotSupportedException`
 2. Call the async core method with `CancellationToken.None`
@@ -53,20 +55,20 @@ On Blazor WebAssembly, calling any sync method (`Open()`, `Read()`, `ExecuteScal
 
 ## Adapter optimization: no sync-over-async
 
-The `AdoNet.Async.Adapters` package provides an important optimization. The adapter wrappers (`AdapterDbConnection`, `AdapterDbDataReader`, `AdapterDbCommand`, `AdapterDbTransaction`) **hide** the base class sync methods with `new` methods that call the native sync method on the inner object directly:
+The `AdoNet.Async.Adapters` package provides an important optimization. The adapter wrappers (`AdapterDbConnection`, `AdapterDbDataReader`, `AdapterDbCommand`, `AdapterDbTransaction`) **override** the base class sync cores to call the native sync method on the inner object directly:
 
 ```csharp
 // Inside AdapterDbConnection
-public new void Open() => _inner.Open();       // calls DbConnection.Open() directly
-public new void Close() => _inner.Close();     // calls DbConnection.Close() directly
+protected override void OpenCore() => _inner.Open();       // calls DbConnection.Open() directly
+protected override void CloseCore() => _inner.Close();     // calls DbConnection.Close() directly
 
 // Inside AdapterDbDataReader
-public new bool Read() => _inner.Read();       // calls DbDataReader.Read() directly
-public new bool NextResult() => _inner.NextResult();
-public new void Close() => _inner.Close();
+protected override bool ReadCore() => _inner.Read();       // calls DbDataReader.Read() directly
+protected override bool NextResultCore() => _inner.NextResult();
+protected override void CloseCore() => _inner.Close();
 ```
 
-This means that when you use the adapter wrappers (which is the common case), sync methods do **not** go through the sync-over-async bridge. They call the provider's native synchronous implementation directly, with zero overhead.
+Because these are overrides, the optimization applies whichever static type you call through: the adapter type, the base class, or an interface such as `IAsyncDbConnection`. Sync methods do **not** go through the sync-over-async bridge. They call the provider's native synchronous implementation directly, with zero overhead.
 
 ### When the optimization applies
 
@@ -77,10 +79,14 @@ This means that when you use the adapter wrappers (which is the common case), sy
 | `AdapterDbDataReader` | `Read()` | Calls `DbDataReader.Read()` directly |
 | `AdapterDbDataReader` | `NextResult()` | Calls `DbDataReader.NextResult()` directly |
 | `AdapterDbDataReader` | `Close()` | Calls `DbDataReader.Close()` directly |
+| `AdapterDbCommand` | `ExecuteReader()`, `ExecuteNonQuery()`, `ExecuteScalar()`, `Prepare()` | Calls the matching `DbCommand` method directly |
+| `AdapterDbTransaction` | `Commit()`, `Rollback()` | Calls the matching `DbTransaction` method directly |
 
 ### When the bridge is used
 
-If you implement a custom `AsyncDbConnection` or `AsyncDbDataReader` subclass (without hiding the sync methods), the base class sync bridge is used. This is the less common case, and it still works correctly on all platforms except WASM browser.
+If you implement a custom `AsyncDbConnection` or `AsyncDbDataReader` subclass without overriding the sync cores, the base class sync bridge is used. This is the less common case, and it still works correctly on all platforms except WASM browser.
+
+The adapters' `BeginTransaction()` and `ChangeDatabase()` on the connection, and the sync members of `AdapterDbBatch`, also still go through the bridge.
 
 The `AsyncDataAdapter` base class also uses the sync bridge for its `Fill()` and `Update()` methods, since there is no native sync adapter to delegate to.
 

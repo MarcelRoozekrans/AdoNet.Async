@@ -19,12 +19,18 @@ public abstract class AsyncDbCommand : IAsyncDbCommand
     protected abstract ValueTask<object?> ExecuteScalarCoreAsync(CancellationToken cancellationToken);
     protected abstract ValueTask PrepareCoreAsync(CancellationToken cancellationToken);
 
-    // Sync -> async bridge (throws on WASM)
-    public IAsyncDataReader ExecuteReader() { SyncBridge.ThrowIfBrowser(nameof(ExecuteReaderAsync)); return ExecuteDbReaderAsync(CommandBehavior.Default, CancellationToken.None).GetAwaiter().GetResult(); }
-    public IAsyncDataReader ExecuteReader(CommandBehavior behavior) { SyncBridge.ThrowIfBrowser(nameof(ExecuteReaderAsync)); return ExecuteDbReaderAsync(behavior, CancellationToken.None).GetAwaiter().GetResult(); }
-    public int ExecuteNonQuery() { SyncBridge.ThrowIfBrowser(nameof(ExecuteNonQueryAsync)); return ExecuteNonQueryCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
-    public object? ExecuteScalar() { SyncBridge.ThrowIfBrowser(nameof(ExecuteScalarAsync)); return ExecuteScalarCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
-    public void Prepare() { SyncBridge.ThrowIfBrowser(nameof(PrepareAsync)); PrepareCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    // Sync members delegate to a virtual core. The defaults bridge to the async core and throw on
+    // WASM; a command over a provider with native sync members overrides them to call those.
+    public IAsyncDataReader ExecuteReader() => ExecuteDbReader(CommandBehavior.Default);
+    public IAsyncDataReader ExecuteReader(CommandBehavior behavior) => ExecuteDbReader(behavior);
+    public int ExecuteNonQuery() => ExecuteNonQueryCore();
+    public object? ExecuteScalar() => ExecuteScalarCore();
+    public void Prepare() => PrepareCore();
+
+    protected virtual IAsyncDataReader ExecuteDbReader(CommandBehavior behavior) { SyncBridge.ThrowIfBrowser(nameof(ExecuteReaderAsync)); return ExecuteDbReaderAsync(behavior, CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual int ExecuteNonQueryCore() { SyncBridge.ThrowIfBrowser(nameof(ExecuteNonQueryAsync)); return ExecuteNonQueryCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual object? ExecuteScalarCore() { SyncBridge.ThrowIfBrowser(nameof(ExecuteScalarAsync)); return ExecuteScalarCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+    protected virtual void PrepareCore() { SyncBridge.ThrowIfBrowser(nameof(PrepareAsync)); PrepareCoreAsync(CancellationToken.None).GetAwaiter().GetResult(); }
 
     // Async delegates to core
     public ValueTask<IAsyncDataReader> ExecuteReaderAsync(CancellationToken cancellationToken = default)

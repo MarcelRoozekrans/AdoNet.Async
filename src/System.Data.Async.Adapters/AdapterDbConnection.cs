@@ -72,22 +72,25 @@ public sealed class AdapterDbConnection : AsyncDbConnection
     public override IAsyncDbBatch CreateBatch()
         => new AdapterDbBatch(_inner.CreateBatch(), this);
 
-    // Sync methods using native _inner (hide base class sync-over-async bridge)
-    public new void Open() => _inner.Open();
-    public new void Close() => _inner.Close();
+    // Sync members call the provider's own instead of the base class's sync-over-async bridge.
+    protected override void OpenCore() => _inner.Open();
+    protected override void CloseCore() => _inner.Close();
 
-    // Override to properly dispose the inner connection
-#pragma warning disable CA1816 // Hiding base Dispose to delegate to inner connection
-    public new async ValueTask DisposeAsync()
+    // Dispose the provider's connection, not just close it. The base call that follows finds the
+    // connection closed and does nothing more.
+    protected override async ValueTask DisposeAsyncCore()
     {
         await _inner.DisposeAsync().ConfigureAwait(false);
-        GC.SuppressFinalize(this);
+        await base.DisposeAsyncCore().ConfigureAwait(false);
     }
 
-    public new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        _inner.Dispose();
-        GC.SuppressFinalize(this);
+        if (disposing)
+        {
+            _inner.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
-#pragma warning restore CA1816
 }

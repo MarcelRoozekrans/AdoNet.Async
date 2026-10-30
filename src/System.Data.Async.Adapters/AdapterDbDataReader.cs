@@ -121,23 +121,26 @@ public sealed class AdapterDbDataReader : AsyncDbDataReader
     // TEXT-declared DateTimeOffset column, which a cast cannot survive).
     public override T GetFieldValue<T>(int i) => _inner.GetFieldValue<T>(i);
 
-    // Sync methods using native _inner (hide base class sync-over-async bridge)
-    public new bool Read() => _inner.Read();
-    public new bool NextResult() => _inner.NextResult();
-    public new void Close() => _inner.Close();
+    // Sync members call the provider's own instead of the base class's sync-over-async bridge.
+    protected override bool ReadCore() => _inner.Read();
+    protected override bool NextResultCore() => _inner.NextResult();
+    protected override void CloseCore() => _inner.Close();
 
-    // Override to properly dispose the inner reader
-#pragma warning disable CA1816 // Hiding base Dispose to delegate to inner reader
-    public new async ValueTask DisposeAsync()
+    // Dispose the provider's reader, not just close it. The base call that follows finds the
+    // reader closed and does nothing more.
+    protected override async ValueTask DisposeAsyncCore()
     {
         await _inner.DisposeAsync().ConfigureAwait(false);
-        GC.SuppressFinalize(this);
+        await base.DisposeAsyncCore().ConfigureAwait(false);
     }
 
-    public new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        _inner.Dispose();
-        GC.SuppressFinalize(this);
+        if (disposing)
+        {
+            _inner.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
-#pragma warning restore CA1816
 }

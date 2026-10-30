@@ -50,7 +50,7 @@ public sealed class AdapterDbTransaction : AsyncDbTransaction
         await base.DisposeAsyncCore().ConfigureAwait(false);
     }
 
-    // Sync methods using native _inner (hide base class sync-over-async bridge)
-    public new void Commit() => _inner.Commit();
-    public new void Rollback() => _inner.Rollback();
+    // Sync members call the provider's own instead of the base class's sync-over-async bridge.
+    protected override void CommitCore() => _inner.Commit();
+    protected override void RollbackCore() => _inner.Rollback();
 }
