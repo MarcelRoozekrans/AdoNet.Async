@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.3](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.2...v1.5.3) (2026-10-30)
+
+
+### Bug Fixes
+
+* **adapters:** dispose the provider reader and connection through any static type ([#366](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/366)) ([5284439](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/52844393775fd4de3f4a0bf471038e3a0947b999))
+* **adapters:** run the provider's sync transaction, database and batch members ([#370](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/370)) ([b6aa871](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/b6aa87164b78825af6d5c8fe78adbb4c96a3ba71))
+
 ## [1.5.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.1...v1.5.2) (2026-10-11)
 
 
