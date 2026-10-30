@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.5](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.4...v1.5.5) (2026-10-30)
+
+
+### Bug Fixes
+
+* **adapters:** stop storing a wrapper per added batch command ([#373](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/373)) ([a792fe4](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/a792fe4e97c86cdc3baed7cb9c3a1b7721907a93))
+
 ## [1.5.4](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.3...v1.5.4) (2026-10-30)
 
 
