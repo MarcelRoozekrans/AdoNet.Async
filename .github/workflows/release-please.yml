@@ -77,3 +77,11 @@ jobs:
         run: gh release upload ${{ needs.release-please.outputs.tag_name }} ./nupkg/*.nupkg
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # A CycloneDX SBOM of the solution, attached to the same release. release-please created the release in the job
+      # above, and this job runs on main, so the tag comes from release-please's tag_name output, not github.ref_name.
+      - name: Attach the SBOM to the GitHub release
+        uses: MarcelRoozekrans/ci-baseline/actions/sbom@v1
+        with:
+          solution: System.Data.Async.slnx
+          tag: ${{ needs.release-please.outputs.tag_name }}
