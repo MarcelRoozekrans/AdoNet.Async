@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.6...v1.6.0) (2026-11-11)
+
+
+### Features
+
+* add net11.0 target ([#391](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/391)) ([023d6c0](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/023d6c07652adc9a4b3629bfb75209a8ae4f7b72))
+
 ## [1.5.6](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.5...v1.5.6) (2026-10-30)
 
 
