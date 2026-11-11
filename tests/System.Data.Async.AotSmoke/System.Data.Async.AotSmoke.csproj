@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFrameworks />
+    <TargetFramework>net11.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>System.Data.Async.AotSmoke</RootNamespace>
     <AssemblyName>System.Data.Async.AotSmoke</AssemblyName>
