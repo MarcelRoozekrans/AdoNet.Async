@@ -26,7 +26,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: |
+            10.0.x
+            11.0.x
 
       - name: Restore smoke test
         run: dotnet restore tests/System.Data.Async.AotSmoke/System.Data.Async.AotSmoke.csproj

@@ -18,3 +18,4 @@ jobs:
     uses: MarcelRoozekrans/ci-baseline/.github/workflows/baseline.yml@v1
     with:
       solution: System.Data.Async.slnx
+      dotnet-version: global-json

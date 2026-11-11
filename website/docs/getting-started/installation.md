@@ -7,7 +7,7 @@ title: Installation
 
 ## Prerequisites
 
-AdoNet.Async targets **.NET 10** (`net10.0`). Make sure you have the .NET 10 SDK installed.
+AdoNet.Async targets **.NET 10** (`net10.0`) and **.NET 11** (`net11.0`). Make sure you have the .NET 10 or .NET 11 SDK installed.
 
 ## Packages
 
