@@ -33,7 +33,6 @@ jobs:
         uses: googleapis/release-please-action@v5
         id: release
         with:
-          release-type: simple
           # The release bot App token from the step above, not GITHUB_TOKEN.
           #
           # A release PR opened with GITHUB_TOKEN does not get its checks run
