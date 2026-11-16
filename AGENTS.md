@@ -63,14 +63,14 @@ Other CI jobs: `baseline-checks.yml` calls the shared `ci-baseline` workflow, an
 
 ## Conventions and gotchas
 
-- Exception to the org rule that benchmarks multi-target: `Benchmarks` targets `net10.0` only, so it
-  needs only the .NET 10 runtime.
+- `Benchmarks` targets `net10.0` only, so it needs only the .NET 10 runtime.
 - `Directory.Build.props` references the analyzers Meziantou, Roslynator, ErrorProne.NET, Hyperlinq and
   ZeroAlloc.Analyzers with `TreatWarningsAsErrors`. A new warning fails the build; fix the code rather
   than suppressing it.
 - `System.Data.Async`, `DataSet`, `Adapters` and both `Serialization.*` projects set
-  `IsAotCompatible`. Reflection added there shows up as an IL2xxx or IL3xxx error, and the `AotSmoke`
-  publish is the consumer-side proof.
+  `IsAotCompatible`. Reflection added there shows up as an IL2xxx or IL3xxx error. The `AotSmoke`
+  publish references only `System.Data.Async` and `Adapters`, so it is the consumer-side proof for
+  those two; it does not exercise `DataSet` or either `Serialization.*` converter.
 - Adapters must stay reflection-free: the `DbProviderFactory` is passed as an instance and never looked
   up through `DbProviderFactories`.
 - A new generator diagnostic goes in `Diagnostics.cs` and in
