@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.6.0...v1.6.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* embed PDBs so Go to Definition shows the package source ([622fcdb](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/622fcdb2db25bc7fc32915ff30f993da6b279e1d))
+
 ## [1.6.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.5.6...v1.6.0) (2026-11-11)
 
 
