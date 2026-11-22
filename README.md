@@ -274,6 +274,10 @@ var restored = JsonSerializer.Deserialize<AsyncDataTable>(json, options);
 
 Both serializers produce identical JSON — you can serialize with one and deserialize with the other.
 
+### XML I/O
+
+`AsyncDataTable` and `AsyncDataSet` offer `ReadXmlAsync`, `WriteXmlAsync`, `ReadXmlSchemaAsync` and `WriteXmlSchemaAsync` over a `Stream`. They are truly asynchronous: reads copy the stream into a pooled in-memory buffer with `CopyToAsync` and parse from the buffer, and writes serialize into a pooled buffer and then `WriteAsync` and `FlushAsync` it. **The whole document is held in memory**, so for very large documents use the synchronous stream overloads (`ReadXml`, `WriteXml`). See the [XML I/O cookbook](website/docs/cookbook/xml-io.md).
+
 ### Dependency Injection
 
 Register an async provider factory from any existing `DbProviderFactory`:
