@@ -7,6 +7,10 @@ title: XML I/O
 
 `AsyncDataTable` and `AsyncDataSet` expose async versions of the standard ADO.NET XML methods. Use them to persist and restore table data without blocking the thread pool.
 
+## Memory use
+
+The async XML methods hold the whole document in memory. `ReadXmlAsync` and `ReadXmlSchemaAsync` copy the stream into a pooled buffer with `CopyToAsync` and then parse from that buffer, so the stream is never read synchronously. `WriteXmlAsync` and `WriteXmlSchemaAsync` serialize into a pooled buffer and then write and flush it with `WriteAsync` and `FlushAsync`. Cancellation is honoured while the stream is being copied or written, but not while the in-memory parse or serialization runs. For very large documents use the synchronous stream overloads (`ReadXml`, `WriteXml`), which stream without buffering. Only `Stream` overloads exist, so there is no path, `TextReader` or `XmlReader` variant.
+
 ## Write a Table to XML
 
 ```csharp

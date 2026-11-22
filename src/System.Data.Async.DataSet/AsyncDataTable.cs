@@ -183,47 +183,95 @@ public class AsyncDataTable : IDisposable
     public void WriteXmlSchema(Stream stream) => _inner.WriteXmlSchema(stream);
 
     // Async XML I/O
+    /// <summary>
+    /// Reads XML data asynchronously.
+    /// The whole document is copied into a pooled in-memory buffer with <see cref="Stream.CopyToAsync(Stream, CancellationToken)"/>
+    /// and then parsed synchronously from that buffer, so the stream is never read synchronously. Because the
+    /// whole document is held in memory, prefer the synchronous stream overload for very large documents.
+    /// </summary>
+    /// <param name="stream">The stream to read from.</param>
+    /// <param name="cancellationToken">Cancels the buffering of the stream.</param>
     [RequiresUnreferencedCode(TrimmingMessages.Xml)]
     [RequiresDynamicCode(TrimmingMessages.Xml)]
-    public ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
+    public async ValueTask ReadXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
-        _inner.ReadXml(reader);
-        return default;
+        var buffer = await XmlBuffer.ReadFromAsync(stream, cancellationToken).ConfigureAwait(false);
+        await using (buffer.ConfigureAwait(false))
+        {
+            using var reader = buffer.CreateReader();
+            _inner.ReadXml(reader);
+        }
     }
 
+    /// <summary>
+    /// Writes XML data asynchronously.
+    /// The document is serialized synchronously into a pooled in-memory buffer, which is then written to the
+    /// stream with <see cref="Stream.WriteAsync(ReadOnlyMemory{byte}, CancellationToken)"/> and flushed. Because
+    /// the whole document is held in memory, prefer the synchronous stream overload for very large documents.
+    /// </summary>
+    /// <param name="stream">The stream to write to.</param>
+    /// <param name="cancellationToken">Cancels the write to the stream.</param>
     [RequiresUnreferencedCode(TrimmingMessages.Xml)]
     [RequiresDynamicCode(TrimmingMessages.Xml)]
     public async ValueTask WriteXmlAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
-        await using (writer.ConfigureAwait(false))
+        ArgumentNullException.ThrowIfNull(stream);
+        cancellationToken.ThrowIfCancellationRequested();
+        var buffer = new XmlBuffer();
+        await using (buffer.ConfigureAwait(false))
         {
-            _inner.WriteXml(writer);
-            await writer.FlushAsync().ConfigureAwait(false);
+            using (var writer = XmlBuffer.CreateWriter(buffer))
+            {
+                _inner.WriteXml(writer);
+            }
+
+            await buffer.CopyToAndFlushAsync(stream, cancellationToken).ConfigureAwait(false);
         }
     }
 
+    /// <summary>
+    /// Reads an XML schema asynchronously.
+    /// The whole document is copied into a pooled in-memory buffer with <see cref="Stream.CopyToAsync(Stream, CancellationToken)"/>
+    /// and then parsed synchronously from that buffer, so the stream is never read synchronously. Because the
+    /// whole document is held in memory, prefer the synchronous stream overload for very large documents.
+    /// </summary>
+    /// <param name="stream">The stream to read from.</param>
+    /// <param name="cancellationToken">Cancels the buffering of the stream.</param>
     [RequiresUnreferencedCode(TrimmingMessages.Xml)]
     [RequiresDynamicCode(TrimmingMessages.Xml)]
-    public ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
+    public async ValueTask ReadXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        using var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true });
-        _inner.ReadXmlSchema(reader);
-        return default;
+        var buffer = await XmlBuffer.ReadFromAsync(stream, cancellationToken).ConfigureAwait(false);
+        await using (buffer.ConfigureAwait(false))
+        {
+            using var reader = buffer.CreateReader();
+            _inner.ReadXmlSchema(reader);
+        }
     }
 
+    /// <summary>
+    /// Writes the XML schema asynchronously.
+    /// The document is serialized synchronously into a pooled in-memory buffer, which is then written to the
+    /// stream with <see cref="Stream.WriteAsync(ReadOnlyMemory{byte}, CancellationToken)"/> and flushed. Because
+    /// the whole document is held in memory, prefer the synchronous stream overload for very large documents.
+    /// </summary>
+    /// <param name="stream">The stream to write to.</param>
+    /// <param name="cancellationToken">Cancels the write to the stream.</param>
     [RequiresUnreferencedCode(TrimmingMessages.Xml)]
     [RequiresDynamicCode(TrimmingMessages.Xml)]
     public async ValueTask WriteXmlSchemaAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        var writer = XmlWriter.Create(stream, new XmlWriterSettings { Async = true });
-        await using (writer.ConfigureAwait(false))
+        ArgumentNullException.ThrowIfNull(stream);
+        cancellationToken.ThrowIfCancellationRequested();
+        var buffer = new XmlBuffer();
+        await using (buffer.ConfigureAwait(false))
         {
-            _inner.WriteXmlSchema(writer);
-            await writer.FlushAsync().ConfigureAwait(false);
+            using (var writer = XmlBuffer.CreateWriter(buffer))
+            {
+                _inner.WriteXmlSchema(writer);
+            }
+
+            await buffer.CopyToAndFlushAsync(stream, cancellationToken).ConfigureAwait(false);
         }
     }
 

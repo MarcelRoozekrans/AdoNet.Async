@@ -94,7 +94,7 @@ JSON serialization and deserialization of an `AsyncDataTable` with System.Text.J
 | ReadXml_Sync | 100 | 2.31 | 2.28–2.33 | 164,258 B |
 
 :::warning
-The async XML methods run the synchronous `DataTable` serializer over an async-enabled `XmlReader` or `XmlWriter`; only the final flush of a write is awaited. They allocate more than the synchronous methods and, on a network or file stream, block while reading. [#348](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/348) tracks making them asynchronous.
+The table above was measured before the async XML methods were made truly asynchronous in 2.0.0 ([#348](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/348)) and has not been re-run since. The async methods now buffer the whole document in memory, so they allocate a pooled buffer on top of what the synchronous methods allocate. Use the synchronous stream overloads for very large documents.
 :::
 
 ## Design Decisions
