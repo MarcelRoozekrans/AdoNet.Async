@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.6.1...v1.6.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* load on every .NET 10 SDK: generator on Roslyn 5.0, AsyncEvents 1.2.2 ([#421](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/421)) ([3753064](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/37530642497f1acb390a5e4c2b22788810a74157))
+
 ## [1.6.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.6.0...v1.6.1) (2026-11-16)
 
 
