@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.6.1...v2.0.0) (2026-11-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* the async XML methods now buffer the full document in memory instead of streaming it. Use the synchronous ReadXml and WriteXml stream overloads for very large documents.
+
+### Features
+
+* make async XML methods truly asynchronous by buffering the document ([#415](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/415)) ([f2fa9a1](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/f2fa9a19fb17fd21baadab074dcb10f628248249)), closes [#348](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/348)
+
+
+### Bug Fixes
+
+* build the DataSet generator against Roslyn 5.0 so every .NET 10 SDK loads it ([#422](https://github.com/MarcelRoozekrans/AdoNet.Async/issues/422)) ([872b25a](https://github.com/MarcelRoozekrans/AdoNet.Async/commit/872b25a1e28ef4b585c25b62a09cf6f7e06e09e3))
+
 ## [1.6.1](https://github.com/MarcelRoozekrans/AdoNet.Async/compare/v1.6.0...v1.6.1) (2026-11-16)
 
 
