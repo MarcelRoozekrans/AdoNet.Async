@@ -2,5 +2,26 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>MarcelRoozekrans/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "description": [
+        "A source generator runs in the consumer's compiler, and the Microsoft.CodeAnalysis version",
+        "it references is the oldest compiler that loads it. SDK 10.0.1xx runs Roslyn 5.0, so the generator",
+        "stays below 5.1. Raise this cap only together with the documented minimum SDK.",
+        "See ZeroAlloc-Net/.github#77. Test projects may use a newer Roslyn."
+      ],
+      "matchDatasources": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "Microsoft.CodeAnalysis.CSharp",
+        "Microsoft.CodeAnalysis.Common"
+      ],
+      "matchFileNames": [
+        "src/**"
+      ],
+      "allowedVersions": "<5.1.0"
+    }
   ]
 }

@@ -73,6 +73,10 @@ Other CI jobs: `baseline-checks.yml` calls the shared `ci-baseline` workflow, an
   those two; it does not exercise `DataSet` or either `Serialization.*` converter.
 - Adapters must stay reflection-free: the `DbProviderFactory` is passed as an instance and never looked
   up through `DbProviderFactories`.
+- The generator references `Microsoft.CodeAnalysis.CSharp` 5.0.0, the compiler of SDK band 10.0.1xx, the
+  oldest supported SDK. A compiler older than the Roslyn the DLL references skips the generator with
+  `CS9057`, and nothing is generated. `renovate.json` holds it below 5.1; the test projects may use a newer
+  Roslyn. If a newer Roslyn API is needed, change the code; raise the floor only with the minimum SDK.
 - A new generator diagnostic goes in `Diagnostics.cs` and in
   `src/System.Data.Async.DataSet.Generator/AnalyzerReleases.Unshipped.md`. The generator project
   references `Microsoft.CodeAnalysis.Analyzers`, which reports a rule missing from that file as an error.
